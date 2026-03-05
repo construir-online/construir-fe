@@ -29,13 +29,14 @@ export default function CartItem({
 
   const primaryImage = product.images?.find((img) => img.isPrimary);
   const imageUrl = primaryImage?.url || "/placeholder-product.png";
+  const showPlaceholder = !imageUrl || imageUrl === "/placeholder-product.png" || imgError;
 
   const handleUpdateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1 || newQuantity > product.inventory) return;
 
     try {
       setLoading(true);
-      await onUpdateQuantity(itemUuid, product.uuid , newQuantity);
+      await onUpdateQuantity(itemUuid, product.uuid, newQuantity);
     } catch (error) {
       console.error("Error updating quantity:", error);
     } finally {
@@ -55,88 +56,90 @@ export default function CartItem({
   };
 
   return (
-    <div className="flex gap-4 py-4 border-b">
-      {/* Imagen del producto */}
-      <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-        {!imageUrl || imageUrl === "/placeholder-product.png" || imgError ? (
-          <Package className="w-8 h-8 text-gray-400" />
+    <div className={`flex gap-3 py-4 transition-opacity ${loading ? "opacity-50" : ""}`}>
+      {/* Imagen */}
+      <div className="relative w-16 h-16 flex-shrink-0 bg-gray-800 rounded-xl overflow-hidden flex items-center justify-center ring-1 ring-gray-700/50">
+        {showPlaceholder ? (
+          <Package className="w-7 h-7 text-gray-600" />
         ) : (
           <Image
             src={imageUrl}
             alt={product.name}
             fill
             className="object-cover"
-            sizes="80px"
+            sizes="64px"
             onError={() => setImgError(true)}
           />
         )}
       </div>
 
-      {/* Información del producto */}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-gray-900 truncate">{product.name}</h3>
-        <p className="text-sm text-gray-500">SKU: {product.sku}</p>
-        <div className="mt-1">
-          {priceVES && (
-            <p className="text-lg font-semibold text-blue-600">
-              {formatVES(priceVES)}
+      {/* Información */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div>
+          <h3 className="text-sm font-medium text-gray-100 truncate leading-snug">
+            {product.name}
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">SKU: {product.sku}</p>
+          <div className="mt-1">
+            {priceVES && (
+              <p className="text-sm font-semibold text-blue-400 leading-none">
+                {formatVES(priceVES)}
+              </p>
+            )}
+            <p className={`leading-none ${priceVES ? "text-xs text-gray-500 mt-0.5" : "text-sm font-semibold text-blue-400"}`}>
+              {formatUSD(priceUSD)}
             </p>
-          )}
-          <p className={`${priceVES ? 'text-xs text-gray-600' : 'text-lg font-semibold text-blue-600'}`}>
-            {formatUSD(priceUSD)}
-          </p>
+          </div>
         </div>
 
-        {/* Stock warning */}
         {quantity > product.inventory && (
-          <p className="text-xs text-red-600 mt-1">
+          <p className="text-xs text-red-400 mt-1">
             Solo {product.inventory} disponibles
           </p>
         )}
       </div>
 
-      {/* Controles de cantidad */}
-      <div className="flex flex-col items-end gap-2">
-        <div className="flex items-center gap-2 bg-gray-100 rounded-lg">
+      {/* Controles */}
+      <div className="flex flex-col items-end justify-between gap-2 flex-shrink-0">
+        {/* Quantity stepper */}
+        <div className="flex items-center bg-gray-800 rounded-lg ring-1 ring-gray-700/60">
           <button
             onClick={() => handleUpdateQuantity(quantity - 1)}
             disabled={loading || quantity <= 1}
-            className="p-1 hover:bg-gray-200 rounded-l-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-2 py-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-l-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             aria-label="Disminuir cantidad"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-3.5 h-3.5" />
           </button>
-
-          <span className="px-3 py-1 font-medium min-w-[2rem] text-center">
+          <span className="px-2.5 py-1.5 text-sm font-medium text-white min-w-[2rem] text-center tabular-nums">
             {quantity}
           </span>
-
           <button
             onClick={() => handleUpdateQuantity(quantity + 1)}
             disabled={loading || quantity >= product.inventory}
-            className="p-1 hover:bg-gray-200 rounded-r-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-2 py-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-r-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             aria-label="Aumentar cantidad"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Subtotal y botón eliminar */}
+        {/* Subtotal + eliminar */}
         <div className="flex items-center gap-2">
           <div className="text-right">
             {subtotalVES && (
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-sm font-semibold text-white leading-none">
                 {formatVES(subtotalVES)}
               </p>
             )}
-            <p className={`${subtotalVES ? 'text-xs text-gray-600' : 'text-sm font-semibold text-gray-900'}`}>
+            <p className={`leading-none ${subtotalVES ? "text-xs text-gray-500 mt-0.5" : "text-sm font-semibold text-white"}`}>
               {formatUSD(subtotalUSD)}
             </p>
           </div>
           <button
             onClick={handleRemove}
             disabled={loading}
-            className="p-1 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+            className="p-1.5 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg disabled:opacity-30 transition-colors"
             aria-label="Eliminar del carrito"
           >
             <Trash2 className="w-4 h-4" />
