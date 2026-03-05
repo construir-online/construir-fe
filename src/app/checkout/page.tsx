@@ -254,7 +254,6 @@ export default function CheckoutPage() {
         const response = await getProducts({
           page: 1,
           limit: 100,
-          published: true,
         });
         const matchedProducts = response.data.filter((p) =>
           productUuids.includes(p.uuid)

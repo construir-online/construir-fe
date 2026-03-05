@@ -68,7 +68,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       const response = await getProducts({
         page: 1,
         limit: 100,
-        published: true,
       });
 
       const matchedProducts = response.data.filter((p) =>

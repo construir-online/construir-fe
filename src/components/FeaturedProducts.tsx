@@ -21,9 +21,8 @@ export default function FeaturedProducts() {
     try {
       setLoading(true);
       // Obtener productos destacados y publicados
-      const response = await productsService.getPaginated({
+      const response = await productsService.getPublicPaginated({
         featured: true,
-        published: true,
         limit: 8,
         sortBy: 'createdAt',
         sortOrder: 'DESC',

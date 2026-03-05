@@ -85,22 +85,14 @@ export default function ProductCardContent({
 
       {/* Precio */}
       <div className="flex items-baseline gap-1">
-        {isCompact ? (
-          // Compact: solo USD
-          <span className={`${classes.priceSize} font-bold text-gray-900`}>
+        <div className="flex-1">
+          {priceVES && (
+            <p className={`${classes.priceSize} font-bold text-blue-600`}>{formatVES(priceVES)}</p>
+          )}
+          <p className={`${priceVES ? 'text-xs text-gray-500' : `${classes.priceSize} font-bold text-blue-600`}`}>
             {formatUSD(priceUSD)}
-          </span>
-        ) : (
-          // Default: VES destacado + USD secundario
-          <div className="flex-1">
-            {priceVES && (
-              <p className="text-2xl font-bold text-blue-600">{formatVES(priceVES)}</p>
-            )}
-            <p className={`${priceVES ? 'text-sm text-gray-600' : 'text-2xl font-bold text-blue-600'}`}>
-              {formatUSD(priceUSD)}
-            </p>
-          </div>
-        )}
+          </p>
+        </div>
       </div>
 
       {/* Stock - solo si showStock y no compact */}

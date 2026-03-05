@@ -61,10 +61,20 @@ export function getPaymentMethodConfig(method: PaymentMethod): PaymentMethodConf
 }
 
 /**
- * Obtiene solo los métodos de pago activos
+ * Verifica si los detalles de un método tienen al menos un valor real configurado
+ */
+export function isPaymentMethodConfigured(method: PaymentMethod): boolean {
+  const details = paymentConfig[method].details;
+  return Object.values(details).some((v) => typeof v === 'string' && v.trim() !== '');
+}
+
+/**
+ * Obtiene solo los métodos de pago activos y con detalles configurados
  */
 export function getActivePaymentMethods(): PaymentMethodConfig[] {
-  return Object.values(paymentConfig).filter(config => config.enabled);
+  return Object.values(paymentConfig).filter(
+    (config) => config.enabled && isPaymentMethodConfigured(config.type),
+  );
 }
 
 /**

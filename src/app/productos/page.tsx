@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import { productsService } from "@/services/products";
 import type { Product } from "@/types";
 import { CategoryMenu } from "@/components/CategoryMenu";
-import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
+import ProductCard from "@/components/product/ProductCard";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,11 +25,10 @@ export default function ProductsPage() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const response = await productsService.getPaginated({
+      const response = await productsService.getPublicPaginated({
         page,
         limit: 12,
-        published: true,
-        category: categoryParam || undefined,
+        categoryUuid: categoryParam || undefined,
         search: search || undefined,
         sortBy: 'createdAt',
         sortOrder: 'DESC',
@@ -45,15 +42,8 @@ export default function ProductsPage() {
     }
   };
 
-  const getPrimaryImage = (product: Product) => {
-    if (!product.images || product.images.length === 0) return null;
-    const primary = product.images.find(img => img.isPrimary);
-    return primary || product.images[0];
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar - Category Menu */}
@@ -68,7 +58,6 @@ export default function ProductsPage() {
                 {categoryParam ? `Productos - ${categoryParam}` : 'Todos los Productos'}
               </h2>
 
-              {/* Search Bar */}
               <input
                 type="text"
                 placeholder="Buscar productos..."
@@ -121,87 +110,18 @@ export default function ProductsPage() {
             {!loading && products.length > 0 && (
               <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-                  {products.map((product) => {
-                    const primaryImage = getPrimaryImage(product);
-
-                    return (
-                      <Link
-                        key={product.uuid}
-                        href={`/productos/${product.uuid}`}
-                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group"
-                      >
-                        {/* Imagen del producto */}
-                        <div className="relative bg-gray-50 h-64 flex items-center justify-center p-6">
-                          {primaryImage ? (
-                            <Image
-                              src={primaryImage.url}
-                              alt={product.name}
-                              width={200}
-                              height={200}
-                              className="object-contain group-hover:scale-105 transition-transform"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                              <svg
-                                className="w-20 h-20 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={1.5}
-                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                          {product.featured && (
-                            <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold">
-                              Destacado
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Información del producto */}
-                        <div className="p-4">
-                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                            {product.categories?.[0]?.name}
-                          </div>
-                          <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[40px]">
-                            {product.name}
-                          </h3>
-                          {product.shortDescription && (
-                            <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-                              {product.shortDescription}
-                            </p>
-                          )}
-                          <div className="mb-3">
-                            {product.priceVes && (
-                              <div className="text-2xl font-bold text-blue-600">
-                                {formatVES(parsePrice(product.priceVes))}
-                              </div>
-                            )}
-                            <div className={`${product.priceVes ? 'text-sm text-gray-600' : 'text-2xl font-bold text-blue-600'}`}>
-                              {formatUSD(parsePrice(product.price))}
-                            </div>
-                          </div>
-                          {product.inventory > 0 ? (
-                            <div className="text-sm font-semibold text-green-600">
-                              {product.inventory < 10
-                                ? `Solo ${product.inventory} disponibles`
-                                : 'Disponible'}
-                            </div>
-                          ) : (
-                            <div className="text-sm font-semibold text-red-600">
-                              Sin stock
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    );
-                  })}
+                  {products.map((product, index) => (
+                    <ProductCard
+                      key={product.uuid}
+                      product={product}
+                      variant="default"
+                      showAddToCart={true}
+                      showBadges={true}
+                      showDescription={true}
+                      showStock={true}
+                      priority={index < 6}
+                    />
+                  ))}
                 </div>
 
                 {/* Paginación */}

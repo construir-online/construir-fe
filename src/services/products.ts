@@ -52,6 +52,28 @@ export const productsService = {
     return apiClient.get<PaginatedResponse<Product>>(url);
   },
 
+  // Public - Listado paginado (published=true forzado en backend)
+  async getPublicPaginated(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryUuid?: string;
+    featured?: boolean;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  }): Promise<PaginatedResponse<Product>> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.categoryUuid) queryParams.append('categoryUuid', params.categoryUuid);
+    if (params?.featured !== undefined) queryParams.append('featured', params.featured.toString());
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    const url = `/products${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return apiClient.get<PaginatedResponse<Product>>(url);
+  },
+
   // Admin - Estadísticas
   async getStats(): Promise<ProductStats> {
     return apiClient.get<ProductStats>("/products/admin/stats");
@@ -138,11 +160,10 @@ export async function getProducts(params?: {
   page?: number;
   limit?: number;
   search?: string;
-  category?: string;
-  published?: boolean;
+  categoryUuid?: string;
   featured?: boolean;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
 }): Promise<PaginatedResponse<Product>> {
-  return productsService.getPaginated(params);
+  return productsService.getPublicPaginated(params);
 }

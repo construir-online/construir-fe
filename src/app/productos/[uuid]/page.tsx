@@ -29,20 +29,10 @@ export default function ProductDetailPage() {
   const loadProduct = async () => {
     try {
       setLoading(true);
-      // Buscar por UUID
-      const response = await productsService.getPaginated({
-        page: 1,
-        limit: 100,
-        published: true,
-      });
-
-      const foundProduct = response.data.find((p) => p.uuid === uuid);
-
-      if (foundProduct) {
-        setProduct(foundProduct);
-        const primaryImage = foundProduct.images?.find((img) => img.isPrimary);
-        setSelectedImage(primaryImage?.url || foundProduct.images?.[0]?.url || "");
-      }
+      const foundProduct = await productsService.getByUuid(uuid);
+      setProduct(foundProduct);
+      const primaryImage = foundProduct.images?.find((img) => img.isPrimary);
+      setSelectedImage(primaryImage?.url || foundProduct.images?.[0]?.url || "");
     } catch (error) {
       console.error("Error loading product:", error);
     } finally {
