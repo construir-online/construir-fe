@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { getProducts } from "@/services/products";
+import { localCartService } from "@/services/cart";
 import CartItem from "./CartItem";
 import type { Product } from "@/types";
 import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
@@ -28,54 +29,48 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     removeFromCart,
     clearCart,
     getTotalItems,
+    refreshCart,
   } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [loadedProductUuids, setLoadedProductUuids] = useState<Set<string>>(
-    new Set()
-  );
 
   const isAuthenticated = !!token;
   const totalItems = getTotalItems();
 
   // Cargar productos para el carrito local cuando se abre el drawer
   useEffect(() => {
-    if (!isAuthenticated && localCart.items.length > 0) {
-      const productUuids = localCart.items.map((item) => item.productUuid);
-      const needsLoading = productUuids.some(
-        (uuid) => !loadedProductUuids.has(uuid)
-      );
+    if (!isOpen || isAuthenticated || localCart.items.length === 0) return;
 
-      if (needsLoading || products.length === 0) {
-        loadLocalCartProducts();
-      }
+    const cartUuids = localCart.items.map((item) => item.productUuid);
+    const loadedUuids = new Set(products.map((p) => p.uuid));
+    const needsLoading = cartUuids.some((uuid) => !loadedUuids.has(uuid));
+
+    if (needsLoading) {
+      loadLocalCartProducts();
     }
-  }, [
-    isAuthenticated,
-    localCart,
-    isOpen,
-    loadedProductUuids,
-    products.length,
-  ]);
+  }, [isOpen, isAuthenticated, localCart.items]);
 
   const loadLocalCartProducts = async () => {
     try {
       setLoadingProducts(true);
       const productUuids = localCart.items.map((item) => item.productUuid);
 
-      // Cargar productos desde la API
-      const response = await getProducts({
-        page: 1,
-        limit: 100,
-      });
-
+      const response = await getProducts({ page: 1, limit: 100 });
       const matchedProducts = response.data.filter((p) =>
         productUuids.includes(p.uuid)
       );
-
       setProducts(matchedProducts);
-      setLoadedProductUuids(new Set(matchedProducts.map((p) => p.uuid)));
+
+      // Limpiar del localStorage los items cuyo producto ya no existe
+      const matchedUuids = new Set(matchedProducts.map((p) => p.uuid));
+      const validItems = localCart.items.filter((item) =>
+        matchedUuids.has(item.productUuid)
+      );
+      if (validItems.length !== localCart.items.length) {
+        localCartService.saveCart({ items: validItems });
+        await refreshCart();
+      }
     } catch (error) {
       console.error("Error loading products:", error);
     } finally {

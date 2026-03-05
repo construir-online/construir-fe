@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
@@ -45,6 +46,14 @@ export default function Step4Payment({
 }: Step4PaymentProps) {
   const t = useTranslations('checkout');
   const { methods: paymentMethods, loading, error } = usePaymentMethods();
+
+  // Auto-seleccionar el primer método disponible si el actual no está en la lista
+  useEffect(() => {
+    if (paymentMethods.length > 0 && !paymentMethods.some((m) => m.type === paymentMethod)) {
+      onPaymentMethodChange(paymentMethods[0].type);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentMethods]);
 
   if (loading) {
     return (

@@ -477,7 +477,7 @@ export default function CheckoutPage() {
         !zellePayment.senderBank ||
         !zellePayment.receipt
       ) {
-        alert("Por favor completa todos los campos del pago Zelle");
+        toast.error("Por favor completa todos los campos del pago Zelle");
         return false;
       }
     } else if (paymentMethod === "pagomovil") {
@@ -488,7 +488,7 @@ export default function CheckoutPage() {
         !pagomovilPayment.referenceCode ||
         !pagomovilPayment.receipt
       ) {
-        alert("Por favor completa todos los campos del Pago Móvil");
+        toast.error("Por favor completa todos los campos del Pago Móvil");
         return false;
       }
     } else if (paymentMethod === "transferencia") {
@@ -498,7 +498,7 @@ export default function CheckoutPage() {
         !transferenciaPayment.referenceNumber ||
         !transferenciaPayment.receipt
       ) {
-        alert("Por favor completa todos los campos de la Transferencia");
+        toast.error("Por favor completa todos los campos de la Transferencia");
         return false;
       }
     }

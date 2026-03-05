@@ -21,12 +21,24 @@ export const localCartService = {
    */
   getCart(): LocalCart {
     if (typeof window === 'undefined') return { items: [] };
-
     try {
-      const cart = localStorage.getItem(CART_STORAGE_KEY);
-      return cart ? JSON.parse(cart) : { items: [] };
-    } catch (error) {
-      console.error('Error reading cart from localStorage:', error);
+      const raw = localStorage.getItem(CART_STORAGE_KEY);
+      if (!raw) return { items: [] };
+      const cart: LocalCart = JSON.parse(raw);
+      const sanitized: LocalCart = {
+        items: (cart.items ?? []).filter(
+          (item) =>
+            typeof item.productUuid === 'string' &&
+            item.productUuid.trim() !== '' &&
+            typeof item.quantity === 'number' &&
+            item.quantity >= 1,
+        ),
+      };
+      if (sanitized.items.length !== (cart.items ?? []).length) {
+        this.saveCart(sanitized);
+      }
+      return sanitized;
+    } catch {
       return { items: [] };
     }
   },

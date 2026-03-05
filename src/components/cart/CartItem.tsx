@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, Package } from "lucide-react";
 import type { CartItem as CartItemType, Product } from "@/types";
 import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
 
@@ -18,6 +18,7 @@ export default function CartItem({
   onRemove,
 }: CartItemProps) {
   const [loading, setLoading] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const itemUuid = 'uuid' in item ? item.uuid : '';
   const { product, quantity } = item;
@@ -56,14 +57,19 @@ export default function CartItem({
   return (
     <div className="flex gap-4 py-4 border-b">
       {/* Imagen del producto */}
-      <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt={product.name}
-          fill
-          className="object-cover"
-          sizes="80px"
-        />
+      <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+        {!imageUrl || imageUrl === "/placeholder-product.png" || imgError ? (
+          <Package className="w-8 h-8 text-gray-400" />
+        ) : (
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover"
+            sizes="80px"
+            onError={() => setImgError(true)}
+          />
+        )}
       </div>
 
       {/* Información del producto */}
