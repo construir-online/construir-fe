@@ -11,6 +11,7 @@ export function CategoryMenu() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get('categoria');
 
@@ -23,11 +24,9 @@ export function CategoryMenu() {
       setLoading(true);
       const data = await categoriesService.getVisible();
 
-      // Organize categories by parent-child structure
       const parentCategories = data.filter(cat => !cat.parent);
       setCategories(parentCategories);
 
-      // Auto-expand categories that have the current selection
       if (currentCategory) {
         const currentCat = data.find(c => c.slug === currentCategory);
         if (currentCat?.parent) {
@@ -55,10 +54,10 @@ export function CategoryMenu() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
         <div className="animate-pulse space-y-3">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-8 bg-gray-200 rounded"></div>
+            <div key={i} className="h-8 bg-gray-200 dark:bg-slate-700 rounded" />
           ))}
         </div>
       </div>
@@ -66,22 +65,37 @@ export function CategoryMenu() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+    <div className="bg-white dark:bg-slate-800 rounded-lg shadow">
+      {/* Header — toggle en mobile, estático en desktop */}
+      <button
+        type="button"
+        onClick={() => setIsMenuOpen(prev => !prev)}
+        className="w-full flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 lg:cursor-default"
+      >
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
           <Grid className="w-5 h-5" />
           Categorías
+          {currentCategory && (
+            <span className="ml-1 text-sm font-normal text-blue-600 dark:text-blue-400 truncate max-w-[120px]">
+              · {currentCategory}
+            </span>
+          )}
         </h2>
-      </div>
+        <ChevronDown
+          className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform lg:hidden ${isMenuOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
 
-      <nav className="p-2">
+      {/* Contenido — visible siempre en desktop, toggle en mobile */}
+      <nav className={`p-2 ${isMenuOpen ? 'block' : 'hidden'} lg:block`}>
         {/* All Products Link */}
         <Link
           href="/productos"
+          onClick={() => setIsMenuOpen(false)}
           className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
             !currentCategory
-              ? 'bg-blue-50 text-blue-700 font-medium'
-              : 'text-gray-700 hover:bg-gray-50'
+              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
           }`}
         >
           <Grid className="w-4 h-4" />
@@ -102,29 +116,30 @@ export function CategoryMenu() {
                   {hasChildren && (
                     <button
                       onClick={() => toggleCategory(category.uuid)}
-                      className="p-1 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors"
                       aria-label={isExpanded ? 'Contraer' : 'Expandir'}
                     >
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-gray-500" />
+                        <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-gray-500" />
+                        <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       )}
                     </button>
                   )}
                   <Link
                     href={`/productos?categoria=${category.slug}`}
+                    onClick={() => setIsMenuOpen(false)}
                     className={`flex-1 px-3 py-2 rounded-md transition-colors ${
                       !hasChildren ? 'ml-5' : ''
                     } ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     {category.name}
                     {hasChildren && (
-                      <span className="ml-2 text-xs text-gray-500">
+                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
                         ({category.childrens?.length || 0})
                       </span>
                     )}
@@ -136,15 +151,15 @@ export function CategoryMenu() {
                   <div className="ml-6 mt-1 space-y-1">
                     {category.childrens?.map((child) => {
                       const isChildActive = currentCategory === child.slug;
-
                       return (
                         <Link
                           key={child.uuid}
                           href={`/productos?categoria=${child.slug}`}
+                          onClick={() => setIsMenuOpen(false)}
                           className={`block px-3 py-2 rounded-md text-sm transition-colors ${
                             isChildActive
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-gray-600 hover:bg-gray-50'
+                              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                           }`}
                         >
                           {child.name}

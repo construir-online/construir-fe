@@ -54,7 +54,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar - Category Menu */}
@@ -64,40 +64,29 @@ export default function ProductsPage() {
 
           {/* Products Section */}
           <div className="flex-1">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {categoryParam ? `Productos - ${categoryParam}` : 'Todos los Productos'}
+            {categoryParam && (
+              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 capitalize">
+                {categoryParam}
               </h2>
-
-              <input
-                type="text"
-                placeholder="Buscar productos..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+            )}
 
             {loading && (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <p className="text-gray-600">Cargando productos...</p>
+                <p className="text-gray-600 dark:text-gray-400">Cargando productos...</p>
               </div>
             )}
 
             {error && (
-              <div className="rounded-md bg-red-50 p-4 mb-6">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 mb-6">
+                <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
               </div>
             )}
 
             {!loading && !error && products.length === 0 && (
-              <div className="text-center py-12 bg-white rounded-lg shadow">
+              <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-lg shadow">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400 mb-4"
+                  className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -109,9 +98,9 @@ export default function ProductsPage() {
                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                   />
                 </svg>
-                <p className="text-gray-600 text-lg">No hay productos disponibles</p>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">No hay productos disponibles</p>
                 {(categoryParam || search) && (
-                  <p className="text-gray-500 text-sm mt-2">
+                  <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
                     Intenta ajustar tus filtros de búsqueda
                   </p>
                 )}
@@ -120,7 +109,7 @@ export default function ProductsPage() {
 
             {!loading && products.length > 0 && (
               <>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 mb-8">
                   {products.map((product, index) => (
                     <ProductCard
                       key={product.uuid}
@@ -140,17 +129,17 @@ export default function ProductsPage() {
                   <button
                     onClick={() => setPage(page - 1)}
                     disabled={page === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Anterior
                   </button>
-                  <span className="text-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300">
                     Página {page} de {lastPage}
                   </span>
                   <button
                     onClick={() => setPage(page + 1)}
                     disabled={page === lastPage}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Siguiente
                   </button>
