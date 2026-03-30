@@ -76,7 +76,7 @@ export default function FeaturedProducts() {
         <div className="mt-12 text-center">
           <Link
             href="/productos"
-            className="inline-block px-8 py-3 text-lg font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-block px-8 py-3 text-lg font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             {t('viewAllProducts')}
           </Link>

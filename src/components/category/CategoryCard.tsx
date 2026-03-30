@@ -13,13 +13,13 @@ export default function CategoryCard({ category, index = 0 }: CategoryCardProps)
   return (
     <Link
       href={`/productos?category=${category.slug}`}
-      className="group relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-200"
+      className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500"
       style={{
         animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
       }}
     >
       {/* Imagen o icono de categoría */}
-      <div className="aspect-[4/3] relative bg-gradient-to-br from-blue-50 via-gray-50 to-blue-50 overflow-hidden">
+      <div className="aspect-[4/3] relative bg-gradient-to-br from-blue-50 via-gray-50 to-blue-50 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 overflow-hidden">
         {category.image ? (
           <>
             <img
@@ -40,18 +40,18 @@ export default function CategoryCard({ category, index = 0 }: CategoryCardProps)
         )}
 
         {/* Badge de "Ver productos" */}
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-          <ArrowRight className="w-4 h-4 text-blue-600" />
+        <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+          <ArrowRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
         </div>
       </div>
 
       {/* Contenido de la tarjeta */}
       <div className="p-5">
-        <h3 className="text-base md:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1 line-clamp-1">
+        <h3 className="text-base md:text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-1 line-clamp-1">
           {category.name}
         </h3>
         {category.description && (
-          <p className="text-xs md:text-sm text-gray-500 line-clamp-2 leading-relaxed">
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
             {category.description}
           </p>
         )}

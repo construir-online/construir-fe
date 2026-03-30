@@ -23,7 +23,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-white shadow-md sticky top-0 z-50">
+      <nav className="bg-white dark:bg-slate-900 shadow-md dark:shadow-slate-800/50 sticky top-0 z-50 border-b border-transparent dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -42,14 +42,14 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-6">
               <Link
                 href="/productos"
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
               >
                 {t('products')}
               </Link>
 
               <Link
                 href="/about"
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
               >
                 {t('about')}
               </Link>
@@ -63,12 +63,12 @@ export default function Navbar() {
               {/* Mostrar login/registro o usuario */}
               {user ? (
                 <div className="flex items-center gap-4">
-                  <span className="text-gray-700 text-sm">
+                  <span className="text-gray-700 dark:text-gray-300 text-sm">
                     {t('welcome', { name: user.firstName })}
                   </span>
                   <button
                     onClick={logout}
-                    className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
                   >
                     {t('logout')}
                   </button>
@@ -77,13 +77,13 @@ export default function Navbar() {
                 <div className="flex items-center gap-3">
                   <Link
                     href="/login"
-                    className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
                   >
                     {t('login')}
                   </Link>
                   <Link
                     href="/registro"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                    className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium transition-colors"
                   >
                     {t('register')}
                   </Link>
@@ -97,7 +97,7 @@ export default function Navbar() {
 
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-gray-700 hover:text-blue-600 p-2"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 p-2"
                 aria-label={t('menu', { defaultValue: 'Menú' })}
               >
                 {isMobileMenuOpen ? (
@@ -111,7 +111,7 @@ export default function Navbar() {
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="md:hidden border-t border-gray-200 dark:border-slate-800 py-4">
               <div className="flex flex-col space-y-4">
                 <Link
                   href="/productos"
@@ -134,10 +134,10 @@ export default function Navbar() {
                   <LanguageSwitcher />
                 </div>
 
-                <div className="border-t border-gray-200 pt-4">
+                <div className="border-t border-gray-200 dark:border-slate-800 pt-4">
                   {user ? (
                     <div className="flex flex-col space-y-3">
-                      <span className="text-gray-700 text-sm font-medium">
+                      <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">
                         {t('welcome', { name: user.firstName })}
                       </span>
                       <button
@@ -158,7 +158,7 @@ export default function Navbar() {
                       </Link>
                       <Link
                         href="/registro"
-                        className="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors text-center"
+                        className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium transition-colors text-center"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {t('register')}

@@ -45,7 +45,7 @@ export default function ProductCardContent({
     <div className={`${classes.padding} ${classes.spacingY}`}>
       {/* Categories */}
       {product.categories && product.categories.length > 0 && (
-        <div className={`${classes.categorySize} font-semibold text-gray-500 uppercase tracking-wide`}>
+        <div className={`${classes.categorySize} font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide`}>
           {isCompact ? (
             // Compact: solo primera categoría
             <span>{product.categories[0]?.name}</span>
@@ -55,7 +55,7 @@ export default function ProductCardContent({
               {product.categories.slice(0, 2).map((category) => (
                 <span
                   key={category.uuid}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {category.name}
@@ -67,18 +67,18 @@ export default function ProductCardContent({
       )}
 
       {/* Nombre del producto */}
-      <h3 className={`${classes.nameSize} text-gray-800 line-clamp-2 ${classes.minHeight} group-hover:text-blue-600 transition-colors`}>
+      <h3 className={`${classes.nameSize} text-gray-800 dark:text-gray-200 line-clamp-2 ${classes.minHeight} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
         {product.name}
       </h3>
 
       {/* SKU - solo si showSku y no compact */}
       {showSku && !isCompact && (
-        <p className="text-sm text-gray-500">{tCart('sku')}: {product.sku}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{tCart('sku')}: {product.sku}</p>
       )}
 
       {/* Descripción corta - solo si showDescription y no compact */}
       {showDescription && !isCompact && product.shortDescription && (
-        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 hidden sm:block">
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2 hidden sm:block">
           {product.shortDescription}
         </p>
       )}
@@ -89,7 +89,7 @@ export default function ProductCardContent({
           {priceVES && (
             <p className={`${classes.priceSize} font-bold text-blue-600`}>{formatVES(priceVES)}</p>
           )}
-          <p className={`${priceVES ? 'text-xs text-gray-500' : `${classes.priceSize} font-bold text-blue-600`}`}>
+          <p className={`${priceVES ? 'text-xs text-gray-500 dark:text-gray-400' : `${classes.priceSize} font-bold text-blue-600 dark:text-blue-400`}`}>
             {formatUSD(priceUSD)}
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function ProductCardContent({
 
       {/* Stock - solo si showStock y no compact */}
       {showStock && !isCompact && (
-        <div className="flex items-center gap-1 text-sm text-gray-500">
+        <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
           <Package className="w-4 h-4" />
           <span>{product.inventory} {tCart('stock')}</span>
         </div>
@@ -116,7 +116,7 @@ export default function ProductCardContent({
       {showAddToCart && isOutOfStock && (
         <button
           disabled
-          className="w-full px-6 py-3 bg-gray-300 text-gray-600 rounded-lg font-semibold cursor-not-allowed"
+          className="w-full px-6 py-3 bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
         >
           {tCart('notAvailable')}
         </button>

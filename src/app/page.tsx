@@ -6,7 +6,7 @@ import FeaturedProducts from "@/components/FeaturedProducts";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-slate-950 dark:to-slate-900">
       {/* Banner Carousel - spacing condicional */}
       <div className="pt-4 md:pt-0 mb-8 sm:mb-0 relative z-0">
         <BannerCarousel />

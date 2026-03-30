@@ -17,9 +17,9 @@ interface ProductCardImageProps {
 
 function ProductImagePlaceholder() {
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600">
       <svg
-        className="w-20 h-20 text-gray-400"
+        className="w-20 h-20 text-gray-400 dark:text-slate-500"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -52,7 +52,7 @@ export default function ProductCardImage({
   const showPlaceholder = !imageUrl || imageUrl === "/placeholder-product.png" || imgError;
 
   return (
-    <div className={`relative bg-gray-50 ${imageHeight} flex items-center justify-center p-3 sm:p-6`}>
+    <div className={`relative bg-gray-50 dark:bg-slate-700 ${imageHeight} flex items-center justify-center p-3 sm:p-6`}>
       {/* Image or placeholder */}
       {showPlaceholder ? (
         <ProductImagePlaceholder />

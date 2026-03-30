@@ -30,12 +30,12 @@ export default function FeaturedCategories() {
 
   if (loading) {
     return (
-      <div className="py-16 bg-gradient-to-b from-white via-blue-50/30 to-white">
+      <div className="py-16 bg-gradient-to-b from-white via-blue-50/30 to-white dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Skeleton */}
           <div className="text-center mb-12">
-            <div className="h-10 bg-gray-200 rounded-lg w-96 mx-auto mb-4 animate-pulse" />
-            <div className="h-4 bg-gray-200 rounded w-64 mx-auto animate-pulse" />
+            <div className="h-10 bg-gray-200 dark:bg-slate-700 rounded-lg w-96 mx-auto mb-4 animate-pulse" />
+            <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-64 mx-auto animate-pulse" />
           </div>
 
           {/* Cards Skeleton */}
@@ -54,11 +54,11 @@ export default function FeaturedCategories() {
   }
 
   return (
-    <div className="py-16 bg-gradient-to-b from-white via-blue-50/30 to-white">
+    <div className="py-16 bg-gradient-to-b from-white via-blue-50/30 to-white dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header mejorado */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
             {t('featuredCategories', { defaultValue: 'Categorías Destacadas' })}
           </h2>
         </div>
