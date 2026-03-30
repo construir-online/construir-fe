@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { productsService } from "@/services/products";
 import type { Product } from "@/types";
@@ -8,15 +8,26 @@ import { CategoryMenu } from "@/components/CategoryMenu";
 import ProductCard from "@/components/product/ProductCard";
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get('categoria');
+  const searchParam = searchParams.get('search');
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParam || "");
 
-  const searchParams = useSearchParams();
-  const categoryParam = searchParams.get('categoria');
+  // Sincronizar con el parámetro de URL (navegación desde navbar)
+  const prevSearchParam = useRef(searchParam);
+  useEffect(() => {
+    if (searchParam !== prevSearchParam.current) {
+      prevSearchParam.current = searchParam;
+      setSearch(searchParam || '');
+      setPage(1);
+    }
+  }, [searchParam]);
 
   useEffect(() => {
     loadProducts();

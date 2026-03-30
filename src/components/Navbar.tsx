@@ -9,25 +9,31 @@ import { useAuth } from "@/context/AuthContext";
 import CartButton from "./cart/CartButton";
 import CartDrawer from "./cart/CartDrawer";
 import LanguageSwitcher from "./LanguageSwitcher";
+import SearchBar from "./SearchBar";
 
 export default function Navbar() {
   const t = useTranslations('nav');
   const { user, logout } = useAuth();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchActive, setIsMobileSearchActive] = useState(false);
 
   const handleLogout = () => {
     logout();
     setIsMobileMenuOpen(false);
   };
 
+  const cancelMobileSearch = () => {
+    setIsMobileSearchActive(false);
+  };
+
   return (
     <>
       <nav className="bg-white dark:bg-slate-900 shadow-md dark:shadow-slate-800/50 sticky top-0 z-50 border-b border-transparent dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center flex-shrink-0">
+          <div className="flex items-center gap-3 h-16">
+            {/* Logo — oculto en mobile cuando la búsqueda está activa */}
+            <Link href="/" className={`flex items-center flex-shrink-0 ${isMobileSearchActive ? 'hidden md:flex' : ''}`}>
               <Image
                 src="/construir-logo.png"
                 alt="Construir Logo"
@@ -38,8 +44,28 @@ export default function Navbar() {
               />
             </Link>
 
+            {/* Búsqueda mobile — siempre visible, se expande al hacer focus */}
+            <div className="md:hidden flex items-center gap-2 flex-1">
+              <div className="flex-1" onClick={() => setIsMobileSearchActive(true)}>
+                <SearchBar
+                  onSearch={cancelMobileSearch}
+                  onClickOutside={cancelMobileSearch}
+                  autoFocus={isMobileSearchActive}
+                />
+              </div>
+              {isMobileSearchActive && (
+                <button
+                  type="button"
+                  onClick={cancelMobileSearch}
+                  className="flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-6 ml-auto">
               <Link
                 href="/productos"
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
@@ -53,6 +79,11 @@ export default function Navbar() {
               >
                 {t('about')}
               </Link>
+
+              {/* Barra de búsqueda */}
+              <div className="w-48">
+                <SearchBar inputClassName="" />
+              </div>
 
               {/* Botón del carrito */}
               <CartButton onClick={() => setIsCartOpen(true)} />
@@ -91,22 +122,23 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile: Cart Button and Menu Toggle */}
-            <div className="flex md:hidden items-center gap-3">
-              <CartButton onClick={() => setIsCartOpen(true)} />
-
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 p-2"
-                aria-label={t('menu', { defaultValue: 'Menú' })}
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
+            {/* Mobile: Cart and Menu Toggle — ocultos cuando búsqueda activa */}
+            {!isMobileSearchActive && (
+              <div className="flex md:hidden items-center gap-2 flex-shrink-0">
+                <CartButton onClick={() => setIsCartOpen(true)} />
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 p-2"
+                  aria-label={t('menu', { defaultValue: 'Menú' })}
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="h-6 w-6" />
+                  ) : (
+                    <Menu className="h-6 w-6" />
+                  )}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu */}
