@@ -11,6 +11,13 @@ import { usePaymentMethods } from '@/hooks/usePaymentMethods';
 import type { CheckoutData, ZellePayment, PagoMovilPayment, TransferenciaPayment } from '@/types';
 import { PaymentMethod } from '@/lib/enums';
 
+interface CartItemSummary {
+  productName: string;
+  quantity: number;
+  price: number;
+  priceVes?: number | null;
+}
+
 interface Step4PaymentProps {
   register: UseFormRegister<CheckoutData>;
   errors: FieldErrors<CheckoutData>;
@@ -26,6 +33,10 @@ interface Step4PaymentProps {
   totalVES: number | null;
   isAuthenticated: boolean;
   createAccount: boolean;
+  cartItems: CartItemSummary[];
+  customerName: string;
+  customerPhone: string;
+  deliveryMethod: 'pickup' | 'delivery';
 }
 
 export default function Step4Payment({
@@ -42,7 +53,11 @@ export default function Step4Payment({
   totalUSD,
   totalVES,
   isAuthenticated,
-  createAccount
+  createAccount,
+  cartItems,
+  customerName,
+  customerPhone,
+  deliveryMethod,
 }: Step4PaymentProps) {
   const t = useTranslations('checkout');
   const { methods: paymentMethods, loading, error } = usePaymentMethods();
@@ -65,6 +80,25 @@ export default function Step4Payment({
   }
 
   if (error || paymentMethods.length === 0) {
+    const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '584120000000';
+    const productLines = cartItems.map(
+      (item) => `• ${item.quantity}x ${item.productName} - $${item.price.toFixed(2)}`
+    );
+    const messageLines = [
+      'Hola! Quiero hacer el siguiente pedido:',
+      '',
+      '*PRODUCTOS:*',
+      ...productLines,
+      '',
+      `*Total:* $${totalUSD.toFixed(2)}`,
+      '',
+      '*DATOS:*',
+      customerName ? `Nombre: ${customerName}` : null,
+      customerPhone ? `Teléfono: ${customerPhone}` : null,
+      `Entrega: ${deliveryMethod === 'delivery' ? 'Delivery a domicilio' : 'Retiro en tienda'}`,
+    ].filter((l): l is string => l !== null);
+    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(messageLines.join('\n'))}`;
+
     return (
       <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
         {/* Icono animado */}
@@ -101,7 +135,7 @@ export default function Step4Payment({
         {/* Opciones de contacto */}
         <div className="w-full max-w-xs space-y-3">
           <a
-            href="https://wa.me/584120000000"
+            href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 w-full px-4 py-3 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-sm"
@@ -114,7 +148,7 @@ export default function Step4Payment({
           </a>
 
           <a
-            href="tel:+584120000000"
+            href={`tel:+${waNumber}`}
             className="flex items-center gap-3 w-full px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 text-gray-700 dark:text-gray-300 font-medium rounded-xl border border-gray-200 dark:border-gray-700 transition-colors"
           >
             <svg className="w-5 h-5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

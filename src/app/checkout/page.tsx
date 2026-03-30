@@ -775,6 +775,17 @@ export default function CheckoutPage() {
                   totalVES={totalVES}
                   isAuthenticated={isAuthenticated}
                   createAccount={createAccount || false}
+                  cartItems={items.flatMap((item) => {
+                    if (!item) return [];
+                    const price = 'price' in item ? parseFloat(item.price) : parseFloat(item.product.price);
+                    const priceVes = 'priceVes' in item && item.priceVes
+                      ? parseFloat(item.priceVes)
+                      : item.product.priceVes ? parseFloat(item.product.priceVes) : null;
+                    return [{ productName: item.product.name, quantity: item.quantity, price, priceVes }];
+                  })}
+                  customerName={`${watch('firstName') || ''} ${watch('lastName') || ''}`.trim()}
+                  customerPhone={watch('phone') || ''}
+                  deliveryMethod={deliveryMethod}
                 />
               )}
 
