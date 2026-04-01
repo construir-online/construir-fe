@@ -22,6 +22,8 @@ import {
   ShieldAlert,
   Users,
   FileText,
+  HelpCircle,
+  Mail,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -150,6 +152,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: t('users'),
       icon: Users,
       roles: [UserRole.ADMIN]
+    },
+    {
+      href: '/admin/dashboard/invitaciones',
+      label: 'Invitaciones',
+      icon: Mail,
+      roles: [UserRole.ADMIN]
+    },
+    {
+      href: '/admin/dashboard/ayuda',
+      label: 'Ayuda',
+      icon: HelpCircle,
+      roles: [UserRole.ADMIN, UserRole.ORDER_ADMIN]
     },
   ];
 

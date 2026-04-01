@@ -19,6 +19,39 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Invitation {
+  uuid: string;
+  email: string;
+  role: string;
+  firstName: string | null;
+  lastName: string | null;
+  expiresAt: string;
+  createdAt: string;
+  usedAt: string | null;
+}
+
+export interface InvitationTokenInfo {
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: string;
+  expiresAt: string;
+}
+
+export interface InviteUserDto {
+  email: string;
+  role?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface CompleteRegistrationDto {
+  token: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+}
+
 export interface Category {
   uuid: string;
   name: string;

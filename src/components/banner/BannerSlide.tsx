@@ -50,18 +50,6 @@ export default function BannerSlide({ banner, isPriority = false }: BannerSlideP
         />
       </picture>
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
-
-      {/* Content Overlay (Optional) */}
-      {banner.title && (
-        <div className="absolute bottom-8 left-8 text-white z-10">
-          <h2 className="text-2xl sm:text-3xl font-bold">{banner.title}</h2>
-          {banner.description && (
-            <p className="mt-2 text-base sm:text-lg">{banner.description}</p>
-          )}
-        </div>
-      )}
     </div>
   );
 

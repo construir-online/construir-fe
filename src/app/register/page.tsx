@@ -4,13 +4,16 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { getDefaultAdminPath } from "@/lib/permissions";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { register } = useAuth();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,10 +23,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const user = await login({ email, password });
-      router.push(getDefaultAdminPath(user.role));
+      await register(formData);
+      router.push("/productos");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      setError(err instanceof Error ? err.message : "Error al registrarse");
     } finally {
       setLoading(false);
     }
@@ -34,12 +37,12 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="text-center text-3xl font-bold text-gray-900">
-            Iniciar Sesión
+            Crear Cuenta
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            ¿No tienes cuenta?{" "}
-            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-              Regístrate aquí
+            ¿Ya tienes cuenta?{" "}
+            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              Inicia sesión
             </Link>
           </p>
         </div>
@@ -53,6 +56,34 @@ export default function LoginPage() {
 
           <div className="space-y-4">
             <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                Nombre
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                required
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                Apellido
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                required
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
@@ -60,8 +91,8 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -74,10 +105,12 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
+              <p className="mt-1 text-sm text-gray-500">Mínimo 6 caracteres</p>
             </div>
           </div>
 
@@ -86,7 +119,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+            {loading ? "Registrando..." : "Crear Cuenta"}
           </button>
         </form>
       </div>

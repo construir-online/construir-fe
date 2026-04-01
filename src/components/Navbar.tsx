@@ -113,7 +113,7 @@ export default function Navbar() {
                     {t('login')}
                   </Link>
                   <Link
-                    href="/registro"
+                    href="/register"
                     className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium transition-colors"
                   >
                     {t('register')}
@@ -189,7 +189,7 @@ export default function Navbar() {
                         {t('login')}
                       </Link>
                       <Link
-                        href="/registro"
+                        href="/register"
                         className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium transition-colors text-center"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >

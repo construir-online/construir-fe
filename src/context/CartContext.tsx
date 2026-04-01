@@ -226,9 +226,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
    */
   const getTotalItems = useCallback(() => {
     if (token && cart) {
-      return cart.items.reduce((total, item) => total + item.quantity, 0);;
+      return (cart.items ?? []).reduce((total, item) => total + item.quantity, 0);
     }
-    return localCart.items.reduce((total, item) => total + item.quantity, 0);
+    return (localCart.items ?? []).reduce((total, item) => total + item.quantity, 0);
   }, [token, cart, localCart]);
 
   /**
@@ -236,7 +236,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
    */
   const getItemQuantity = useCallback((productUuid: string): number => {
     if (token && cart) {
-      const item = cart.items.find((item) => item.product.uuid === productUuid);
+      const item = (cart.items ?? []).find((item) => item.product.uuid === productUuid);
       return item?.quantity || 0;
     }
 

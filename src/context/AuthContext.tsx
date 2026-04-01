@@ -13,7 +13,7 @@ interface AuthContextType {
   userRole: UserRole | null;
   hasPermission: (permission: Permission) => boolean;
   isAdmin: boolean;
-  login: (data: LoginDto) => Promise<void>;
+  login: (data: LoginDto) => Promise<User>;
   register: (data: RegisterDto) => Promise<void>;
   logout: () => void;
 }
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = async (data: LoginDto) => {
+  const login = async (data: LoginDto): Promise<User> => {
     const response = await authService.login(data);
     setUser(response.user);
     setToken(response.access_token);
@@ -79,6 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       document.cookie = cookieAttributes;
     }
+
+    return response.user;
   };
 
   const register = async (data: RegisterDto) => {
