@@ -20,7 +20,6 @@ export default function NewProductPage() {
     categoryUuids: [],
     description: '',
     shortDescription: '',
-    type: 'simple',
     published: true,
     featured: false,
     visibility: 'visible',
@@ -224,20 +223,6 @@ export default function NewProductPage() {
                   {selectedCategoryUuids.length} {selectedCategoryUuids.length === 1 ? 'categoría seleccionada' : 'categorías seleccionadas'}
                 </p>
               )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo de Producto
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'simple' | 'variable' })}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="simple">Simple</option>
-                <option value="variable">Variable</option>
-              </select>
             </div>
 
             <div className="md:col-span-2">
