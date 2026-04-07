@@ -77,7 +77,7 @@ export default function CartItem({
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>
           <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate leading-snug">
-            {product.name}
+            {product.customName ?? product.name}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">SKU: {product.sku}</p>
           <div className="mt-1">

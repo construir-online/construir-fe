@@ -85,6 +85,7 @@ export interface ProductImage {
 export interface Product {
   uuid: string;
   name: string;
+  customName?: string | null;
   sku: string;
   inventory: number;
   price: string;
@@ -127,6 +128,7 @@ export interface LoginResponse {
 
 export interface CreateProductDto {
   name: string;
+  customName?: string | null;
   sku: string;
   inventory: number;
   price: number;
@@ -143,6 +145,7 @@ export interface CreateProductDto {
 
 export interface UpdateProductDto {
   name?: string;
+  customName?: string | null;
   inventory?: number;
   price?: number;
   categoryUuids?: string[];

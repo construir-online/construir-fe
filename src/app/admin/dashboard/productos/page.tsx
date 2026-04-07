@@ -334,7 +334,7 @@ export default function ProductsPage() {
                       <div className="flex items-center gap-2">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {product.name}
+                            {product.customName ?? product.name}
                           </div>
                           {product.featured && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">

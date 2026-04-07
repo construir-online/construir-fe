@@ -68,7 +68,7 @@ export default function ProductCardContent({
 
       {/* Nombre del producto */}
       <h3 className={`${classes.nameSize} text-gray-800 dark:text-gray-200 line-clamp-2 ${classes.minHeight} group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}>
-        {product.name}
+        {product.customName ?? product.name}
       </h3>
 
       {/* SKU - solo si showSku y no compact */}

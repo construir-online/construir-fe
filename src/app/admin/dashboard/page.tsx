@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                     {lowStockProducts.slice(0, 5).map((product) => (
                       <tr key={product.uuid} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm text-gray-900">{product.sku}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{product.name}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{product.customName ?? product.name}</td>
                         <td className="px-4 py-3">
                           <span className="text-sm font-medium text-red-600">
                             {product.inventory} unidades

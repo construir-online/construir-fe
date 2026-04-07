@@ -75,7 +75,7 @@ export default function ProductDetailPage() {
           {' / '}
           <Link href="/productos" className="hover:text-blue-600">{t('title')}</Link>
           {' / '}
-          <span className="text-gray-900">{product.name}</span>
+          <span className="text-gray-900">{product.customName ?? product.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -147,7 +147,7 @@ export default function ProductDetailPage() {
           {/* Product Info Section */}
           <div className="bg-white rounded-lg p-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {product.name}
+              {product.customName ?? product.name}
             </h1>
 
             {/* SKU */}

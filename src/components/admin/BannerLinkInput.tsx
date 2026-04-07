@@ -128,7 +128,7 @@ function ProductPickerModal({ onSelect, onClose }: ProductPickerModalProps) {
                     className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-colors"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-medium text-gray-900 truncate">{product.name}</span>
+                      <span className="text-sm font-medium text-gray-900 truncate">{product.customName ?? product.name}</span>
                       <span className="flex-shrink-0 text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                         {product.sku}
                       </span>

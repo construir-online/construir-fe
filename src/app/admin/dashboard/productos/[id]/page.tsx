@@ -41,6 +41,7 @@ export default function EditProductPage() {
 
       setFormData({
         name: data.name,
+        customName: data.customName ?? '',
         inventory: data.inventory,
         price: parseFloat(data.price),
         description: data.description,
@@ -94,7 +95,8 @@ export default function EditProductPage() {
       // Asegurarse de que categoryUuids esté en el formData
       const dataToUpdate = {
         ...formData,
-        categoryUuids: selectedCategoryUuids
+        categoryUuids: selectedCategoryUuids,
+        customName: formData.customName || null,
       };
 
       await productsService.update(productUuid as string, dataToUpdate);
@@ -202,7 +204,16 @@ export default function EditProductPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Editar Producto</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {product.customName ?? product.name}
+          </h1>
+          {product.customName && (
+            <p className="text-sm text-gray-500 mt-0.5">
+              Nombre oficial: <span className="font-medium">{product.name}</span>
+            </p>
+          )}
+        </div>
         <button
           onClick={() => router.push('/admin/dashboard/productos')}
           className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -229,6 +240,21 @@ export default function EditProductPage() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre en tienda
+                    <span className="ml-1 text-gray-400 font-normal">(opcional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customName ?? ''}
+                    onChange={(e) => setFormData({ ...formData, customName: e.target.value })}
+                    placeholder={formData.name || 'Ej: Martillo 16oz'}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Si se deja vacío, se usará el nombre del producto.</p>
                 </div>
 
                 <div>

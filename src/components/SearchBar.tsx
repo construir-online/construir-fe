@@ -145,7 +145,7 @@ export default function SearchBar({ inputClassName = '', onSearch, onClickOutsid
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{product.name}</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{product.customName ?? product.name}</p>
                       <p className="text-xs text-blue-600 dark:text-blue-400">{formatUSD(parsePrice(product.price))}</p>
                     </div>
                   </button>
