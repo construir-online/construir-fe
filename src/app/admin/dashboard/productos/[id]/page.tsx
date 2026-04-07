@@ -92,8 +92,10 @@ export default function EditProductPage() {
 
     try {
       // Asegurarse de que categoryUuids esté en el formData
+      // price e inventory se excluyen — se gestionan por endpoints separados
+      const { price: _price, inventory: _inventory, ...rest } = formData;
       const dataToUpdate = {
-        ...formData,
+        ...rest,
         categoryUuids: selectedCategoryUuids,
         customName: formData.customName || null,
       };
@@ -262,11 +264,9 @@ export default function EditProductPage() {
                   </label>
                   <input
                     type="number"
-                    min="0"
-                    step="0.01"
+                    readOnly
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                   />
                 </div>
 
@@ -276,10 +276,9 @@ export default function EditProductPage() {
                   </label>
                   <input
                     type="number"
-                    min="0"
+                    readOnly
                     value={formData.inventory}
-                    onChange={(e) => setFormData({ ...formData, inventory: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                   />
                 </div>
 
