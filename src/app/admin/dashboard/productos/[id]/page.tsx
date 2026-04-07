@@ -33,7 +33,6 @@ export default function EditProductPage() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [inventoryUpdate, setInventoryUpdate] = useState('');
 
   useEffect(() => {
     loadProduct();
@@ -161,23 +160,6 @@ export default function EditProductPage() {
     } catch (error: unknown) {
       console.error('Error setting primary image:', error);
       alert(error instanceof Error ? error.message : 'Error al establecer imagen principal');
-    }
-  };
-
-  const handleUpdateInventory = async () => {
-    const newInventory = parseInt(inventoryUpdate);
-    if (isNaN(newInventory) || newInventory < 0) {
-      alert('Ingresa un valor válido');
-      return;
-    }
-    try {
-      await productsService.updateInventory(productUuid as string, newInventory);
-      alert('Inventario actualizado');
-      setInventoryUpdate('');
-      loadProduct();
-    } catch (error: unknown) {
-      console.error('Error updating inventory:', error);
-      alert(error instanceof Error ? error.message : 'Error al actualizar inventario');
     }
   };
 
@@ -538,27 +520,6 @@ export default function EditProductPage() {
             </div>
           </div>
 
-          {/* Inventario rápido */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Actualizar inventario</h2>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                min="0"
-                value={inventoryUpdate}
-                onChange={(e) => setInventoryUpdate(e.target.value)}
-                placeholder={`Actual: ${product.inventory}`}
-                className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-              />
-              <button
-                type="button"
-                onClick={handleUpdateInventory}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-              >
-                Actualizar
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
