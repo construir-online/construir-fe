@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { productsService } from '@/services/products';
-import { categoriesService } from '@/services/categories';
-import type { CreateProductDto, Category } from '@/types';
-import CategoryPickerModal from '@/components/admin/CategoryPickerModal';
+import type { CreateProductDto } from '@/types';
+import CategoryPickerModal, { type CategoryItem } from '@/components/admin/CategoryPickerModal';
 
 type Tab = 'info' | 'descripcion' | 'etiquetas' | 'configuracion';
 
@@ -21,8 +20,7 @@ export default function NewProductPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategoryUuids, setSelectedCategoryUuids] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<CategoryItem[]>([]);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [formData, setFormData] = useState<CreateProductDto>({
     name: '',
@@ -39,28 +37,15 @@ export default function NewProductPage() {
   });
   const [tagInput, setTagInput] = useState('');
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
-    try {
-      const cats = await categoriesService.getVisible();
-      setCategories(cats);
-    } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-  };
-
-  const handleCategoryConfirm = (uuids: string[]) => {
-    setSelectedCategoryUuids(uuids);
-    setFormData((current) => ({ ...current, categoryUuids: uuids }));
+  const handleCategoryConfirm = (items: CategoryItem[]) => {
+    setSelectedCategories(items);
+    setFormData((current) => ({ ...current, categoryUuids: items.map((i) => i.uuid) }));
   };
 
   const removeCategory = (uuid: string) => {
-    const updated = selectedCategoryUuids.filter((id) => id !== uuid);
-    setSelectedCategoryUuids(updated);
-    setFormData((current) => ({ ...current, categoryUuids: updated }));
+    const updated = selectedCategories.filter((c) => c.uuid !== uuid);
+    setSelectedCategories(updated);
+    setFormData((current) => ({ ...current, categoryUuids: updated.map((i) => i.uuid) }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,7 +61,7 @@ export default function NewProductPage() {
 
       const dataToCreate = {
         ...formData,
-        categoryUuids: selectedCategoryUuids,
+        categoryUuids: selectedCategories.map((c) => c.uuid),
         customName: formData.customName || undefined,
       };
 
@@ -101,10 +86,6 @@ export default function NewProductPage() {
   const handleRemoveTag = (tag: string) => {
     setFormData({ ...formData, tags: formData.tags?.filter((t) => t !== tag) });
   };
-
-  const selectedCategories = categories.filter((c) =>
-    selectedCategoryUuids.includes(c.uuid)
-  );
 
   return (
     <div>
@@ -225,17 +206,17 @@ export default function NewProductPage() {
                   <p className="text-sm text-gray-400 py-2">Sin categorías</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {selectedCategories.map((cat) => (
+                    {selectedCategories.map((item) => (
                       <span
-                        key={cat.uuid}
+                        key={item.uuid}
                         className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-full text-sm"
                       >
-                        {cat.name}
+                        {item.name}
                         <button
                           type="button"
-                          onClick={() => removeCategory(cat.uuid)}
+                          onClick={() => removeCategory(item.uuid)}
                           className="text-blue-400 hover:text-blue-700 transition-colors"
-                          aria-label={`Quitar ${cat.name}`}
+                          aria-label={`Quitar ${item.name}`}
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -380,8 +361,7 @@ export default function NewProductPage() {
       <CategoryPickerModal
         isOpen={categoryModalOpen}
         onClose={() => setCategoryModalOpen(false)}
-        categories={categories}
-        selectedUuids={selectedCategoryUuids}
+        selectedItems={selectedCategories}
         onConfirm={handleCategoryConfirm}
       />
     </div>

@@ -1,9 +1,17 @@
 import { apiClient } from "@/lib/api";
-import type { Category, CategoryStats, CreateCategoryDto, UpdateCategoryDto, AssignParentDto } from "@/types";
+import type { Category, CategoryStats, CreateCategoryDto, UpdateCategoryDto, AssignParentDto, PaginatedResponse } from "@/types";
 
 export const categoriesService = {
   async getAll(): Promise<Category[]> {
     return apiClient.get<Category[]>("/categories");
+  },
+
+  async searchPaginated(params: { search?: string; page?: number; limit?: number } = {}): Promise<PaginatedResponse<Category>> {
+    const qs = new URLSearchParams();
+    if (params.search) qs.set('search', params.search);
+    qs.set('page', String(params.page ?? 1));
+    qs.set('limit', String(params.limit ?? 20));
+    return apiClient.get<PaginatedResponse<Category>>(`/categories?${qs}`);
   },
 
   async getVisible(): Promise<Category[]> {

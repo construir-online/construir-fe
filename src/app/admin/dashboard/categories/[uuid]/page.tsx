@@ -16,6 +16,7 @@ import { FeaturedImageModal } from '@/components/admin/FeaturedImageModal';
 
 interface CategoryFormData {
   name: string;
+  customName: string;
   slug: string;
   description: string;
   parentUuid: string;
@@ -62,6 +63,7 @@ export default function EditCategoryPage() {
   } = useForm<CategoryFormData>({
     defaultValues: {
       name: '',
+      customName: '',
       slug: '',
       description: '',
       parentUuid: '',
@@ -92,6 +94,7 @@ export default function EditCategoryPage() {
 
       reset({
         name: data.name,
+        customName: data.customName ?? '',
         slug: data.slug,
         description: data.description || '',
         parentUuid: parentUuid,
@@ -182,8 +185,13 @@ export default function EditCategoryPage() {
         setCategory(response.category);
         // Actualizar el formulario para reflejar que ya no es destacada
         reset({
-          ...response.category,
+          name: response.category.name,
+          customName: response.category.customName ?? '',
+          slug: response.category.slug,
+          description: response.category.description || '',
           parentUuid: response.category.parent?.uuid || '',
+          visible: response.category.visible,
+          isFeatured: response.category.isFeatured,
         });
       }
 
@@ -240,9 +248,10 @@ export default function EditCategoryPage() {
   };
 
   const onSubmit = async (data: CategoryFormData) => {
+    if (!category) return;
     try {
       // Validación: no se puede marcar como destacada si no tiene imagen y no se está subiendo una
-      if (data.isFeatured && !category?.image && !imageFile) {
+      if (data.isFeatured && !category.image && !imageFile) {
         setError('isFeatured', {
           type: 'manual',
           message: t('imageRequiredForFeatured')
@@ -253,7 +262,9 @@ export default function EditCategoryPage() {
 
       // Update category data
       await categoriesService.update(uuid, {
-        name: data.name,
+        // name bloqueado si viene del ERP (externalCode !== null)
+        ...(category.externalCode == null ? { name: data.name } : {}),
+        customName: data.customName || null,
         slug: data.slug,
         description: data.description || undefined,
         visible: data.visible,
@@ -308,26 +319,59 @@ export default function EditCategoryPage() {
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
               {t('nameLabel')} <span className="text-red-500">*</span>
             </label>
+            {category.externalCode != null ? (
+              <>
+                <input
+                  type="text"
+                  id="name"
+                  value={category.name}
+                  readOnly
+                  className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+                <p className="mt-1 text-xs text-amber-600 flex items-center gap-1">
+                  <span>⚠</span> Este nombre viene del ERP y no puede modificarse. Usa &ldquo;Nombre en tienda&rdquo; para personalizarlo.
+                </p>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  id="name"
+                  {...register('name', {
+                    required: 'El nombre es requerido',
+                    minLength: { value: 2, message: 'El nombre debe tener al menos 2 caracteres' },
+                    maxLength: { value: 100, message: 'El nombre no puede exceder 100 caracteres' },
+                  })}
+                  placeholder={t('namePlaceholder')}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 ${
+                    errors.name
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                  }`}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <span className="text-xs">⚠</span> {errors.name.message}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Custom Name */}
+          <div>
+            <label htmlFor="customName" className="block text-sm font-medium text-gray-700">
+              Nombre en tienda
+              <span className="ml-1 text-gray-400 font-normal text-xs">(opcional)</span>
+            </label>
             <input
               type="text"
-              id="name"
-              {...register('name', {
-                required: 'El nombre es requerido',
-                minLength: { value: 2, message: 'El nombre debe tener al menos 2 caracteres' },
-                maxLength: { value: 100, message: 'El nombre no puede exceder 100 caracteres' },
-              })}
-              placeholder={t('namePlaceholder')}
-              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 ${
-                errors.name
-                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-              }`}
+              id="customName"
+              {...register('customName')}
+              placeholder="Nombre visible para los clientes"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500 focus:border-blue-500"
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <span className="text-xs">⚠</span> {errors.name.message}
-              </p>
-            )}
+            <p className="mt-1 text-xs text-gray-500">Si se deja vacío, se usará el nombre oficial.</p>
           </div>
 
           {/* Slug */}

@@ -55,6 +55,8 @@ export interface CompleteRegistrationDto {
 export interface Category {
   uuid: string;
   name: string;
+  customName?: string | null;
+  externalCode?: string | null;
   slug: string;
   description?: string;
   image?: string;
@@ -161,6 +163,7 @@ export interface UpdateProductDto {
 
 export interface CreateCategoryDto {
   name: string;
+  customName?: string | null;
   slug: string;
   description?: string;
   image?: string;
@@ -171,6 +174,7 @@ export interface CreateCategoryDto {
 
 export interface UpdateCategoryDto {
   name?: string;
+  customName?: string | null;
   slug?: string;
   description?: string;
   image?: string;

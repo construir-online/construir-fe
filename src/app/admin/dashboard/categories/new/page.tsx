@@ -13,6 +13,7 @@ import { Toggle } from '@/components/ui/Toggle';
 
 interface CategoryFormData {
   name: string;
+  customName: string;
   slug: string;
   description: string;
   parentUuid: string;
@@ -38,6 +39,7 @@ export default function NewCategoryPage() {
   } = useForm<CategoryFormData>({
     defaultValues: {
       name: '',
+      customName: '',
       slug: '',
       description: '',
       parentUuid: '',
@@ -94,6 +96,7 @@ export default function NewCategoryPage() {
 
       const createData: CreateCategoryDto = {
         name: data.name,
+        customName: data.customName || undefined,
         slug: data.slug,
         description: data.description || undefined,
         visible: data.visible,
@@ -152,6 +155,22 @@ export default function NewCategoryPage() {
                 <span className="text-xs">⚠</span> {errors.name.message}
               </p>
             )}
+          </div>
+
+          {/* Custom Name */}
+          <div>
+            <label htmlFor="customName" className="block text-sm font-medium text-gray-700">
+              Nombre en tienda
+              <span className="ml-1 text-gray-400 font-normal text-xs">(opcional)</span>
+            </label>
+            <input
+              type="text"
+              id="customName"
+              {...register('customName')}
+              placeholder="Nombre visible para los clientes"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">Si se deja vacío, se usará el nombre oficial.</p>
           </div>
 
           {/* Slug */}

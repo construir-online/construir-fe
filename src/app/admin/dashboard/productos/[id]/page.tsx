@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { productsService } from '@/services/products';
-import { categoriesService } from '@/services/categories';
-import type { Product, UpdateProductDto, Category } from '@/types';
+import type { Product, UpdateProductDto } from '@/types';
 import Image from 'next/image';
-import CategoryPickerModal from '@/components/admin/CategoryPickerModal';
+import CategoryPickerModal, { type CategoryItem } from '@/components/admin/CategoryPickerModal';
 
 type Tab = 'info' | 'descripcion' | 'etiquetas' | 'configuracion';
 
@@ -27,16 +26,14 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState<UpdateProductDto>({});
-  const [selectedCategoryUuids, setSelectedCategoryUuids] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<CategoryItem[]>([]);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     loadProduct();
-    loadCategories();
   }, []);
 
   const loadProduct = async () => {
@@ -46,8 +43,8 @@ export default function EditProductPage() {
       const data = await productsService.getByUuid(productUuid as string);
       setProduct(data);
 
-      const categoryUuids = data.categories?.map((cat) => cat.uuid) || [];
-      setSelectedCategoryUuids(categoryUuids);
+      const cats: CategoryItem[] = (data.categories ?? []).map((c) => ({ uuid: c.uuid, name: c.name }));
+      setSelectedCategories(cats);
 
       setFormData({
         name: data.name,
@@ -59,7 +56,7 @@ export default function EditProductPage() {
         published: data.published,
         featured: data.featured,
         tags: data.tags,
-        categoryUuids: categoryUuids,
+        categoryUuids: cats.map((c) => c.uuid),
       });
     } catch (error) {
       console.error('Error loading product:', error);
@@ -69,24 +66,15 @@ export default function EditProductPage() {
     }
   };
 
-  const loadCategories = async () => {
-    try {
-      const cats = await categoriesService.getVisible();
-      setCategories(cats);
-    } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-  };
-
-  const handleCategoryConfirm = (uuids: string[]) => {
-    setSelectedCategoryUuids(uuids);
-    setFormData((current) => ({ ...current, categoryUuids: uuids }));
+  const handleCategoryConfirm = (items: CategoryItem[]) => {
+    setSelectedCategories(items);
+    setFormData((current) => ({ ...current, categoryUuids: items.map((i) => i.uuid) }));
   };
 
   const removeCategory = (uuid: string) => {
-    const updated = selectedCategoryUuids.filter((id) => id !== uuid);
-    setSelectedCategoryUuids(updated);
-    setFormData((current) => ({ ...current, categoryUuids: updated }));
+    const updated = selectedCategories.filter((c) => c.uuid !== uuid);
+    setSelectedCategories(updated);
+    setFormData((current) => ({ ...current, categoryUuids: updated.map((i) => i.uuid) }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,7 +86,7 @@ export default function EditProductPage() {
       const { price: _price, inventory: _inventory, ...rest } = formData;
       const dataToUpdate = {
         ...rest,
-        categoryUuids: selectedCategoryUuids,
+        categoryUuids: selectedCategories.map((c) => c.uuid),
         customName: formData.customName || null,
       };
 
@@ -178,10 +166,6 @@ export default function EditProductPage() {
       </div>
     );
   }
-
-  const selectedCategories = categories.filter((c) =>
-    selectedCategoryUuids.includes(c.uuid)
-  );
 
   return (
     <div>
@@ -300,17 +284,17 @@ export default function EditProductPage() {
                       <p className="text-sm text-gray-400 py-2">Sin categorías</p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
-                        {selectedCategories.map((cat) => (
+                        {selectedCategories.map((item) => (
                           <span
-                            key={cat.uuid}
+                            key={item.uuid}
                             className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-full text-sm"
                           >
-                            {cat.name}
+                            {item.name}
                             <button
                               type="button"
-                              onClick={() => removeCategory(cat.uuid)}
+                              onClick={() => removeCategory(item.uuid)}
                               className="text-blue-400 hover:text-blue-700 transition-colors"
-                              aria-label={`Quitar ${cat.name}`}
+                              aria-label={`Quitar ${item.name}`}
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -526,8 +510,7 @@ export default function EditProductPage() {
       <CategoryPickerModal
         isOpen={categoryModalOpen}
         onClose={() => setCategoryModalOpen(false)}
-        categories={categories}
-        selectedUuids={selectedCategoryUuids}
+        selectedItems={selectedCategories}
         onConfirm={handleCategoryConfirm}
       />
     </div>

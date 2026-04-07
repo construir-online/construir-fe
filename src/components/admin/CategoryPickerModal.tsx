@@ -1,61 +1,92 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Search, X, Tag } from 'lucide-react';
-import type { Category } from '@/types';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, X, Tag, Loader2 } from 'lucide-react';
+import { categoriesService } from '@/services/categories';
+
+export interface CategoryItem {
+  uuid: string;
+  name: string;
+}
 
 interface CategoryPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  categories: Category[];
-  selectedUuids: string[];
-  onConfirm: (uuids: string[]) => void;
+  selectedItems: CategoryItem[];
+  onConfirm: (items: CategoryItem[]) => void;
 }
 
 export default function CategoryPickerModal({
   isOpen,
   onClose,
-  categories,
-  selectedUuids,
+  selectedItems,
   onConfirm,
 }: CategoryPickerModalProps) {
-  const [draft, setDraft] = useState<string[]>([]);
+  const [draft, setDraft] = useState<CategoryItem[]>([]);
   const [search, setSearch] = useState('');
+  const [results, setResults] = useState<CategoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchCategories = useCallback(async (query: string) => {
+    setLoading(true);
+    try {
+      const res = await categoriesService.searchPaginated({ search: query || undefined, limit: 20 });
+      setResults(res.data.map((c) => ({ uuid: c.uuid, name: c.customName ?? c.name })));
+    } catch {
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
-      setDraft([...selectedUuids]);
+      setDraft([...selectedItems]);
       setSearch('');
+      fetchCategories('');
       setTimeout(() => searchRef.current?.focus(), 50);
     }
-  }, [isOpen, selectedUuids]);
+  }, [isOpen, selectedItems, fetchCategories]);
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    if (!isOpen) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchCategories(search), 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [search, isOpen, fetchCategories]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     if (isOpen) document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  const filtered = [...categories]
-    .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      const aSelected = draft.includes(a.uuid);
-      const bSelected = draft.includes(b.uuid);
-      if (aSelected && !bSelected) return -1;
-      if (!aSelected && bSelected) return 1;
-      return a.name.localeCompare(b.name);
-    });
+  const isSelected = (uuid: string) => draft.some((d) => d.uuid === uuid);
 
-  const toggle = (uuid: string) => {
+  const toggle = (item: CategoryItem) => {
     setDraft((prev) =>
-      prev.includes(uuid) ? prev.filter((id) => id !== uuid) : [...prev, uuid]
+      prev.some((d) => d.uuid === item.uuid)
+        ? prev.filter((d) => d.uuid !== item.uuid)
+        : [...prev, item]
     );
   };
+
+  // Merge: selected items first, then remaining results (no duplicates)
+  const selectedUuids = new Set(draft.map((d) => d.uuid));
+  const selectedInResults = results.filter((r) => selectedUuids.has(r.uuid));
+  const unselectedInResults = results.filter((r) => !selectedUuids.has(r.uuid));
+  // Selected items not in current results (from previous searches)
+  const selectedNotInResults = draft.filter((d) => !results.some((r) => r.uuid === d.uuid));
+
+  const displayList: CategoryItem[] = [
+    ...selectedNotInResults,
+    ...selectedInResults,
+    ...unselectedInResults,
+  ];
 
   const handleConfirm = () => {
     onConfirm(draft);
@@ -63,18 +94,13 @@ export default function CategoryPickerModal({
   };
 
   const draftChanged =
-    draft.length !== selectedUuids.length ||
-    draft.some((id) => !selectedUuids.includes(id));
+    draft.length !== selectedItems.length ||
+    draft.some((d) => !selectedItems.some((s) => s.uuid === d.uuid));
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/30"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/30" onClick={onClose} />
 
-      {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md animate-[modalSlide_0.3s_ease-out]">
           {/* Header */}
@@ -101,7 +127,7 @@ export default function CategoryPickerModal({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar categoría..."
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {search && (
                 <button
@@ -121,30 +147,32 @@ export default function CategoryPickerModal({
 
           {/* Lista */}
           <div className="overflow-y-auto max-h-72 px-3 py-2">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+              </div>
+            ) : displayList.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">
                 No se encontraron categorías
               </p>
             ) : (
-              filtered.map((category) => {
-                const isSelected = draft.includes(category.uuid);
+              displayList.map((item) => {
+                const selected = isSelected(item.uuid);
                 return (
                   <label
-                    key={category.uuid}
+                    key={item.uuid}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-blue-50'
-                        : 'hover:bg-gray-50'
+                      selected ? 'bg-blue-50' : 'hover:bg-gray-50'
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggle(category.uuid)}
+                      checked={selected}
+                      onChange={() => toggle(item)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${isSelected ? 'text-blue-800 font-medium' : 'text-gray-700'}`}>
-                      {category.name}
+                    <span className={`text-sm ${selected ? 'text-blue-800 font-medium' : 'text-gray-700'}`}>
+                      {item.name}
                     </span>
                   </label>
                 );
@@ -164,7 +192,7 @@ export default function CategoryPickerModal({
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={!draftChanged && draft.length === selectedUuids.length}
+              disabled={!draftChanged}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Confirmar selección
