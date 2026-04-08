@@ -4,13 +4,35 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { Category } from '@/types';
-import { Star, Edit, Trash2 } from 'lucide-react';
+import { Star, Edit, Trash2, FolderTree, CornerDownRight, Tag } from 'lucide-react';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
 interface CategoriesTableProps {
   categories: Category[];
   onDelete: (uuid: string) => Promise<void>;
   onToggleFeatured: (uuid: string, currentValue: boolean) => Promise<void>;
+}
+
+function TypeIcon({ isChild, hasChildren }: { isChild: boolean; hasChildren: boolean }) {
+  if (isChild) {
+    return (
+      <span title="Subcategoría" className="flex-shrink-0">
+        <CornerDownRight className="w-4 h-4 text-purple-400" />
+      </span>
+    );
+  }
+  if (hasChildren) {
+    return (
+      <span title="Categoría padre" className="flex-shrink-0">
+        <FolderTree className="w-4 h-4 text-blue-500" />
+      </span>
+    );
+  }
+  return (
+    <span title="Independiente" className="flex-shrink-0">
+      <Tag className="w-4 h-4 text-gray-400" />
+    </span>
+  );
 }
 
 export function CategoriesTable({ categories, onDelete, onToggleFeatured }: CategoriesTableProps) {
@@ -31,10 +53,6 @@ export function CategoriesTable({ categories, onDelete, onToggleFeatured }: Cate
     }
   };
 
-  const handleToggleFeaturedClick = (uuid: string, currentValue: boolean) => {
-    onToggleFeatured(uuid, currentValue);
-  };
-
   if (categories.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-12 text-center">
@@ -47,124 +65,120 @@ export function CategoriesTable({ categories, onDelete, onToggleFeatured }: Cate
     <div className="w-full">
       {/* Desktop Table View */}
       <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('name')}</th>
-                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('type')}</th>
-                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('slug')}</th>
-                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('status')}</th>
-                <th className="px-4 md:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('featured')}</th>
-                <th className="px-4 md:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {categories.map((category) => {
-                const isChild = !!category.parent;
-                const hasChildren = category.childrens && category.childrens.length > 0;
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('name')}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('status')}</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('featured')}</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('actions')}</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {categories.map((category) => {
+              const isChild = !!category.parent;
+              const hasChildren = !!(category.childrens && category.childrens.length > 0);
 
-                return (
-                  <tr
-                    key={category.uuid}
-                    className={`hover:bg-gray-50 transition-colors ${isChild ? 'bg-gray-50/50' : ''}`}
-                  >
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <div className="flex items-center gap-2">
-                        {isChild && (
-                          <span className="text-gray-400 ml-4">└─</span>
-                        )}
-                        <span className={isChild ? 'text-gray-700' : 'text-gray-900 font-semibold'}>
-                          {category.name}
-                        </span>
+              return (
+                <tr
+                  key={category.uuid}
+                  className={`hover:bg-gray-50 transition-colors ${isChild ? 'bg-gray-50/50' : ''}`}
+                >
+                  {/* Nombre + slug + ícono tipo */}
+                  <td className="px-6 py-4 text-sm">
+                    <div className={`flex items-start gap-2 ${isChild ? 'ml-4' : ''}`}>
+                      <TypeIcon isChild={isChild} hasChildren={hasChildren} />
+                      <div>
+                        <p className={`font-medium ${isChild ? 'text-gray-700' : 'text-gray-900'}`}>
+                          {category.customName ?? category.name}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{category.slug}</p>
                       </div>
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {isChild ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                          {t('subcategory')}
-                        </span>
-                      ) : hasChildren ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          {t('parent')} ({category.childrens?.length})
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                          {t('standalone')}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{category.slug}</td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          category.visible
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                    </div>
+                  </td>
+
+                  {/* Estado */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        category.visible
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {category.visible ? t('visibleStatus') : t('hiddenStatus')}
+                    </span>
+                  </td>
+
+                  {/* Destacado */}
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <button
+                      onClick={() => onToggleFeatured(category.uuid, category.isFeatured)}
+                      className="inline-flex items-center justify-center transition-colors"
+                      title={category.isFeatured ? t('unmarkFeatured') : t('markFeatured')}
+                    >
+                      <Star
+                        className={`w-5 h-5 transition-all ${
+                          category.isFeatured
+                            ? 'fill-yellow-400 text-yellow-400 hover:fill-yellow-500 hover:text-yellow-500'
+                            : 'text-gray-400 hover:text-yellow-400'
                         }`}
-                      >
-                        {category.visible ? t('visibleStatus') : t('hiddenStatus')}
-                      </span>
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-center">
-                      <button
-                        onClick={() => handleToggleFeaturedClick(category.uuid, category.isFeatured)}
-                        className="inline-flex items-center justify-center transition-colors"
-                        title={category.isFeatured ? t('unmarkFeatured') : t('markFeatured')}
-                      >
-                        <Star
-                          className={`w-5 h-5 transition-all ${
-                            category.isFeatured
-                              ? 'fill-yellow-400 text-yellow-400 hover:fill-yellow-500 hover:text-yellow-500'
-                              : 'text-gray-400 hover:text-yellow-400'
-                          }`}
-                        />
-                      </button>
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
+                      />
+                    </button>
+                  </td>
+
+                  {/* Acciones */}
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/dashboard/categories/${category.uuid}`}
-                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                        title={t('edit')}
                       >
-                        {t('edit')}
+                        <Edit className="w-4 h-4" />
+                        <span>{t('edit')}</span>
                       </Link>
                       <button
                         onClick={() => handleDeleteClick(category.uuid)}
-                        className="text-red-600 hover:text-red-800 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                        title={t('delete')}
                       >
-                        {t('delete')}
+                        <Trash2 className="w-4 h-4" />
+                        <span>{t('delete')}</span>
                       </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
         {categories.map((category) => {
           const isChild = !!category.parent;
-          const hasChildren = category.childrens && category.childrens.length > 0;
+          const hasChildren = !!(category.childrens && category.childrens.length > 0);
 
           return (
             <div
               key={category.uuid}
               className={`bg-white rounded-lg shadow p-4 ${isChild ? 'ml-4 border-l-4 border-purple-200' : ''}`}
             >
-              {/* Header */}
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className={`font-semibold ${isChild ? 'text-gray-700' : 'text-gray-900'}`}>
-                    {category.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">{category.slug}</p>
+                <div className="flex items-start gap-2 flex-1">
+                  <TypeIcon isChild={isChild} hasChildren={hasChildren} />
+                  <div>
+                    <h3 className={`font-semibold ${isChild ? 'text-gray-700' : 'text-gray-900'}`}>
+                      {category.customName ?? category.name}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-0.5">{category.slug}</p>
+                  </div>
                 </div>
                 <button
-                  onClick={() => handleToggleFeaturedClick(category.uuid, category.isFeatured)}
-                  className="p-2"
+                  onClick={() => onToggleFeatured(category.uuid, category.isFeatured)}
+                  className="p-2 flex-shrink-0"
                   title={category.isFeatured ? t('unmarkFeatured') : t('markFeatured')}
                 >
                   <Star
@@ -177,24 +191,7 @@ export function CategoriesTable({ categories, onDelete, onToggleFeatured }: Cate
                 </button>
               </div>
 
-              {/* Badges */}
               <div className="flex flex-wrap gap-2 mb-3">
-                {/* Type Badge */}
-                {isChild ? (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                    {t('subcategory')}
-                  </span>
-                ) : hasChildren ? (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                    {t('parent')} ({category.childrens?.length})
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                    {t('standalone')}
-                  </span>
-                )}
-
-                {/* Visibility Badge */}
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                     category.visible
@@ -206,7 +203,6 @@ export function CategoriesTable({ categories, onDelete, onToggleFeatured }: Cate
                 </span>
               </div>
 
-              {/* Actions */}
               <div className="flex gap-2 pt-3 border-t border-gray-100">
                 <Link
                   href={`/admin/dashboard/categories/${category.uuid}`}
@@ -228,7 +224,6 @@ export function CategoriesTable({ categories, onDelete, onToggleFeatured }: Cate
         })}
       </div>
 
-      {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={deleteModal.isOpen}
         title={t('delete')}
