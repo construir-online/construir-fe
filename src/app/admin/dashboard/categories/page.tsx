@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { categoriesService } from '@/services/categories';
 import type { Category, CategoryStats } from '@/types';
-import { PlusCircle, ListTree, CheckCircle, XCircle } from 'lucide-react';
+import { PlusCircle, ListTree, CheckCircle, XCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { CategoriesTable } from '@/components/admin/CategoriesTable';
 import { FeaturedImageModal } from '@/components/admin/FeaturedImageModal';
+
+const LIMIT = 15;
 
 export default function CategoriesPage() {
   const t = useTranslations('categories');
@@ -17,6 +19,9 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [stats, setStats] = useState<CategoryStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [featuredImageModal, setFeaturedImageModal] = useState<{
     isOpen: boolean;
     categoryUuid: string | null;
@@ -26,52 +31,50 @@ export default function CategoriesPage() {
   });
   const [isUploadingFeaturedImage, setIsUploadingFeaturedImage] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const lastPage = Math.max(1, Math.ceil(total / LIMIT));
 
-  const loadData = async () => {
+  const loadCategories = useCallback(async (q: string, p: number) => {
     try {
       setLoading(true);
-      const [categoriesData, statsData] = await Promise.all([
-        categoriesService.getAll(),
-        categoriesService.getStats(),
-      ]);
-      // Flatten categories to show hierarchy: parents followed by their children
-      const flattenedCategories = flattenCategories(categoriesData);
-      setCategories(flattenedCategories);
-      setStats(statsData);
+      const res = await categoriesService.searchPaginated({ search: q || undefined, page: p, limit: LIMIT });
+      setCategories(res.data);
+      setTotal(res.total);
     } catch (error) {
       console.error('Error loading categories:', error);
       toast.error(tCommon('error'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, tCommon]);
 
-  // Helper function to flatten categories for hierarchical display
-  const flattenCategories = (categories: Category[]): Category[] => {
-    const flattened: Category[] = [];
-    // First, get only parent categories (those without a parent)
-    const parents = categories.filter(cat => !cat.parent);
+  const loadStats = useCallback(async () => {
+    try {
+      const statsData = await categoriesService.getStats();
+      setStats(statsData);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  }, []);
 
-    parents.forEach(parent => {
-      // Add the parent
-      flattened.push(parent);
-      // Add its children if any
-      if (parent.childrens && parent.childrens.length > 0) {
-        flattened.push(...parent.childrens);
-      }
-    });
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
 
-    return flattened;
+  useEffect(() => {
+    loadCategories(search, page);
+  }, [search, page, loadCategories]);
+
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
   };
 
   const handleDelete = async (uuid: string) => {
     try {
       await categoriesService.delete(uuid);
       toast.success(t('deleteSuccess'));
-      await loadData();
+      await loadCategories(search, page);
+      await loadStats();
     } catch (error) {
       console.error('Error deleting category:', error);
       toast.error(t('deleteError'));
@@ -84,7 +87,7 @@ export default function CategoriesPage() {
       try {
         await categoriesService.update(uuid, { isFeatured: false });
         toast.success(t('updateSuccess'));
-        await loadData();
+        await loadCategories(search, page);
       } catch (error) {
         console.error('Error updating category:', error);
         toast.error(t('updateError'));
@@ -100,7 +103,7 @@ export default function CategoriesPage() {
       try {
         await categoriesService.update(uuid, { isFeatured: true });
         toast.success(t('updateSuccess'));
-        await loadData();
+        await loadCategories(search, page);
       } catch (error) {
         console.error('Error updating category:', error);
         toast.error(t('updateError'));
@@ -129,9 +132,7 @@ export default function CategoriesPage() {
 
       setFeaturedImageModal({ isOpen: false, categoryUuid: null });
       toast.success(t('imageUploadedAndFeatured'));
-
-      // Recargar lista para reflejar cambios
-      await loadData();
+      await loadCategories(search, page);
     } catch (error) {
       console.error('Error uploading image for featured category:', error);
       toast.error(t('imageUploadError'));
@@ -182,6 +183,18 @@ export default function CategoriesPage() {
         </div>
       )}
 
+      {/* Buscador */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder="Buscar categoría..."
+          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+        />
+      </div>
+
       {/* Categories Table/Cards */}
       {loading ? (
         <div className="bg-white rounded-lg shadow p-8 md:p-12 text-center w-full">
@@ -194,6 +207,55 @@ export default function CategoriesPage() {
           onDelete={handleDelete}
           onToggleFeatured={handleToggleFeatured}
         />
+      )}
+
+      {/* Paginación */}
+      {!loading && total > LIMIT && (
+        <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+          <p className="text-sm text-gray-500">
+            {total} categorías — página {page} de {lastPage}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            {Array.from({ length: lastPage }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === lastPage || Math.abs(p - page) <= 1)
+              .reduce<(number | '...')[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...');
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((item, i) =>
+                item === '...' ? (
+                  <span key={`ellipsis-${i}`} className="px-1 text-gray-400 text-sm">…</span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() => setPage(item as number)}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                      page === item
+                        ? 'bg-blue-600 text-white'
+                        : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              )}
+            <button
+              onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
+              disabled={page === lastPage}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Featured Image Upload Modal */}
