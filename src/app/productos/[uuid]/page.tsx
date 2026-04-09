@@ -44,7 +44,7 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
       </div>
     );
@@ -52,11 +52,11 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           {t('notFound')}
         </h1>
-        <Link href="/productos" className="text-blue-600 hover:underline">
+        <Link href="/productos" className="text-blue-600 dark:text-blue-400 hover:underline">
           Volver a productos
         </Link>
       </div>
@@ -69,59 +69,58 @@ export default function ProductDetailPage() {
   const isLowStock = product.inventory > 0 && product.inventory <= 5;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
-        <nav className="text-sm text-gray-500 mb-8">
-          <Link href="/" className="hover:text-blue-600">Inicio</Link>
+        <nav className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+          <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Inicio</Link>
           {' / '}
-          <Link href="/productos" className="hover:text-blue-600">{t('title')}</Link>
+          <Link href="/productos" className="hover:text-blue-600 dark:hover:text-blue-400">{t('title')}</Link>
           {' / '}
-          <span className="text-gray-900">{product.customName ?? product.name}</span>
+          <span className="text-gray-900 dark:text-gray-100">{product.customName ?? product.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images Section */}
           <div>
             {/* Main Image */}
-            <div className="bg-white rounded-lg overflow-hidden mb-4">
-              <div className="relative w-full" style={{ paddingBottom: "100%" }}>
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                  {selectedImage && !imgError ? (
-                    <Image
-                      src={selectedImage}
-                      alt={product.name}
-                      fill
-                      className="object-contain"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      priority
-                      onError={() => setImgError(true)}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center bg-gray-100 w-full h-full">
-                      <Package className="w-24 h-24 text-gray-300" />
-                    </div>
-                  )}
-                </div>
+            <div
+              className="relative bg-white dark:bg-slate-800 rounded-lg overflow-hidden mb-4"
+              style={{ paddingTop: "100%" }}
+            >
+              <div className="absolute inset-0 flex items-center justify-center p-6 bg-gray-50 dark:bg-slate-700">
+                {selectedImage && !imgError ? (
+                  <Image
+                    src={selectedImage}
+                    alt={product.name}
+                    width={600}
+                    height={600}
+                    className="object-contain max-w-full max-h-full"
+                    priority
+                    onError={() => setImgError(true)}
+                  />
+                ) : (
+                  <Package className="w-24 h-24 text-gray-300 dark:text-slate-500" />
+                )}
+              </div>
 
-                {/* Badges */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                  {product.featured && (
-                    <span className="px-3 py-1 bg-yellow-500 text-white text-sm font-semibold rounded">
-                      {t('featured')}
-                    </span>
-                  )}
-                  {isOutOfStock && (
-                    <span className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded">
-                      {tCart('outOfStock')}
-                    </span>
-                  )}
-                  {isLowStock && !isOutOfStock && (
-                    <span className="px-3 py-1 bg-orange-500 text-white text-sm font-semibold rounded">
-                      {tCart('lowStock')}
-                    </span>
-                  )}
-                </div>
+              {/* Badges */}
+              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                {product.featured && (
+                  <span className="px-3 py-1 bg-yellow-500 text-white text-sm font-semibold rounded">
+                    {t('featured')}
+                  </span>
+                )}
+                {isOutOfStock && (
+                  <span className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded">
+                    {tCart('outOfStock')}
+                  </span>
+                )}
+                {isLowStock && !isOutOfStock && (
+                  <span className="px-3 py-1 bg-orange-500 text-white text-sm font-semibold rounded">
+                    {tCart('lowStock')}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -132,18 +131,18 @@ export default function ProductDetailPage() {
                   <button
                     key={image.uuid}
                     onClick={() => { setSelectedImage(image.url); setImgError(false); }}
-                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all flex items-center justify-center ${
                       selectedImage === image.url
                         ? "border-blue-600 ring-2 ring-blue-200"
-                        : "border-gray-200 hover:border-blue-300"
+                        : "border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500"
                     }`}
                   >
                     <Image
                       src={image.url}
                       alt={`${product.name} - ${image.order}`}
-                      fill
+                      width={150}
+                      height={150}
                       className="object-cover"
-                      sizes="150px"
                     />
                   </button>
                 ))}
@@ -152,13 +151,13 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Info Section */}
-          <div className="bg-white rounded-lg p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               {product.customName ?? product.name}
             </h1>
 
             {/* SKU */}
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               {tCart('sku')}: {product.sku}
             </p>
 
@@ -169,7 +168,7 @@ export default function ProductDetailPage() {
                   <a
                     key={category.uuid}
                     href={`/productos?category=${category.slug}`}
-                    className="px-3 py-1 bg-blue-50 text-blue-600 text-sm rounded-full hover:bg-blue-100 transition-colors"
+                    className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-sm rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                   >
                     {category.name}
                   </a>
@@ -180,19 +179,19 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="mb-6">
               {priceVES && (
-                <p className="text-4xl font-bold text-blue-600">
+                <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                   {formatVES(priceVES)}
                 </p>
               )}
-              <p className={`${priceVES ? 'text-xl text-gray-600' : 'text-4xl font-bold text-blue-600'}`}>
+              <p className={`${priceVES ? 'text-xl text-gray-600 dark:text-gray-400' : 'text-4xl font-bold text-blue-600 dark:text-blue-400'}`}>
                 {formatUSD(priceUSD)}
               </p>
             </div>
 
             {/* Stock */}
             <div className="flex items-center gap-2 mb-6">
-              <Package className="w-5 h-5 text-gray-500" />
-              <span className="text-gray-700">
+              <Package className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <span className="text-gray-700 dark:text-gray-300">
                 {product.inventory} {tCart('stock')}
               </span>
             </div>
@@ -200,29 +199,29 @@ export default function ProductDetailPage() {
             {/* Short Description */}
             {product.shortDescription && (
               <div className="mb-6">
-                <p className="text-gray-600">{product.shortDescription}</p>
+                <p className="text-gray-600 dark:text-gray-400">{product.shortDescription}</p>
               </div>
             )}
 
             {/* Quantity Selector */}
             {!isOutOfStock && (
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Cantidad
                 </label>
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200"
                   >
                     -
                   </button>
-                  <span className="text-xl font-semibold w-12 text-center">
+                  <span className="text-xl font-semibold w-12 text-center dark:text-gray-100">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity(Math.min(product.inventory, quantity + 1))}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200"
                   >
                     +
                   </button>
@@ -242,7 +241,7 @@ export default function ProductDetailPage() {
             {isOutOfStock && (
               <button
                 disabled
-                className="w-full px-6 py-3 bg-gray-300 text-gray-600 rounded-lg font-semibold cursor-not-allowed"
+                className="w-full px-6 py-3 bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
               >
                 {tCart('notAvailable')}
               </button>
@@ -250,11 +249,11 @@ export default function ProductDetailPage() {
 
             {/* Description */}
             {product.description && (
-              <div className="mt-8 pt-8 border-t">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <div className="mt-8 pt-8 border-t dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
                   {t('description')}
                 </h2>
-                <div className="text-gray-600 whitespace-pre-line">
+                <div className="text-gray-600 dark:text-gray-400 whitespace-pre-line">
                   {product.description}
                 </div>
               </div>
