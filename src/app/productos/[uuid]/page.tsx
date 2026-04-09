@@ -84,25 +84,22 @@ export default function ProductDetailPage() {
           {/* Images Section */}
           <div>
             {/* Main Image */}
-            <div
-              className="relative bg-white dark:bg-slate-800 rounded-lg overflow-hidden mb-4"
-              style={{ paddingTop: "100%" }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center p-6 bg-gray-50 dark:bg-slate-700">
-                {selectedImage && !imgError ? (
-                  <Image
-                    src={selectedImage}
-                    alt={product.name}
-                    width={600}
-                    height={600}
-                    className="object-contain max-w-full max-h-full"
-                    priority
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
+            <div className="relative bg-gray-50 dark:bg-slate-700 rounded-lg overflow-hidden mb-4 h-72 sm:h-80 md:h-96">
+              {selectedImage && !imgError ? (
+                <Image
+                  src={selectedImage}
+                  alt={product.name}
+                  fill
+                  className="object-contain p-4 sm:p-6"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  priority
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
                   <Package className="w-24 h-24 text-gray-300 dark:text-slate-500" />
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
