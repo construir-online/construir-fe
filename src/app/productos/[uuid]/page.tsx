@@ -20,6 +20,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [imgError, setImgError] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function ProductDetailPage() {
       setProduct(foundProduct);
       const primaryImage = foundProduct.images?.find((img) => img.isPrimary);
       setSelectedImage(primaryImage?.url || foundProduct.images?.[0]?.url || "");
+      setImgError(false);
     } catch (error) {
       console.error("Error loading product:", error);
     } finally {
@@ -82,39 +84,44 @@ export default function ProductDetailPage() {
           {/* Images Section */}
           <div>
             {/* Main Image */}
-            <div className="bg-white rounded-lg overflow-hidden mb-4 aspect-square relative">
-              {selectedImage ? (
-                <Image
-                  src={selectedImage}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                  <Package className="w-24 h-24 text-gray-300" />
+            <div className="bg-white rounded-lg overflow-hidden mb-4">
+              <div className="relative w-full" style={{ paddingBottom: "100%" }}>
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                  {selectedImage && !imgError ? (
+                    <Image
+                      src={selectedImage}
+                      alt={product.name}
+                      fill
+                      className="object-contain"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      priority
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center bg-gray-100 w-full h-full">
+                      <Package className="w-24 h-24 text-gray-300" />
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Badges */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
-                {product.featured && (
-                  <span className="px-3 py-1 bg-yellow-500 text-white text-sm font-semibold rounded">
-                    {t('featured')}
-                  </span>
-                )}
-                {isOutOfStock && (
-                  <span className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded">
-                    {tCart('outOfStock')}
-                  </span>
-                )}
-                {isLowStock && !isOutOfStock && (
-                  <span className="px-3 py-1 bg-orange-500 text-white text-sm font-semibold rounded">
-                    {tCart('lowStock')}
-                  </span>
-                )}
+                {/* Badges */}
+                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                  {product.featured && (
+                    <span className="px-3 py-1 bg-yellow-500 text-white text-sm font-semibold rounded">
+                      {t('featured')}
+                    </span>
+                  )}
+                  {isOutOfStock && (
+                    <span className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded">
+                      {tCart('outOfStock')}
+                    </span>
+                  )}
+                  {isLowStock && !isOutOfStock && (
+                    <span className="px-3 py-1 bg-orange-500 text-white text-sm font-semibold rounded">
+                      {tCart('lowStock')}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -124,7 +131,7 @@ export default function ProductDetailPage() {
                 {product.images.map((image) => (
                   <button
                     key={image.uuid}
-                    onClick={() => setSelectedImage(image.url)}
+                    onClick={() => { setSelectedImage(image.url); setImgError(false); }}
                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                       selectedImage === image.url
                         ? "border-blue-600 ring-2 ring-blue-200"
