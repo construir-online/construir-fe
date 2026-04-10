@@ -34,6 +34,7 @@ import type {
 } from "@/types";
 import { IdentificationType } from "@/types";
 import { PaymentMethod as PaymentMethodEnum } from "@/lib/enums";
+import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
 
   const { user } = useAuth();
   const { cart, localCart } = useCart();
+  const { methods: activePaymentMethods } = usePaymentMethods();
 
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -809,7 +811,7 @@ export default function CheckoutPage() {
                   >
                     {t("next", { defaultValue: "Siguiente" })}
                   </button>
-                ) : (
+                ) : activePaymentMethods.length > 0 ? (
                   <button
                     key="submit-btn"
                     type="submit"
@@ -825,7 +827,7 @@ export default function CheckoutPage() {
                       t("placeOrder")
                     )}
                   </button>
-                )}
+                ) : null}
               </div>
             </form>
           </div>
