@@ -2,7 +2,7 @@
 
 import { Package } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import AddToCartButton from '../cart/AddToCartButton';
+import CartStepper from '../cart/CartStepper';
 import { formatVES, formatUSD } from '@/lib/currency';
 import type { Product } from '@/types';
 
@@ -105,11 +105,10 @@ export default function ProductCardContent({
 
       {/* Botón agregar al carrito - solo si showAddToCart */}
       {showAddToCart && product.published && !isOutOfStock && (
-        <AddToCartButton
+        <CartStepper
           productUuid={product.uuid}
-          quantity={1}
+          inventory={product.inventory}
           className="w-full"
-          showStepper={true}
         />
       )}
 

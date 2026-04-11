@@ -2,11 +2,17 @@
 
 import { useState } from 'react';
 import { X, Download, ExternalLink, ZoomIn, ZoomOut, Image as ImageIcon } from 'lucide-react';
-import Image from 'next/image';
 
 interface PaymentReceiptViewerProps {
   receiptUrl: string;
   orderNumber: string;
+}
+
+function getProxiedUrl(url: string): string {
+  if (url.startsWith('http')) {
+    return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+  }
+  return url;
 }
 
 export function PaymentReceiptViewer({ receiptUrl, orderNumber }: PaymentReceiptViewerProps) {
@@ -15,6 +21,7 @@ export function PaymentReceiptViewer({ receiptUrl, orderNumber }: PaymentReceipt
   const [imageError, setImageError] = useState(false);
 
   const isPDF = receiptUrl.toLowerCase().endsWith('.pdf');
+  const proxiedUrl = getProxiedUrl(receiptUrl);
 
   const handleDownload = async () => {
     try {
@@ -66,19 +73,17 @@ export function PaymentReceiptViewer({ receiptUrl, orderNumber }: PaymentReceipt
               className="relative cursor-pointer p-4 flex items-center justify-center min-h-[300px]"
               onClick={() => setIsModalOpen(true)}
             >
-              <Image
-                src={receiptUrl}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={proxiedUrl}
                 alt="Comprobante de pago"
-                width={800}
-                height={600}
                 className="max-w-full h-auto object-contain"
                 style={{ maxHeight: '300px' }}
                 onError={() => setImageError(true)}
-                unoptimized={receiptUrl.startsWith('http')}
               />
 
               {/* Overlay on hover */}
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity flex items-center justify-center pointer-events-none">
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-opacity flex items-center justify-center pointer-events-none">
                 <ZoomIn className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
               </div>
             </div>
@@ -108,7 +113,7 @@ export function PaymentReceiptViewer({ receiptUrl, orderNumber }: PaymentReceipt
 
       {/* Full screen modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
           <div className="relative w-full h-full flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 px-4">
@@ -117,7 +122,7 @@ export function PaymentReceiptViewer({ receiptUrl, orderNumber }: PaymentReceipt
               </h3>
               <div className="flex items-center gap-2">
                 {!isPDF && (
-                  <div className="flex items-center gap-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-2">
                     <button
                       onClick={() => setZoom(Math.max(50, zoom - 10))}
                       className="text-black hover:text-gray-300"
@@ -139,14 +144,14 @@ export function PaymentReceiptViewer({ receiptUrl, orderNumber }: PaymentReceipt
                 )}
                 <button
                   onClick={handleDownload}
-                  className="p-2 bg-white bg-opacity-20 rounded-lg text-black hover:bg-opacity-30 transition-colors"
+                  className="p-2 bg-white/20 rounded-lg text-black hover:bg-white/30 transition-colors"
                   title="Descargar"
                 >
                   <Download className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-2 bg-white bg-opacity-20 rounded-lg text-black hover:bg-opacity-30 transition-colors"
+                  className="p-2 bg-white/20 rounded-lg text-black hover:bg-white/30 transition-colors"
                   title="Cerrar"
                 >
                   <X className="w-5 h-5" />
@@ -164,13 +169,11 @@ export function PaymentReceiptViewer({ receiptUrl, orderNumber }: PaymentReceipt
                 />
               ) : (
                 <div style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}>
-                  <Image
-                    src={receiptUrl}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={proxiedUrl}
                     alt="Comprobante de pago"
-                    width={1200}
-                    height={1600}
                     className="max-w-full max-h-full object-contain"
-                    unoptimized={receiptUrl.startsWith('http')}
                   />
                 </div>
               )}

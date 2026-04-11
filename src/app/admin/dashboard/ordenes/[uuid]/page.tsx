@@ -23,6 +23,7 @@ import { ZellePaymentDetails } from "@/components/admin/payment-details/ZellePay
 import { PagoMovilPaymentDetails } from "@/components/admin/payment-details/PagoMovilPaymentDetails";
 import { TransferenciaPaymentDetails } from "@/components/admin/payment-details/TransferenciaPaymentDetails";
 import { PaymentMethod } from "@/lib/enums";
+import { resolvePaymentMethod, resolveBankName, resolveBankCode } from "@/lib/payment-helpers";
 
 export default function OrderDetailPage() {
   const t = useTranslations("orders");
@@ -67,19 +68,8 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     if (!order) return;
-    console.log(
-      "zelle",
-      order.paymentInfo.method === PaymentMethod.ZELLE,
-      order.paymentInfo
-    );
-    console.log(
-      "pagomovil",
-      order.paymentInfo.method === PaymentMethod.PAGO_MOVIL
-    );
-    console.log(
-      "transferencia",
-      order.paymentInfo.method === PaymentMethod.TRANSFERENCIA
-    );
+    console.log("paymentInfo", order.paymentInfo);
+    console.log("method resolved", resolvePaymentMethod(order.paymentInfo.method));
   }, [order]);
 
   const handleUpdateStatus = async () => {
@@ -271,7 +261,7 @@ export default function OrderDetailPage() {
             <div className="space-y-4">
               {/* Detalles del Pago según el método */}
               <div>
-                {order.paymentInfo.method === PaymentMethod.ZELLE && (
+                {resolvePaymentMethod(order.paymentInfo.method) === PaymentMethod.ZELLE && (
                   <>
                     <ZellePaymentDetails
                       details={{
@@ -282,26 +272,26 @@ export default function OrderDetailPage() {
                     />
                   </>
                 )}
-                {order.paymentInfo.method === PaymentMethod.PAGO_MOVIL && (
+                {resolvePaymentMethod(order.paymentInfo.method) === PaymentMethod.PAGO_MOVIL && (
                   <PagoMovilPaymentDetails
                     details={{
-                      bank: order.paymentInfo.bank || "",
-                      bankCode: order.paymentInfo.bankCode || "",
-                      phone: order.paymentInfo.phone || "",
+                      bank: resolveBankName(order.paymentInfo.bank),
+                      bankCode: resolveBankCode(order.paymentInfo.bank, order.paymentInfo.bankCode),
+                      phone: order.paymentInfo.phoneNumber || "",
                       cedula: order.paymentInfo.cedula || "",
                       referenceCode: order.paymentInfo.referenceCode || "",
                     }}
                   />
                 )}
-                {order.paymentInfo.method === PaymentMethod.TRANSFERENCIA && (
+                {resolvePaymentMethod(order.paymentInfo.method) === PaymentMethod.TRANSFERENCIA && (
                   <TransferenciaPaymentDetails
                     details={{
-                      bank: order.paymentInfo.bank || "",
-                      bankCode: order.paymentInfo.bankCode || "",
-                      beneficiary: order.paymentInfo.beneficiary || "",
+                      bank: resolveBankName(order.paymentInfo.transferBank),
+                      bankCode: order.paymentInfo.transferBank?.code || "",
+                      beneficiary: order.paymentInfo.accountName || "",
                       rif: order.paymentInfo.rif || "",
                       accountNumber: order.paymentInfo.accountNumber || "",
-                      referenceCode: order.paymentInfo.referenceCode || "", 
+                      referenceCode: order.paymentInfo.referenceNumber || "",
                     }}
                   />
                 )}

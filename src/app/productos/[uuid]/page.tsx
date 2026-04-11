@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Package, Loader2 } from "lucide-react";
 import { productsService } from "@/services/products";
-import AddToCartButton from "@/components/cart/AddToCartButton";
+import CartStepper from "@/components/cart/CartStepper";
 import type { Product } from "@/types";
 import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
 
@@ -21,7 +21,6 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [imgError, setImgError] = useState(false);
-  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     loadProduct();
@@ -200,39 +199,15 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Quantity Selector */}
+            {/* Add to Cart / Quantity Stepper */}
             {!isOutOfStock && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cantidad
-                </label>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200"
-                  >
-                    -
-                  </button>
-                  <span className="text-xl font-semibold w-12 text-center dark:text-gray-100">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(Math.min(product.inventory, quantity + 1))}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200"
-                  >
-                    +
-                  </button>
-                </div>
+              <div className="mb-4">
+                <CartStepper
+                  productUuid={product.uuid}
+                  inventory={product.inventory}
+                  className="w-full"
+                />
               </div>
-            )}
-
-            {/* Add to Cart Button */}
-            {!isOutOfStock && (
-              <AddToCartButton
-                productUuid={product.uuid}
-                quantity={quantity}
-                className="w-full mb-4"
-              />
             )}
 
             {isOutOfStock && (

@@ -8,8 +8,8 @@ import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
 
 interface CartItemProps {
   item: CartItemType | { productUuid: string; quantity: number; product: Product };
-  onUpdateQuantity: (itemUuid: string, productUuid: string, quantity: number) => Promise<void>;
-  onRemove: (itemUuid: string, productUuid: string) => Promise<void>;
+  onUpdateQuantity: (productUuid: string, quantity: number) => Promise<void>;
+  onRemove: (productUuid: string) => Promise<void>;
 }
 
 export default function CartItem({
@@ -20,7 +20,6 @@ export default function CartItem({
   const [loading, setLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  const itemUuid = 'uuid' in item ? item.uuid : '';
   const { product, quantity } = item;
   const priceUSD = parsePrice(product.price);
   const priceVES = product.priceVes ? parsePrice(product.priceVes) : null;
@@ -36,7 +35,7 @@ export default function CartItem({
 
     try {
       setLoading(true);
-      await onUpdateQuantity(itemUuid, product.uuid, newQuantity);
+      await onUpdateQuantity(product.uuid, newQuantity);
     } catch (error) {
       console.error("Error updating quantity:", error);
     } finally {
@@ -47,7 +46,7 @@ export default function CartItem({
   const handleRemove = async () => {
     try {
       setLoading(true);
-      await onRemove(itemUuid, product.uuid);
+      await onRemove(product.uuid);
     } catch (error) {
       console.error("Error removing item:", error);
     } finally {

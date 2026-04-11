@@ -170,34 +170,41 @@ export const cartService = {
   },
 
   /**
-   * Sincroniza el carrito local con el backend después del login
-   * Envía todos los items del localStorage al servidor
+   * Sincroniza el carrito local con el backend después del login.
+   * Si un producto ya existe en el carrito del servidor, suma las cantidades
+   * en lugar de intentar agregarlo de nuevo (lo que causaría un 400).
    */
   async syncLocalCart(): Promise<Cart> {
     const localCart = localCartService.getCart();
 
-    // Si no hay items locales, solo obtener el carrito del servidor
     if (!localCart.items.length) {
       return this.getCart();
     }
 
-    // Agregar cada item local al carrito del servidor
+    const serverCart = await this.getCart();
+
     for (const item of localCart.items) {
       try {
-        await this.addItem({
-          productUuid: item.productUuid,
-          quantity: item.quantity,
-        });
+        const existing = serverCart.items.find(
+          (si) => si.product.uuid === item.productUuid,
+        );
+
+        if (existing) {
+          await this.updateItem(existing.uuid, {
+            quantity: existing.quantity + item.quantity,
+          });
+        } else {
+          await this.addItem({
+            productUuid: item.productUuid,
+            quantity: item.quantity,
+          });
+        }
       } catch (error) {
         console.error(`Error syncing item ${item.productUuid}:`, error);
-        // Continuar con los demás items aunque uno falle
       }
     }
 
-    // Limpiar el carrito local después de sincronizar
     localCartService.clearCart();
-
-    // Retornar el carrito actualizado del servidor
     return this.getCart();
   },
 };

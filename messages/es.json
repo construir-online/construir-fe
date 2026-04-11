@@ -35,6 +35,7 @@
     "menu": "Menú",
     "apiKeys": "Claves API",
     "apiLogs": "Logs de API",
+    "auditLogs": "Auditoría",
     "users": "Usuarios"
   },
   "cart": {
@@ -188,6 +189,8 @@
       "processing": "Procesando",
       "shipped": "Enviada",
       "delivered": "Entregada",
+      "completed": "Completada",
+      "on-hold": "En Espera",
       "cancelled": "Cancelada",
       "refunded": "Reembolsada"
     },
@@ -798,5 +801,59 @@
     "activateError": "Error al activar el usuario",
     "deactivateSuccess": "Usuario desactivado correctamente",
     "deactivateError": "Error al desactivar el usuario"
+  },
+  "tracking": {
+    "title": "Seguimiento de Orden",
+    "notFound": "Orden no encontrada",
+    "notFoundDesc": "No encontramos una orden con ese número.",
+    "backToHome": "Volver al inicio",
+    "trackingNumber": "Número de rastreo:",
+    "deliveryPickup": "Retiro en tienda",
+    "deliveryShipping": "Envío a domicilio",
+    "delivery": "Método de entrega"
+  },
+  "auditLogs": {
+    "title": "Auditoría de Cambios",
+    "filters": "Filtros",
+    "resource": "Recurso",
+    "action": "Acción",
+    "allResources": "Todos los recursos",
+    "allActions": "Todas las acciones",
+    "startDate": "Desde",
+    "endDate": "Hasta",
+    "clearFilters": "Limpiar",
+    "date": "Fecha",
+    "user": "Usuario",
+    "noLogs": "No se encontraron registros",
+    "loadError": "Error al cargar los logs",
+    "detailTitle": "Detalle del cambio",
+    "resources": {
+      "product": "Producto",
+      "category": "Categoría",
+      "order": "Orden",
+      "user": "Usuario",
+      "discount": "Cupón",
+      "banner": "Banner",
+      "api-key": "API Key",
+      "exchange-rate": "Tasa de cambio"
+    },
+    "actions": {
+      "create": "Creación",
+      "update": "Actualización",
+      "delete": "Eliminación",
+      "bulk": "Masivo"
+    }
+  },
+  "myAccount": {
+    "title": "Mis Órdenes",
+    "noOrders": "Aún no tienes órdenes",
+    "noOrdersDesc": "Cuando realices una compra, aparecerá aquí.",
+    "viewDetail": "Ver detalle",
+    "backToOrders": "Mis órdenes",
+    "orderNumber": "Orden",
+    "date": "Fecha",
+    "status": "Estado",
+    "total": "Total",
+    "actions": "Acciones"
   }
 }

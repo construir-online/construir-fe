@@ -21,8 +21,8 @@ interface CartContextType {
 
   // Métodos
   addToCart: (productUuid: string, quantity: number) => Promise<void>;
-  updateQuantity: (itemUuid: string, productUuid: string, quantity: number) => Promise<void>;
-  removeFromCart: (itemUuid: string, productUuid: string) => Promise<void>;
+  updateQuantity: (productUuid: string, quantity: number) => Promise<void>;
+  removeFromCart: (productUuid: string) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
 
@@ -106,15 +106,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
    */
   const addToCart = async (productUuid: string, quantity: number) => {
     try {
-      setLoading(true);
-      setError(null);
-
       if (token) {
-        // Usuario autenticado: agregar al servidor
         const updatedCart = await cartService.addItem({ productUuid, quantity });
         setCart(updatedCart);
       } else {
-        // Usuario no autenticado: agregar a localStorage
         const updatedLocalCart = localCartService.addItem(productUuid, quantity);
         setLocalCart(updatedLocalCart);
       }
@@ -122,29 +117,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const message = err instanceof Error ? err.message : "Error adding item to cart";
       setError(message);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   /**
    * Actualiza la cantidad de un producto
    */
-  const updateQuantity = async (
-    itemUuid: string,
-    productUuid: string,
-    quantity: number
-  ) => {
+  const updateQuantity = async (productUuid: string, quantity: number) => {
     try {
-      setLoading(true);
-      setError(null);
-
       if (token) {
-        // Usuario autenticado
+        const itemUuid = cart?.items.find(i => i.product.uuid === productUuid)?.uuid;
+        if (!itemUuid) throw new Error("Item not found in cart");
         const updatedCart = await cartService.updateItem(itemUuid, { quantity });
         setCart(updatedCart);
       } else {
-        // Usuario no autenticado
         const updatedLocalCart = localCartService.updateItem(productUuid, quantity);
         setLocalCart(updatedLocalCart);
       }
@@ -152,34 +138,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const message = err instanceof Error ? err.message : "Error updating quantity";
       setError(message);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   /**
    * Elimina un producto del carrito
    */
-  const removeFromCart = async (itemUuid: string, producUuid: string) => {
+  const removeFromCart = async (productUuid: string) => {
     try {
-      setLoading(true);
-      setError(null);
-
       if (token) {
-        // Usuario autenticado
+        const itemUuid = cart?.items.find(i => i.product.uuid === productUuid)?.uuid;
+        if (!itemUuid) throw new Error("Item not found in cart");
         const updatedCart = await cartService.removeItem(itemUuid);
         setCart(updatedCart);
       } else {
-        // Usuario no autenticado
-        const updatedLocalCart = localCartService.removeItem(producUuid);
+        const updatedLocalCart = localCartService.removeItem(productUuid);
         setLocalCart(updatedLocalCart);
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error removing item";
       setError(message);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -1,4 +1,5 @@
-import { PaymentMethod as PaymentMethodEnum } from "@/lib/enums";
+import { PaymentMethod as PaymentMethodEnum, AuditAction, AuditResource } from "@/lib/enums";
+export { AuditAction, AuditResource };
 
 // User roles
 export enum UserRole {
@@ -396,6 +397,14 @@ export interface ShippingAddress {
   longitude?: number;
 }
 
+export interface Bank {
+  code: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ZelleDetails {
   email: string;
   beneficiary: string;
@@ -488,6 +497,8 @@ export type OrderStatus =
   | "processing"
   | "shipped"
   | "delivered"
+  | "completed"
+  | "on-hold"
   | "cancelled"
   | "refunded";
 
@@ -504,8 +515,18 @@ export interface OrderItem {
   subtotalVes: number | null;
 }
 
+export interface PaymentMethodEntity {
+  uuid?: string;
+  type: string;
+  name: string;
+  code?: string;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface PaymentInfo {
-  method: PaymentMethodEnum;
+  method: PaymentMethodEnum | PaymentMethodEntity;
   status: PaymentStatus;
   receiptUrl?: string;
   senderName?: string;
@@ -514,15 +535,18 @@ export interface PaymentInfo {
   verifiedBy?: number;
   adminNotes?: string;
   // PagoMovil
-  bank?: string;
+  bank?: string | Bank;
   bankCode?: string;
-  phone?: string;
+  phoneNumber?: string;
   cedula?: string;
   referenceCode?: string;
-  // Transfer 
-  beneficiary: string;
-  rif: string;
-  accountNumber: string;
+  // Transferencia
+  accountName?: string;
+  transferBank?: Bank;
+  referenceNumber?: string;
+  accountNumber?: string;
+  rif?: string;
+  beneficiary?: string;
 }
 
 export interface Order {
@@ -876,4 +900,34 @@ export interface ApiLogReplayResponse {
   statusCode: number;
   body: unknown;
   responseTime: number;
+}
+
+// Audit Log types
+
+export interface AuditLog {
+  id: number;
+  userId: number;
+  userEmail: string;
+  userFullName: string;
+  action: AuditAction;
+  resource: AuditResource;
+  resourceId: string;
+  details: Record<string, unknown>;
+  ipAddress: string;
+  createdAt: string;
+}
+
+export interface AuditLogFilters {
+  resource?: AuditResource;
+  action?: AuditAction;
+  userId?: number;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface AuditLogsResponse {
+  logs: AuditLog[];
+  total: number;
 }

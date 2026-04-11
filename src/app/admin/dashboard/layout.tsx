@@ -24,6 +24,7 @@ import {
   FileText,
   HelpCircle,
   Mail,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -145,6 +146,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       href: '/admin/dashboard/api-logs',
       label: t('apiLogs'),
       icon: FileText,
+      roles: [UserRole.ADMIN]
+    },
+    {
+      href: '/admin/dashboard/audit-logs',
+      label: t('auditLogs'),
+      icon: ClipboardList,
       roles: [UserRole.ADMIN]
     },
     {

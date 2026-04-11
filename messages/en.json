@@ -35,6 +35,7 @@
     "menu": "Menu",
     "apiKeys": "API Keys",
     "apiLogs": "API Logs",
+    "auditLogs": "Audit Log",
     "users": "Users"
   },
   "cart": {
@@ -188,6 +189,8 @@
       "processing": "Processing",
       "shipped": "Shipped",
       "delivered": "Delivered",
+      "completed": "Completed",
+      "on-hold": "On Hold",
       "cancelled": "Cancelled",
       "refunded": "Refunded"
     },
@@ -798,5 +801,59 @@
     "activateError": "Error activating user",
     "deactivateSuccess": "User deactivated successfully",
     "deactivateError": "Error deactivating user"
+  },
+  "tracking": {
+    "title": "Order Tracking",
+    "notFound": "Order not found",
+    "notFoundDesc": "We couldn't find an order with that number.",
+    "backToHome": "Back to home",
+    "trackingNumber": "Tracking number:",
+    "deliveryPickup": "Store pickup",
+    "deliveryShipping": "Home delivery",
+    "delivery": "Delivery method"
+  },
+  "auditLogs": {
+    "title": "Audit Log",
+    "filters": "Filters",
+    "resource": "Resource",
+    "action": "Action",
+    "allResources": "All resources",
+    "allActions": "All actions",
+    "startDate": "From",
+    "endDate": "To",
+    "clearFilters": "Clear",
+    "date": "Date",
+    "user": "User",
+    "noLogs": "No records found",
+    "loadError": "Error loading audit logs",
+    "detailTitle": "Change detail",
+    "resources": {
+      "product": "Product",
+      "category": "Category",
+      "order": "Order",
+      "user": "User",
+      "discount": "Coupon",
+      "banner": "Banner",
+      "api-key": "API Key",
+      "exchange-rate": "Exchange Rate"
+    },
+    "actions": {
+      "create": "Created",
+      "update": "Updated",
+      "delete": "Deleted",
+      "bulk": "Bulk"
+    }
+  },
+  "myAccount": {
+    "title": "My Orders",
+    "noOrders": "You have no orders yet",
+    "noOrdersDesc": "When you make a purchase, it will appear here.",
+    "viewDetail": "View detail",
+    "backToOrders": "My orders",
+    "orderNumber": "Order",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total",
+    "actions": "Actions"
   }
 }
