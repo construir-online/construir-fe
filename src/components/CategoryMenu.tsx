@@ -10,6 +10,7 @@ import { ChevronDown, ChevronRight, Grid } from 'lucide-react';
 export function CategoryMenu() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -18,6 +19,12 @@ export function CategoryMenu() {
   useEffect(() => {
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const allCats = categories.flatMap(c => [c, ...(c.childrens ?? [])]);
+    setSelectedCategory(allCats.find(c => c.uuid === currentCategory) ?? null);
+  }, [currentCategory, categories]);
 
   const loadCategories = async () => {
     try {
@@ -28,7 +35,9 @@ export function CategoryMenu() {
       setCategories(parentCategories);
 
       if (currentCategory) {
-        const currentCat = data.find(c => c.slug === currentCategory);
+        const allCats = data.flatMap(c => [c, ...(c.childrens ?? [])]);
+        const currentCat = allCats.find(c => c.uuid === currentCategory);
+        setSelectedCategory(currentCat ?? null);
         if (currentCat?.parent) {
           setExpandedCategories(new Set([currentCat.parent.uuid]));
         }
@@ -75,9 +84,9 @@ export function CategoryMenu() {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
           <Grid className="w-5 h-5" />
           Categorías
-          {currentCategory && (
+          {selectedCategory && (
             <span className="ml-1 text-sm font-normal text-blue-600 dark:text-blue-400 truncate max-w-[120px]">
-              · {currentCategory}
+              · {selectedCategory.name}
             </span>
           )}
         </h2>
@@ -107,7 +116,7 @@ export function CategoryMenu() {
           {categories.map((category) => {
             const hasChildren = category.childrens && category.childrens.length > 0;
             const isExpanded = expandedCategories.has(category.uuid);
-            const isActive = currentCategory === category.slug;
+            const isActive = currentCategory === category.uuid;
 
             return (
               <div key={category.uuid}>
@@ -127,7 +136,7 @@ export function CategoryMenu() {
                     </button>
                   )}
                   <Link
-                    href={`/productos?categoria=${category.slug}`}
+                    href={`/productos?categoria=${category.uuid}`}
                     onClick={() => setIsMenuOpen(false)}
                     className={`flex-1 px-3 py-2 rounded-md transition-colors ${
                       !hasChildren ? 'ml-5' : ''
@@ -150,11 +159,11 @@ export function CategoryMenu() {
                 {hasChildren && isExpanded && (
                   <div className="ml-6 mt-1 space-y-1">
                     {category.childrens?.map((child) => {
-                      const isChildActive = currentCategory === child.slug;
+                      const isChildActive = currentCategory === child.uuid;
                       return (
                         <Link
                           key={child.uuid}
-                          href={`/productos?categoria=${child.slug}`}
+                          href={`/productos?categoria=${child.uuid}`}
                           onClick={() => setIsMenuOpen(false)}
                           className={`block px-3 py-2 rounded-md text-sm transition-colors ${
                             isChildActive

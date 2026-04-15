@@ -84,31 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterDto) => {
-    // First register the user
+    // Register the user — email verification is required before login
     await authService.register(data);
-    // Then login with the same credentials
-    const loginResponse = await authService.login({
-      email: data.email,
-      password: data.password,
-    });
-    setUser(loginResponse.user);
-    setToken(loginResponse.access_token);
-    localStorage.setItem("token", loginResponse.access_token);
-    localStorage.setItem("user", JSON.stringify(loginResponse.user));
-
-    // Set cookie with proper attributes for production
-    if (typeof window !== 'undefined') {
-      const isProduction = window.location.protocol === 'https:';
-      const cookieAttributes = [
-        `token=${loginResponse.access_token}`,
-        'path=/',
-        `max-age=${60 * 60 * 24 * 7}`, // 7 days
-        'SameSite=Lax',
-        isProduction ? 'Secure' : ''
-      ].filter(Boolean).join('; ');
-
-      document.cookie = cookieAttributes;
-    }
   };
 
   const logout = () => {

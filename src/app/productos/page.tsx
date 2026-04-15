@@ -64,11 +64,6 @@ export default function ProductsPage() {
 
           {/* Products Section */}
           <div className="flex-1">
-            {categoryParam && (
-              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4 capitalize">
-                {categoryParam}
-              </h2>
-            )}
 
             {loading && (
               <div className="text-center py-12">

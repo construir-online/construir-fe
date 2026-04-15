@@ -117,6 +117,9 @@ export interface RegisterDto {
   lastName: string;
   email: string;
   password: string;
+  phone: string;
+  identificationType: IdentificationType;
+  identificationNumber: string;
 }
 
 export interface LoginDto {
