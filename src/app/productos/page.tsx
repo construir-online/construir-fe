@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { productsService } from "@/services/products";
 import type { Product } from "@/types";
@@ -14,10 +14,14 @@ export default function ProductsPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [search, setSearch] = useState(searchParam || "");
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasMore = page < lastPage;
 
   // Sincronizar con el parámetro de URL (navegación desde navbar)
   const prevSearchParam = useRef(searchParam);
@@ -26,32 +30,68 @@ export default function ProductsPage() {
       prevSearchParam.current = searchParam;
       setSearch(searchParam || '');
       setPage(1);
+      setProducts([]);
     }
   }, [searchParam]);
 
+  // Reset al cambiar categoría
+  const prevCategoryParam = useRef(categoryParam);
   useEffect(() => {
-    loadProducts();
-  }, [page, categoryParam, search]);
+    if (categoryParam !== prevCategoryParam.current) {
+      prevCategoryParam.current = categoryParam;
+      setPage(1);
+      setProducts([]);
+    }
+  }, [categoryParam]);
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async (currentPage: number) => {
     try {
-      setLoading(true);
+      if (currentPage === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
       const response = await productsService.getPublicPaginated({
-        page,
+        page: currentPage,
         limit: 12,
         categoryUuid: categoryParam || undefined,
         search: search || undefined,
         sortBy: 'createdAt',
         sortOrder: 'DESC',
       });
-      setProducts(response.data);
+      setProducts(prev => currentPage === 1 ? response.data : [...prev, ...response.data]);
       setLastPage(response.lastPage);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al cargar productos");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [categoryParam, search]);
+
+  useEffect(() => {
+    loadProducts(page);
+  }, [page, loadProducts]);
+
+  // IntersectionObserver para infinite scroll
+  useEffect(() => {
+    if (!hasMore || loadingMore || loading) return;
+
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
@@ -102,7 +142,7 @@ export default function ProductsPage() {
               </div>
             )}
 
-            {!loading && products.length > 0 && (
+            {products.length > 0 && (
               <>
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 mb-8">
                   {products.map((product, index) => (
@@ -119,26 +159,21 @@ export default function ProductsPage() {
                   ))}
                 </div>
 
-                {/* Paginación */}
-                <div className="flex justify-center items-center gap-4">
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                    className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Anterior
-                  </button>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Página {page} de {lastPage}
-                  </span>
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={page === lastPage}
-                    className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Siguiente
-                  </button>
-                </div>
+                {/* Sentinel para infinite scroll */}
+                <div ref={sentinelRef} className="h-4" />
+
+                {loadingMore && (
+                  <div className="text-center py-6">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Cargando más productos...</p>
+                  </div>
+                )}
+
+                {!hasMore && !loadingMore && (
+                  <p className="text-center text-gray-400 dark:text-gray-500 text-sm py-6">
+                    No hay más productos
+                  </p>
+                )}
               </>
             )}
           </div>
