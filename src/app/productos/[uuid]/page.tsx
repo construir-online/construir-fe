@@ -70,16 +70,7 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Breadcrumb */}
-        <nav className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-          <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Inicio</Link>
-          {' / '}
-          <Link href="/productos" className="hover:text-blue-600 dark:hover:text-blue-400">{t('title')}</Link>
-          {' / '}
-          <span className="text-gray-900 dark:text-gray-100">{product.customName ?? product.name}</span>
-        </nav>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images Section */}
           <div>
             {/* Main Image */}
@@ -199,9 +190,9 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Add to Cart / Quantity Stepper */}
+            {/* Add to Cart / Quantity Stepper — solo desktop */}
             {!isOutOfStock && (
-              <div className="mb-4">
+              <div className="hidden md:block mb-4">
                 <CartStepper
                   productUuid={product.uuid}
                   inventory={product.inventory}
@@ -232,6 +223,24 @@ export default function ProductDetailPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Barra fija mobile — sobre el BottomNav */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 px-4 pt-3 pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+        {!isOutOfStock ? (
+          <CartStepper
+            productUuid={product.uuid}
+            inventory={product.inventory}
+            className="w-full"
+          />
+        ) : (
+          <button
+            disabled
+            className="w-full px-6 py-3 bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
+          >
+            {tCart('notAvailable')}
+          </button>
+        )}
       </div>
     </div>
   );

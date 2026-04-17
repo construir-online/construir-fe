@@ -48,7 +48,11 @@ export default function BannerCarousel({ className }: BannerCarouselProps) {
 
   // Evitar hydration mismatch
   if (!isMounted || loading || banners.length === 0) {
-    return null;
+    return (
+      <div className={className}>
+        <div className="w-full h-[400px] md:h-[500px] lg:h-[600px] bg-gray-200 animate-pulse" />
+      </div>
+    );
   }
 
   return (

@@ -39,7 +39,18 @@ export default function FeaturedProducts() {
     return (
       <section className="relative -mt-20 py-16 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          {/* Mobile skeleton */}
+          <div className="sm:hidden overflow-x-auto -mx-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3 px-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="flex-shrink-0 w-40">
+                  <ProductCardSkeleton variant="compact" />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Desktop skeleton */}
+          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <ProductCardSkeleton key={i} variant="compact" />
             ))}
@@ -56,21 +67,42 @@ export default function FeaturedProducts() {
   return (
     <section className="relative -mt-20 py-16 bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-          {products.map((product, index) => (
-            <ProductCard
-              key={product.uuid}
-              product={product}
-              variant="compact"
-              showAddToCart={false}
-              showBadges={false}
-              showSku={false}
-              showDescription={false}
-              showStock={false}
-              priority={index < 4}
-            />
-          ))}
-        </div>
+          {/* Mobile: scroll horizontal */}
+          <div className="sm:hidden overflow-x-auto snap-x snap-mandatory scroll-pl-4 -mx-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-3 px-4">
+              {products.map((product, index) => (
+                <div key={product.uuid} className="flex-shrink-0 w-40 snap-start">
+                  <ProductCard
+                    product={product}
+                    variant="compact"
+                    showAddToCart={false}
+                    showBadges={false}
+                    showSku={false}
+                    showDescription={false}
+                    showStock={false}
+                    priority={index < 4}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop: grid */}
+          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {products.map((product, index) => (
+              <ProductCard
+                key={product.uuid}
+                product={product}
+                variant="compact"
+                showAddToCart={false}
+                showBadges={false}
+                showSku={false}
+                showDescription={false}
+                showStock={false}
+                priority={index < 4}
+              />
+            ))}
+          </div>
 
         {/* Ver más productos */}
         <div className="mt-12 text-center">

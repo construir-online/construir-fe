@@ -4,17 +4,17 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
+import CartDrawer from "@/components/cart/CartDrawer";
 import { ToastProvider } from "@/context/ToastContext";
+import { useCart } from "@/context/CartContext";
 import { initGA, trackPageView } from "@/lib/analytics";
 import { analyticsService } from "@/services/analytics";
 
-export default function ClientLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
+  const { isCartOpen, closeCart } = useCart();
 
   // Initialize GA4 on mount
   useEffect(() => {
@@ -24,11 +24,7 @@ export default function ClientLayout({
   // Track route changes
   useEffect(() => {
     if (!pathname) return;
-
-    // Track in Google Analytics 4
     trackPageView(pathname);
-
-    // Track in custom backend analytics
     analyticsService.trackPageView({
       path: pathname,
       title: document.title,
@@ -38,12 +34,26 @@ export default function ClientLayout({
   }, [pathname]);
 
   return (
-    <ToastProvider>
+    <>
       {!isAdminRoute && <Navbar />}
-      <main className="min-h-screen">
+      <main className={`min-h-screen${!isAdminRoute ? ' pb-16 md:pb-0' : ''}`}>
         {children}
       </main>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <div className="hidden md:block"><Footer /></div>}
+      {!isAdminRoute && <BottomNav />}
+      <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
+    </>
+  );
+}
+
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ToastProvider>
+      <LayoutContent>{children}</LayoutContent>
     </ToastProvider>
   );
 }

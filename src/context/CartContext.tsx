@@ -18,6 +18,7 @@ interface CartContextType {
   localCart: LocalCart;
   loading: boolean;
   error: string | null;
+  isCartOpen: boolean;
 
   // Métodos
   addToCart: (productUuid: string, quantity: number) => Promise<void>;
@@ -25,6 +26,8 @@ interface CartContextType {
   removeFromCart: (productUuid: string) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
+  openCart: () => void;
+  closeCart: () => void;
 
   // Utilidades
   getTotalItems: () => number;
@@ -39,6 +42,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [localCart, setLocalCart] = useState<LocalCart>({ items: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const openCart = useCallback(() => setIsCartOpen(true), []);
+  const closeCart = useCallback(() => setIsCartOpen(false), []);
 
   // Cargar carrito local al montar el componente
   useEffect(() => {
@@ -230,11 +237,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localCart,
         loading,
         error,
+        isCartOpen,
         addToCart,
         updateQuantity,
         removeFromCart,
         clearCart,
         refreshCart,
+        openCart,
+        closeCart,
         getTotalItems,
         getItemQuantity,
       }}

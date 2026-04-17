@@ -5,7 +5,6 @@ import { Autoplay } from 'swiper/modules';
 import type { Banner } from '@/types';
 import BannerSlide from './BannerSlide';
 
-// Import Swiper styles
 import 'swiper/css';
 
 interface MobileCarouselProps {
@@ -19,17 +18,20 @@ export default function MobileCarousel({ banners }: MobileCarouselProps) {
         modules={[Autoplay]}
         slidesPerView={1.15}
         centeredSlides={true}
-        spaceBetween={16}
+        spaceBetween={12}
+        initialSlide={0}
+        loop={true}
+        onSwiper={(swiper) => {
+          requestAnimationFrame(() => swiper.slideToLoop(0, 0, false));
+        }}
         autoplay={{
           delay: 5000,
           disableOnInteraction: false,
         }}
-        loop={banners.length > 1}
         speed={500}
-        className="rounded-2xl overflow-hidden"
       >
         {banners.map((banner, index) => (
-          <SwiperSlide key={banner.uuid} className="h-[400px]">
+          <SwiperSlide key={banner.uuid} className="h-[400px] rounded-2xl overflow-hidden">
             <BannerSlide banner={banner} isPriority={index === 0} />
           </SwiperSlide>
         ))}

@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ShoppingBag, ChevronRight, AlertCircle, Package } from "lucide-react";
 import { ordersService } from "@/services/orders";
 import { getOrderStatusColor } from "@/lib/order-helpers";
 import { formatUSD } from "@/lib/currency";
+import { useAuth } from "@/context/AuthContext";
 import type { OrderSummary } from "@/types";
 
 function OrderCardSkeleton() {
@@ -81,10 +83,18 @@ function OrderCard({ order }: { order: OrderSummary }) {
 
 export default function MisOrdenesPage() {
   const tAccount = useTranslations("myAccount");
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
+    }
+  }, [authLoading, user, router]);
 
   const load = useCallback(async () => {
     setLoading(true);

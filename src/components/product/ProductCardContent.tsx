@@ -48,20 +48,12 @@ export default function ProductCardContent({
         <div className={`${classes.categorySize} font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide`}>
           {isCompact ? (
             // Compact: solo primera categoría
-            <span>{product.categories[0]?.name}</span>
+            <span className="block truncate">{product.categories[0]?.name}</span>
           ) : (
-            // Default: hasta 2 categorías clickeables
-            <div className="flex flex-wrap gap-1">
-              {product.categories.slice(0, 2).map((category) => (
-                <span
-                  key={category.uuid}
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {category.name}
-                </span>
-              ))}
-            </div>
+            // Default: primera categoría, una sola línea
+            <span className="block truncate text-blue-600 dark:text-blue-400">
+              {product.categories[0]?.name}
+            </span>
           )}
         </div>
       )}
