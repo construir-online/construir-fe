@@ -5,9 +5,9 @@ interface ProductCardSkeletonProps {
 export default function ProductCardSkeleton({ variant = 'default' }: ProductCardSkeletonProps) {
   const isCompact = variant === 'compact';
 
-  const imageHeight = isCompact ? 'h-48 sm:h-56' : 'h-64';
-  const padding = isCompact ? 'p-2 sm:p-3' : 'p-4';
-  const spacingY = isCompact ? 'space-y-2' : 'space-y-3';
+  const imageHeight = isCompact ? 'h-36 sm:h-44' : 'h-48 sm:h-56';
+  const padding = isCompact ? 'p-2 sm:p-3' : 'p-3';
+  const spacingY = isCompact ? 'space-y-1' : 'space-y-2';
 
   return (
     <div className="block bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden animate-pulse">
@@ -21,8 +21,8 @@ export default function ProductCardSkeleton({ variant = 'default' }: ProductCard
 
         {/* Name skeleton - 2 lines */}
         <div className="space-y-2">
-          <div className={`${isCompact ? 'h-4' : 'h-5'} bg-gray-200 dark:bg-slate-700 rounded w-full`} />
-          <div className={`${isCompact ? 'h-4' : 'h-5'} bg-gray-200 dark:bg-slate-700 rounded w-4/5`} />
+          <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-full" />
+          <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-4/5" />
         </div>
 
         {/* SKU skeleton - only for default variant */}

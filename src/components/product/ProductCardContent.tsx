@@ -109,13 +109,14 @@ export default function ProductCardContent({
           productUuid={product.uuid}
           inventory={product.inventory}
           className="w-full"
+          compact={true}
         />
       )}
 
       {showAddToCart && isOutOfStock && (
         <button
           disabled
-          className="w-full px-6 py-3 bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
+          className="w-full px-4 py-2 bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
         >
           {tCart('notAvailable')}
         </button>

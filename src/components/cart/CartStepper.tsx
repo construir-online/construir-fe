@@ -9,12 +9,14 @@ interface CartStepperProps {
   productUuid: string;
   inventory?: number;
   className?: string;
+  compact?: boolean;
 }
 
 export default function CartStepper({
   productUuid,
   inventory,
   className = "",
+  compact = false,
 }: CartStepperProps) {
   const t = useTranslations("cart");
   const { addToCart, getItemQuantity, updateQuantity, removeFromCart } = useCart();
@@ -97,14 +99,14 @@ export default function CartStepper({
     <button
       onClick={handleAdd}
       disabled={loading}
-      className={`flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${compact ? 'px-3 py-2' : 'px-6 py-3'} ${className}`}
     >
       {loading ? (
-        <Loader2 className="w-5 h-5 animate-spin" />
+        <Loader2 className={compact ? 'w-4 h-4 animate-spin' : 'w-5 h-5 animate-spin'} />
       ) : (
-        <ShoppingCart className="w-5 h-5" />
+        <ShoppingCart className={compact ? 'w-4 h-4' : 'w-5 h-5'} />
       )}
-      <span>{t("addToCart")}</span>
+      <span className={compact ? 'hidden sm:inline' : ''}>{t("addToCart")}</span>
     </button>
   );
 }

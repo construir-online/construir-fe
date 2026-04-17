@@ -26,13 +26,13 @@ export function useProductCardVariant({
   const isOutOfStock = inventory === 0;
 
   const classes = {
-    imageHeight: isCompact ? 'h-48 sm:h-56' : 'h-64',
-    padding: isCompact ? 'p-2 sm:p-3' : 'p-4',
-    nameSize: isCompact ? 'text-xs sm:text-sm font-medium' : 'text-sm sm:text-base font-semibold',
-    priceSize: isCompact ? 'text-lg sm:text-2xl' : 'text-2xl',
+    imageHeight: isCompact ? 'h-36 sm:h-44' : 'h-48 sm:h-56',
+    padding: isCompact ? 'p-2 sm:p-3' : 'p-3',
+    nameSize: isCompact ? 'text-xs sm:text-sm font-medium' : 'text-xs sm:text-sm font-semibold',
+    priceSize: isCompact ? 'text-base sm:text-lg' : 'text-lg sm:text-xl',
     categorySize: 'text-xs',
-    minHeight: isCompact ? 'min-h-[32px] sm:min-h-[40px]' : 'min-h-[40px]',
-    spacingY: isCompact ? 'space-y-2' : 'space-y-3',
+    minHeight: isCompact ? 'min-h-[32px] sm:min-h-[36px]' : 'min-h-[32px] sm:min-h-[36px]',
+    spacingY: isCompact ? 'space-y-1' : 'space-y-2',
   };
 
   return {

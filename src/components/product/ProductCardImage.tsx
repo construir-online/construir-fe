@@ -52,7 +52,7 @@ export default function ProductCardImage({
   const showPlaceholder = !imageUrl || imageUrl === "/placeholder-product.png" || imgError;
 
   return (
-    <div className={`relative bg-gray-50 dark:bg-slate-700 ${imageHeight} flex items-center justify-center p-3 sm:p-6`}>
+    <div className={`relative bg-gray-50 dark:bg-slate-700 ${imageHeight} flex items-center justify-center p-2 sm:p-4`}>
       {/* Image or placeholder */}
       {showPlaceholder ? (
         <ProductImagePlaceholder />
