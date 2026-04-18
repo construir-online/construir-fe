@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { getTotalItems, openCart } = useCart();
+  const { getTotalItems } = useCart();
   const { user } = useAuth();
 
   const totalItems = getTotalItems();
@@ -48,7 +48,7 @@ export default function BottomNav() {
           </Link>
 
           {/* Carrito */}
-          <button type="button" onClick={openCart} className={tabCls(false)}>
+          <Link href="/carrito" className={tabCls(isActive('/carrito'))}>
             <div className="relative">
               <ShoppingCart className="w-5 h-5" />
               {totalItems > 0 && (
@@ -58,7 +58,7 @@ export default function BottomNav() {
               )}
             </div>
             <span className="text-[10px] font-medium leading-none">Carrito</span>
-          </button>
+          </Link>
 
           {/* Cuenta */}
           <Link
