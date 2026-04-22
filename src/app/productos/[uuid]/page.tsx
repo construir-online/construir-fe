@@ -14,8 +14,8 @@ import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
 export default function ProductDetailPage() {
   const params = useParams();
   const uuid = params.uuid as string;
-  const t = useTranslations('products');
-  const tCart = useTranslations('cart');
+  const t = useTranslations("products");
+  const tCart = useTranslations("cart");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,9 @@ export default function ProductDetailPage() {
       const foundProduct = await productsService.getByUuid(uuid);
       setProduct(foundProduct);
       const primaryImage = foundProduct.images?.find((img) => img.isPrimary);
-      setSelectedImage(primaryImage?.url || foundProduct.images?.[0]?.url || "");
+      setSelectedImage(
+        primaryImage?.url || foundProduct.images?.[0]?.url || "",
+      );
       setImgError(false);
     } catch (error) {
       console.error("Error loading product:", error);
@@ -53,24 +55,29 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          {t('notFound')}
+          {t("notFound")}
         </h1>
-        <Link href="/productos" className="text-blue-600 dark:text-blue-400 hover:underline">
+        <Link
+          href="/productos"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
           Volver a productos
         </Link>
       </div>
     );
   }
 
-  const priceUSD = parsePrice(product.price);
-  const priceVES = product.priceVes ? parsePrice(product.priceVes) : null;
+  const priceUSD = parsePrice(product.priceWithIva);
+  const priceVES = product.priceWithIvaVes
+    ? parsePrice(product.priceWithIvaVes)
+    : null;
   const isOutOfStock = product.inventory === 0;
   const isLowStock = product.inventory > 0 && product.inventory <= 5;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Images Section */}
           <div>
             {/* Main Image */}
@@ -95,17 +102,17 @@ export default function ProductDetailPage() {
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                 {product.featured && (
                   <span className="px-3 py-1 bg-yellow-500 text-white text-sm font-semibold rounded">
-                    {t('featured')}
+                    {t("featured")}
                   </span>
                 )}
                 {isOutOfStock && (
                   <span className="px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded">
-                    {tCart('outOfStock')}
+                    {tCart("outOfStock")}
                   </span>
                 )}
                 {isLowStock && !isOutOfStock && (
                   <span className="px-3 py-1 bg-orange-500 text-white text-sm font-semibold rounded">
-                    {tCart('lowStock')}
+                    {tCart("lowStock")}
                   </span>
                 )}
               </div>
@@ -117,7 +124,10 @@ export default function ProductDetailPage() {
                 {product.images.map((image) => (
                   <button
                     key={image.uuid}
-                    onClick={() => { setSelectedImage(image.url); setImgError(false); }}
+                    onClick={() => {
+                      setSelectedImage(image.url);
+                      setImgError(false);
+                    }}
                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all flex items-center justify-center ${
                       selectedImage === image.url
                         ? "border-blue-600 ring-2 ring-blue-200"
@@ -145,7 +155,7 @@ export default function ProductDetailPage() {
 
             {/* SKU */}
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {tCart('sku')}: {product.sku}
+              {tCart("sku")}: {product.sku}
             </p>
 
             {/* Categories */}
@@ -170,7 +180,9 @@ export default function ProductDetailPage() {
                   {formatVES(priceVES)}
                 </p>
               )}
-              <p className={`${priceVES ? 'text-xl text-gray-600 dark:text-gray-400' : 'text-4xl font-bold text-blue-600 dark:text-blue-400'}`}>
+              <p
+                className={`${priceVES ? "text-xl text-gray-600 dark:text-gray-400" : "text-4xl font-bold text-blue-600 dark:text-blue-400"}`}
+              >
                 {formatUSD(priceUSD)}
               </p>
             </div>
@@ -179,14 +191,16 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 mb-6">
               <Package className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               <span className="text-gray-700 dark:text-gray-300">
-                {product.inventory} {tCart('stock')}
+                {product.inventory} {tCart("stock")}
               </span>
             </div>
 
             {/* Short Description */}
             {product.shortDescription && (
               <div className="mb-6">
-                <p className="text-gray-600 dark:text-gray-400">{product.shortDescription}</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {product.shortDescription}
+                </p>
               </div>
             )}
 
@@ -206,7 +220,7 @@ export default function ProductDetailPage() {
                 disabled
                 className="w-full px-6 py-3 bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
               >
-                {tCart('notAvailable')}
+                {tCart("notAvailable")}
               </button>
             )}
 
@@ -214,7 +228,7 @@ export default function ProductDetailPage() {
             {product.description && (
               <div className="mt-8 pt-8 border-t dark:border-gray-700">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                  {t('description')}
+                  {t("description")}
                 </h2>
                 <div className="text-gray-600 dark:text-gray-400 whitespace-pre-line">
                   {product.description}
@@ -238,7 +252,7 @@ export default function ProductDetailPage() {
             disabled
             className="w-full px-6 py-3 bg-gray-300 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded-lg font-semibold cursor-not-allowed"
           >
-            {tCart('notAvailable')}
+            {tCart("notAvailable")}
           </button>
         )}
       </div>

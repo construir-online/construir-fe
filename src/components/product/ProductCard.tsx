@@ -9,7 +9,7 @@ import ProductCardContent from "./ProductCardContent";
 
 interface ProductCardProps {
   product: Product;
-  variant?: 'default' | 'compact';
+  variant?: "default" | "compact";
   showAddToCart?: boolean;
   showBadges?: boolean;
   showSku?: boolean;
@@ -20,18 +20,20 @@ interface ProductCardProps {
 
 export default function ProductCard({
   product,
-  variant = 'default',
+  variant = "default",
   showAddToCart = false,
   showBadges = true,
   showSku = false,
   showDescription = true,
   showStock = true,
-  priority = false
+  priority = false,
 }: ProductCardProps) {
   const primaryImage = product.images?.find((img) => img.isPrimary);
   const imageUrl = primaryImage?.url || "/placeholder-product.png";
-  const priceUSD = parsePrice(product.price);
-  const priceVES = product.priceVes ? parsePrice(product.priceVes) : null;
+  const priceUSD = parsePrice(product.priceWithIva);
+  const priceVES = product.priceWithIvaVes
+    ? parsePrice(product.priceWithIvaVes)
+    : null;
 
   const router = useRouter();
   const { classes, isLowStock, isOutOfStock } = useProductCardVariant({

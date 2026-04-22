@@ -1,11 +1,15 @@
-import { PaymentMethod as PaymentMethodEnum, AuditAction, AuditResource } from "@/lib/enums";
+import {
+  PaymentMethod as PaymentMethodEnum,
+  AuditAction,
+  AuditResource,
+} from "@/lib/enums";
 export { AuditAction, AuditResource };
 
 // User roles
 export enum UserRole {
-  ADMIN = 'admin',
-  ORDER_ADMIN = 'order_admin',
-  CUSTOMER = 'customer'
+  ADMIN = "admin",
+  ORDER_ADMIN = "order_admin",
+  CUSTOMER = "customer",
 }
 
 export interface User {
@@ -93,6 +97,10 @@ export interface Product {
   inventory: number;
   price: string;
   priceVes: string | null;
+  iva: number;
+  priceWithIva: number;
+  ivaVes: number;
+  priceWithIvaVes: number;
   categories?: {
     uuid: string;
     name: string;
@@ -761,9 +769,9 @@ export interface CustomerDetailResponseDto {
 
 // API Keys types
 export enum ApiKeyPermission {
-  READ = 'read',
-  WRITE = 'write',
-  READ_WRITE = 'read_write',
+  READ = "read",
+  WRITE = "write",
+  READ_WRITE = "read_write",
 }
 
 export interface ApiKey {
@@ -838,15 +846,15 @@ export interface UserListFilters {
   page?: number;
   limit?: number;
   search?: string;
-  role?: UserRole | 'all';
-  isActive?: boolean | 'all';
+  role?: UserRole | "all";
+  isActive?: boolean | "all";
   includeDeleted?: boolean;
-  sortBy?: 'createdAt' | 'firstName' | 'email' | 'role';
-  sortOrder?: 'ASC' | 'DESC';
+  sortBy?: "createdAt" | "firstName" | "email" | "role";
+  sortOrder?: "ASC" | "DESC";
 }
 
 // API Logs types
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export interface ApiLog {
   id: number;

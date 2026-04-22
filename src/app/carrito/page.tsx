@@ -82,18 +82,13 @@ export default function CarritoPage() {
   const subtotal = isAuthenticated
     ? cart?.subtotal || 0
     : enrichedLocalItems.reduce((acc, item) => {
-        const price =
-          typeof item.product.price === 'string'
-            ? parseFloat(item.product.price)
-            : item.product.price;
-        return acc + price * item.quantity;
+        return acc + item.product.priceWithIva * item.quantity;
       }, 0);
 
   const subtotalVES = isAuthenticated
     ? cart?.subtotalVes || null
     : enrichedLocalItems.reduce((acc, item) => {
-        if (!item.product.priceVes) return acc;
-        return acc + parsePrice(item.product.priceVes) * item.quantity;
+        return acc + item.product.priceWithIvaVes * item.quantity;
       }, 0);
 
   const handleClearCart = async () => {

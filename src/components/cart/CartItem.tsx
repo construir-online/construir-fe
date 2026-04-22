@@ -7,7 +7,9 @@ import type { CartItem as CartItemType, Product } from "@/types";
 import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
 
 interface CartItemProps {
-  item: CartItemType | { productUuid: string; quantity: number; product: Product };
+  item:
+    | CartItemType
+    | { productUuid: string; quantity: number; product: Product };
   onUpdateQuantity: (productUuid: string, quantity: number) => Promise<void>;
   onRemove: (productUuid: string) => Promise<void>;
 }
@@ -21,14 +23,17 @@ export default function CartItem({
   const [imgError, setImgError] = useState(false);
 
   const { product, quantity } = item;
-  const priceUSD = parsePrice(product.price);
-  const priceVES = product.priceVes ? parsePrice(product.priceVes) : null;
+  const priceUSD = parsePrice(product.priceWithIva);
+  const priceVES = product.priceWithIvaVes
+    ? parsePrice(product.priceWithIvaVes)
+    : null;
   const subtotalUSD = priceUSD * quantity;
   const subtotalVES = priceVES ? priceVES * quantity : null;
 
   const primaryImage = product.images?.find((img) => img.isPrimary);
   const imageUrl = primaryImage?.url || "/placeholder-product.png";
-  const showPlaceholder = !imageUrl || imageUrl === "/placeholder-product.png" || imgError;
+  const showPlaceholder =
+    !imageUrl || imageUrl === "/placeholder-product.png" || imgError;
 
   const handleUpdateQuantity = async (newQuantity: number) => {
     if (newQuantity < 1 || newQuantity > product.inventory) return;
@@ -55,7 +60,9 @@ export default function CartItem({
   };
 
   return (
-    <div className={`flex gap-3 py-4 transition-opacity ${loading ? "opacity-50" : ""}`}>
+    <div
+      className={`flex gap-3 py-4 transition-opacity ${loading ? "opacity-50" : ""}`}
+    >
       {/* Imagen */}
       <div className="relative w-16 h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden flex items-center justify-center ring-1 ring-gray-200 dark:ring-gray-700/50">
         {showPlaceholder ? (
@@ -85,7 +92,9 @@ export default function CartItem({
                 {formatVES(priceVES)}
               </p>
             )}
-            <p className={`leading-none ${priceVES ? "text-xs text-gray-500 mt-0.5" : "text-sm font-semibold text-blue-600 dark:text-blue-400"}`}>
+            <p
+              className={`leading-none ${priceVES ? "text-xs text-gray-500 mt-0.5" : "text-sm font-semibold text-blue-600 dark:text-blue-400"}`}
+            >
               {formatUSD(priceUSD)}
             </p>
           </div>
@@ -131,7 +140,9 @@ export default function CartItem({
                 {formatVES(subtotalVES)}
               </p>
             )}
-            <p className={`leading-none ${subtotalVES ? "text-xs text-gray-500 mt-0.5" : "text-sm font-semibold text-gray-900 dark:text-white"}`}>
+            <p
+              className={`leading-none ${subtotalVES ? "text-xs text-gray-500 mt-0.5" : "text-sm font-semibold text-gray-900 dark:text-white"}`}
+            >
               {formatUSD(subtotalUSD)}
             </p>
           </div>

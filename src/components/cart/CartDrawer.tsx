@@ -58,14 +58,14 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
       const response = await getProducts({ page: 1, limit: 100 });
       const matchedProducts = response.data.filter((p) =>
-        productUuids.includes(p.uuid)
+        productUuids.includes(p.uuid),
       );
       setProducts(matchedProducts);
 
       // Limpiar del localStorage los items cuyo producto ya no existe
       const matchedUuids = new Set(matchedProducts.map((p) => p.uuid));
       const validItems = localCart.items.filter((item) =>
-        matchedUuids.has(item.productUuid)
+        matchedUuids.has(item.productUuid),
       );
       if (validItems.length !== localCart.items.length) {
         localCartService.saveCart({ items: validItems });
@@ -97,17 +97,17 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     ? cart?.subtotal || 0
     : enrichedLocalItems.reduce((acc, item) => {
         const price =
-          typeof item.product.price === "string"
-            ? parseFloat(item.product.price)
-            : item.product.price;
+          typeof item.product.priceWithIva === "string"
+            ? parseFloat(item.product.priceWithIva)
+            : item.product.priceWithIva;
         return acc + price * item.quantity;
       }, 0);
 
   const subtotalVES = isAuthenticated
     ? cart?.subtotalVes || null
     : enrichedLocalItems.reduce((acc, item) => {
-        if (!item.product.priceVes) return acc;
-        const priceVes = parsePrice(item.product.priceVes);
+        if (!item.product.priceWithIvaVes) return acc;
+        const priceVes = parsePrice(item.product.priceWithIvaVes);
         return acc + priceVes * item.quantity;
       }, 0);
 
@@ -152,7 +152,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
       {/* Drawer */}
       <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl z-50 flex flex-col border-l border-gray-200 dark:border-gray-700/50">
-
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700/60 bg-white/95 dark:bg-gray-900/95">
           <div className="flex items-center gap-3">
@@ -182,7 +181,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           {cartLoading || loadingProducts ? (
             <div className="flex flex-col items-center justify-center h-full gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">Cargando carrito…</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Cargando carrito…
+              </p>
             </div>
           ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-12">
@@ -233,7 +234,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           <div className="border-t border-gray-200 dark:border-gray-700/60 bg-gray-50 dark:bg-gray-800/60 px-5 py-4 space-y-4">
             {/* Subtotal */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("subtotal")}</span>
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t("subtotal")}
+              </span>
               <div className="text-right">
                 {subtotalVES && subtotalVES > 0 && (
                   <div className="text-lg font-bold text-gray-900 dark:text-white">
