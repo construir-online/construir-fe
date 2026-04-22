@@ -72,9 +72,7 @@ export function isPaymentMethodConfigured(method: PaymentMethod): boolean {
  * Obtiene solo los métodos de pago activos y con detalles configurados
  */
 export function getActivePaymentMethods(): PaymentMethodConfig[] {
-  return Object.values(paymentConfig).filter(
-    (config) => config.enabled && isPaymentMethodConfigured(config.type),
-  );
+  return Object.values(paymentConfig).filter((config) => config.enabled);
 }
 
 /**

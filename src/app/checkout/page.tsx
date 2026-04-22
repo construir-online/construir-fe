@@ -82,6 +82,7 @@ export default function CheckoutPage() {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<CheckoutData>({
     defaultValues: {
@@ -134,6 +135,46 @@ export default function CheckoutPage() {
     });
 
   const isAuthenticated = !!user;
+
+  const CHECKOUT_STORAGE_KEY = 'checkout_draft';
+
+  // Restaurar datos guardados al montar
+  useEffect(() => {
+    const saved = sessionStorage.getItem(CHECKOUT_STORAGE_KEY);
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      if (data.form) reset(data.form);
+      if (data.currentStep !== undefined) setCurrentStep(data.currentStep);
+      if (data.locationMethod) setLocationMethod(data.locationMethod);
+      if (data.identificationType) setIdentificationType(data.identificationType);
+      if (data.identificationNumber !== undefined) setIdentificationNumber(data.identificationNumber);
+      if (data.zellePayment) setZellePayment({ ...data.zellePayment, receipt: null });
+      if (data.pagomovilPayment) setPagomovilPayment({ ...data.pagomovilPayment, receipt: null });
+      if (data.transferenciaPayment) setTransferenciaPayment({ ...data.transferenciaPayment, receipt: null });
+    } catch {
+      sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persistir datos en sessionStorage cuando cambian
+  const allFormValues = watch();
+  useEffect(() => {
+    sessionStorage.setItem(
+      CHECKOUT_STORAGE_KEY,
+      JSON.stringify({
+        form: allFormValues,
+        currentStep,
+        locationMethod,
+        identificationType,
+        identificationNumber,
+        zellePayment: { ...zellePayment, receipt: null },
+        pagomovilPayment: { ...pagomovilPayment, receipt: null },
+        transferenciaPayment: { ...transferenciaPayment, receipt: null },
+      }),
+    );
+  }, [allFormValues, currentStep, locationMethod, identificationType, identificationNumber, zellePayment, pagomovilPayment, transferenciaPayment]);
 
   // Definir los pasos dinámicamente según el método de entrega
   const getSteps = () => {
@@ -684,7 +725,8 @@ export default function CheckoutPage() {
         await ordersService.uploadReceipt(order.uuid, receiptFile);
       }
 
-      // Redirigir a confirmación
+      // Limpiar datos guardados y redirigir a confirmación
+      sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
       router.push(`/checkout/confirmacion?method=${formData.paymentMethod}`);
     } catch (error) {
       console.error("Error processing checkout:", error);
