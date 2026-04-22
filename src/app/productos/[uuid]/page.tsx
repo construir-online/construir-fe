@@ -240,7 +240,7 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Barra fija mobile — sobre el BottomNav */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 px-4 pt-3 pb-[calc(3.5rem+env(safe-area-inset-bottom))]">
+      <div className="md:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] inset-x-0 z-30 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 px-4 py-3">
         {!isOutOfStock ? (
           <CartStepper
             productUuid={product.uuid}
