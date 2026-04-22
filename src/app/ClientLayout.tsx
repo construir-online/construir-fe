@@ -14,6 +14,8 @@ import { analyticsService } from "@/services/analytics";
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
+  const isCheckoutRoute = pathname?.startsWith('/checkout');
+  const showBottomNav = !isAdminRoute && !isCheckoutRoute;
   const { isCartOpen, closeCart } = useCart();
 
   // Initialize GA4 on mount
@@ -36,11 +38,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       {!isAdminRoute && <Navbar />}
-      <main className={`min-h-screen${!isAdminRoute ? ' pb-16 md:pb-0' : ''}`}>
+      <main className={`min-h-screen${showBottomNav ? ' pb-16 md:pb-0' : ''}`}>
         {children}
       </main>
       {!isAdminRoute && <div className="hidden md:block"><Footer /></div>}
-      {!isAdminRoute && <BottomNav />}
+      {showBottomNav && <BottomNav />}
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );

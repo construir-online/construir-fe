@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
-import { Loader2, Package } from "lucide-react";
+import { Loader2, ChevronUp } from "lucide-react";
 import { getProducts } from "@/services/products";
 import { ordersService } from "@/services/orders";
 import { discountsService } from "@/services/discounts";
@@ -20,7 +20,8 @@ import Step1ContactInfo from "@/components/checkout/steps/Step1ContactInfo";
 import Step2DeliveryMethod from "@/components/checkout/steps/Step2DeliveryMethod";
 import Step3Location from "@/components/checkout/steps/Step3Location";
 import Step4Payment from "@/components/checkout/steps/Step4Payment";
-import DiscountCodeInput from "@/components/checkout/DiscountCodeInput";
+import OrderSummary from "@/components/checkout/OrderSummary";
+import OrderSummarySheet from "@/components/checkout/OrderSummarySheet";
 import type {
   CheckoutData,
   Product,
@@ -51,6 +52,7 @@ export default function CheckoutPage() {
     "manual" | "auto" | "map"
   >("manual");
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
   // Discount state
   const [discountCode, setDiscountCode] = useState<string | null>(null);
@@ -754,6 +756,31 @@ export default function CheckoutPage() {
     );
   }
 
+  const showVES =
+    !!paymentMethod && ["pagomovil", "transferencia"].includes(paymentMethod);
+  const itemsCount = items.reduce(
+    (acc, item) => (item ? acc + item.quantity : acc),
+    0,
+  );
+  const summaryProps = {
+    items,
+    subtotal,
+    subtotalVES,
+    ivaAmount,
+    ivaAmountVes,
+    shipping,
+    discountCode,
+    discountAmount,
+    discountAmountVes,
+    total,
+    totalVES,
+    paymentMethod,
+    exchangeRate,
+    onApplyDiscount: handleApplyDiscount,
+    discountError,
+    isApplyingDiscount,
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -761,15 +788,16 @@ export default function CheckoutPage() {
           {t("title")}
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-[calc(env(safe-area-inset-bottom)+120px)] lg:pb-0">
           {/* Formulario */}
-          <div className="lg:col-span-2 order-last lg:order-first">
+          <div className="lg:col-span-2">
             {/* Stepper */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
               <CheckoutStepper steps={steps} currentStep={currentStep} />
             </div>
 
             <form
+              id="checkout-form"
               onSubmit={handleSubmit(onSubmit)}
               className="bg-white dark:bg-gray-800 rounded-lg p-4 md:p-6 space-y-6"
             >
@@ -853,8 +881,8 @@ export default function CheckoutPage() {
                 />
               )}
 
-              {/* Botones de Navegación */}
-              <div className="flex justify-between pt-6 border-t dark:border-gray-700">
+              {/* Botones de Navegación (desktop/tablet — mobile usa sticky bar) */}
+              <div className="hidden md:flex justify-between pt-6 border-t dark:border-gray-700">
                 <button
                   type="button"
                   onClick={handlePrevious}
@@ -894,144 +922,96 @@ export default function CheckoutPage() {
             </form>
           </div>
 
-          {/* Resumen */}
-          <div className="lg:col-span-1 order-first lg:order-last">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 sticky top-8">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                {t("orderSummary")}
-              </h2>
+          {/* Resumen (sidebar — solo desktop) */}
+          <aside className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-8">
+              <OrderSummary variant="sidebar" {...summaryProps} />
+            </div>
+          </aside>
+        </div>
 
-              {/* Items */}
-              <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                {items.map((item) => {
-                  if (!item) {
-                    return null;
-                  }
-                  const itemPriceUSD =
-                    item.product.priceWithIva * item.quantity;
-                  const itemPriceVES = item.product.priceWithIvaVes
-                    ? item.product.priceWithIvaVes * item.quantity
-                    : null;
-                  const showVES =
-                    paymentMethod &&
-                    ["pagomovil", "transferencia"].includes(paymentMethod);
-
-                  return (
-                    <div key={item.product.uuid} className="flex gap-3">
-                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded flex-shrink-0 flex items-center justify-center">
-                        <Package className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {item.product.name}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Cantidad: {item.quantity}
-                        </p>
-                        <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                          {showVES && itemPriceVES
-                            ? formatVES(itemPriceVES)
-                            : formatUSD(itemPriceUSD)}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* Sticky bar mobile con total + CTA */}
+        <div
+          className="md:hidden fixed inset-x-0 bottom-0 z-30 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_12px_rgba(0,0,0,0.3)]"
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)",
+            touchAction: "manipulation",
+          }}
+        >
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <button
+              type="button"
+              onClick={() => setIsSummaryOpen(true)}
+              aria-label={t("orderSummary")}
+              aria-expanded={isSummaryOpen}
+              aria-controls="order-summary-sheet-title"
+              className="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded px-1 py-0.5"
+            >
+              <ChevronUp className="w-4 h-4" />
+              {t("orderSummary")} ({itemsCount})
+            </button>
+            <div className="text-right">
+              <div className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                {t("total")}
               </div>
-
-              {/* Totales */}
-              <div className="border-t dark:border-gray-700 pt-4 space-y-2">
-                {/* Mostrar tipo de cambio si es pago en VES */}
-                {paymentMethod &&
-                  ["pagomovil", "transferencia"].includes(paymentMethod) &&
-                  exchangeRate &&
-                  typeof exchangeRate === "number" && (
-                    <div className="flex justify-between text-xs bg-blue-50 dark:bg-blue-950/40 p-2 rounded">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        Tipo de cambio:
-                      </span>
-                      <span className="font-medium">
-                        1 USD = {exchangeRate.toFixed(2)} Bs
-                      </span>
-                    </div>
-                  )}
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {t("subtotal")}:
-                  </span>
-                  <span className="font-medium">
-                    {paymentMethod &&
-                    ["pagomovil", "transferencia"].includes(paymentMethod) &&
-                    subtotalVES !== null &&
-                    subtotalVES !== undefined
-                      ? formatVES(subtotalVES)
-                      : formatUSD(subtotal)}
-                  </span>
-                </div>
-                {ivaAmount > 0 && (
-                  <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
-                    <span>IVA:</span>
-                    <span className="font-medium">
-                      {paymentMethod &&
-                      ["pagomovil", "transferencia"].includes(paymentMethod) &&
-                      ivaAmountVes > 0
-                        ? formatVES(ivaAmountVes)
-                        : formatUSD(ivaAmount)}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {t("shipping")}:
-                  </span>
-                  <span className="font-medium">
-                    {shipping === 0 ? t("free") : formatUSD(shipping)}
-                  </span>
-                </div>
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
-                    <span className="font-medium">
-                      {t("discount")} ({discountCode}):
-                    </span>
-                    <span className="font-medium">
-                      -
-                      {paymentMethod &&
-                      ["pagomovil", "transferencia"].includes(paymentMethod) &&
-                      discountAmountVes !== null
-                        ? formatVES(discountAmountVes)
-                        : formatUSD(discountAmount)}
-                    </span>
-                  </div>
-                )}
-                <div className="border-t dark:border-gray-700 pt-2 flex justify-between text-lg font-bold">
-                  <span className="dark:text-gray-100">{t("total")}:</span>
-                  <span className="text-blue-600 dark:text-blue-400">
-                    {paymentMethod &&
-                    ["pagomovil", "transferencia"].includes(paymentMethod) &&
-                    totalVES !== null &&
-                    totalVES !== undefined
-                      ? formatVES(totalVES)
-                      : formatUSD(total)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <DiscountCodeInput
-                  onApply={handleApplyDiscount}
-                  error={discountError}
-                  isApplying={isApplyingDiscount}
-                />
+              <div
+                className="text-lg font-bold text-blue-600 dark:text-blue-400"
+                aria-live="polite"
+              >
+                {showVES && totalVES !== null && totalVES !== undefined
+                  ? formatVES(totalVES)
+                  : formatUSD(total)}
               </div>
             </div>
           </div>
+          <div className="flex gap-2">
+            {currentStep > 0 && (
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="flex-1 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                {t("previous", { defaultValue: "Anterior" })}
+              </button>
+            )}
+            {currentStep < steps.length - 1 ? (
+              <button
+                type="button"
+                onClick={handleNext}
+                className={`${currentStep > 0 ? "flex-[2]" : "flex-1"} py-3 bg-blue-600 text-white font-semibold rounded-lg text-sm hover:bg-blue-700 transition-colors`}
+              >
+                {t("next", { defaultValue: "Siguiente" })}
+              </button>
+            ) : activePaymentMethods.length > 0 ? (
+              <button
+                type="submit"
+                form="checkout-form"
+                disabled={loading}
+                className={`${currentStep > 0 ? "flex-[2]" : "flex-1"} py-3 bg-green-600 text-white font-semibold rounded-lg text-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t("processing")}
+                  </>
+                ) : (
+                  t("placeOrder")
+                )}
+              </button>
+            ) : null}
+          </div>
         </div>
+
+        <OrderSummarySheet
+          isOpen={isSummaryOpen}
+          onClose={() => setIsSummaryOpen(false)}
+          {...summaryProps}
+        />
 
         {/* Modal de confirmación de datos encontrados */}
         {showGuestDataModal && foundGuestData && (
           <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-200"
             onClick={handleCancelGuestData}
           >
             <div
