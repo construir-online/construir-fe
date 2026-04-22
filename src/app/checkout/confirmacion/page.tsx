@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle, Package, Home } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
-export default function ConfirmacionPage() {
+function ConfirmacionContent() {
   const { clearCart } = useCart();
+  const searchParams = useSearchParams();
+  const method = searchParams.get("method");
+  const isZelle = method === "zelle";
 
-  // Limpiar el carrito cuando se confirma la orden
   useEffect(() => {
     clearCart();
   }, []);
@@ -28,10 +31,14 @@ export default function ConfirmacionPage() {
           </h1>
 
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-2">
-            Gracias por tu compra. Hemos recibido tu pedido y comprobante de pago.
+            {isZelle
+              ? "Gracias por tu compra. Hemos recibido tu pedido."
+              : "Gracias por tu compra. Hemos recibido tu pedido y comprobante de pago."}
           </p>
-          <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-8">
-            Tu pedido está pendiente de verificación del pago.
+          <p className="text-sm font-medium mb-8 text-orange-600 dark:text-orange-400">
+            {isZelle
+              ? "Un vendedor te contactará pronto para indicarte los datos de pago Zelle."
+              : "Tu pedido está pendiente de verificación del pago."}
           </p>
 
           {/* Información */}
@@ -39,32 +46,53 @@ export default function ConfirmacionPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               ¿Qué sigue?
             </h2>
-            <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">1.</span>
-                <span>
-                  Verificaremos tu comprobante de pago (esto puede tomar hasta 24 horas)
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">2.</span>
-                <span>
-                  Recibirás un correo de confirmación una vez que tu pago sea verificado
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">3.</span>
-                <span>
-                  Prepararemos tu pedido y te notificaremos cuando esté listo para envío
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">4.</span>
-                <span>
-                  Recibirás un número de rastreo para seguir tu envío
-                </span>
-              </li>
-            </ul>
+            {isZelle ? (
+              <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">1.</span>
+                  <span>Un vendedor de Construir se comunicará contigo para indicarte a qué cuenta realizar el pago Zelle</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">2.</span>
+                  <span>Una vez confirmado el pago, procederemos a preparar tu pedido</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">3.</span>
+                  <span>Recibirás una notificación cuando tu pedido esté listo para envío</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">4.</span>
+                  <span>Recibirás un número de rastreo para seguir tu envío</span>
+                </li>
+              </ul>
+            ) : (
+              <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">1.</span>
+                  <span>
+                    Verificaremos tu comprobante de pago (esto puede tomar hasta 24 horas)
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">2.</span>
+                  <span>
+                    Recibirás un correo de confirmación una vez que tu pago sea verificado
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">3.</span>
+                  <span>
+                    Prepararemos tu pedido y te notificaremos cuando esté listo para envío
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">4.</span>
+                  <span>
+                    Recibirás un número de rastreo para seguir tu envío
+                  </span>
+                </li>
+              </ul>
+            )}
           </div>
 
           {/* Estado del Pedido */}
@@ -72,11 +100,13 @@ export default function ConfirmacionPage() {
             <div className="flex items-center gap-2 mb-2">
               <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                Estado: Pendiente de Verificación
+                {isZelle ? "Estado: Pendiente de Contacto" : "Estado: Pendiente de Verificación"}
               </p>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Estamos revisando tu comprobante de pago. Te notificaremos por correo cuando sea aprobado.
+              {isZelle
+                ? "Un vendedor se pondrá en contacto contigo a la brevedad."
+                : "Estamos revisando tu comprobante de pago. Te notificaremos por correo cuando sea aprobado."}
             </p>
           </div>
 
@@ -118,5 +148,13 @@ export default function ConfirmacionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmacionPage() {
+  return (
+    <Suspense>
+      <ConfirmacionContent />
+    </Suspense>
   );
 }

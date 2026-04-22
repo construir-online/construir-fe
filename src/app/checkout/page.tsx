@@ -13,7 +13,7 @@ import { ordersService } from "@/services/orders";
 import { discountsService } from "@/services/discounts";
 import { guestCustomersService } from "@/services/guest-customers";
 import { exchangeRateService } from "@/services/exchangeRate";
-import { formatVES, formatUSD, parsePrice } from "@/lib/currency";
+import { formatVES, formatUSD } from "@/lib/currency";
 
 import CheckoutStepper from "@/components/checkout/CheckoutStepper";
 import Step1ContactInfo from "@/components/checkout/steps/Step1ContactInfo";
@@ -56,7 +56,7 @@ export default function CheckoutPage() {
   const [discountCode, setDiscountCode] = useState<string | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountAmountVes, setDiscountAmountVes] = useState<number | null>(
-    null
+    null,
   );
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
@@ -71,7 +71,7 @@ export default function CheckoutPage() {
   const [isSearchingGuest, setIsSearchingGuest] = useState(false);
   const [showGuestDataModal, setShowGuestDataModal] = useState(false);
   const [foundGuestData, setFoundGuestData] = useState<GuestCustomer | null>(
-    null
+    null,
   );
 
   const toast = useToast();
@@ -190,7 +190,7 @@ export default function CheckoutPage() {
         toast.error(
           t("errors.completeContact", {
             defaultValue: "Por favor completa todos los campos de contacto",
-          })
+          }),
         );
         return;
       }
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
           toast.error(
             t("errors.completeAddress", {
               defaultValue: "Por favor completa la dirección",
-            })
+            }),
           );
           return;
         }
@@ -227,7 +227,7 @@ export default function CheckoutPage() {
           toast.error(
             t("errors.selectLocation", {
               defaultValue: "Por favor selecciona tu ubicación",
-            })
+            }),
           );
           return;
         }
@@ -258,7 +258,7 @@ export default function CheckoutPage() {
           limit: 100,
         });
         const matchedProducts = response.data.filter((p) =>
-          productUuids.includes(p.uuid)
+          productUuids.includes(p.uuid),
         );
         setProducts(matchedProducts);
       } catch (error) {
@@ -291,7 +291,7 @@ export default function CheckoutPage() {
       } catch (error) {
         console.error("❌ Error loading exchange rate:", error);
         toast.error(
-          "No se pudo cargar el tipo de cambio. Los precios en VES no estarán disponibles."
+          "No se pudo cargar el tipo de cambio. Los precios en VES no estarán disponibles.",
         );
       }
     };
@@ -317,14 +317,32 @@ export default function CheckoutPage() {
     ? cart?.subtotal || 0
     : enrichedLocalItems.reduce((acc, item) => {
         if (!item) return acc;
-        return acc + parseFloat(item.product.price) * item.quantity;
+        return acc + item.product.priceWithIva * item.quantity;
       }, 0);
 
   const subtotalVES = isAuthenticated
     ? cart?.subtotalVes || null
     : enrichedLocalItems.reduce((acc, item) => {
-        if (!item || !item.product.priceVes) return acc;
-        return acc + parsePrice(item.product.priceVes) * item.quantity;
+        if (!item) return acc;
+        return acc + item.product.priceWithIvaVes * item.quantity;
+      }, 0);
+
+  const ivaAmount = isAuthenticated
+    ? (cart?.items || []).reduce((acc, item) => {
+        return acc + (item.product.priceWithIva - parseFloat(item.product.price)) * item.quantity;
+      }, 0)
+    : enrichedLocalItems.reduce((acc, item) => {
+        if (!item) return acc;
+        return acc + (item.product.priceWithIva - parseFloat(item.product.price)) * item.quantity;
+      }, 0);
+
+  const ivaAmountVes = isAuthenticated
+    ? (cart?.items || []).reduce((acc, item) => {
+        return acc + (item.product.ivaVes || 0) * item.quantity;
+      }, 0)
+    : enrichedLocalItems.reduce((acc, item) => {
+        if (!item) return acc;
+        return acc + (item.product.ivaVes || 0) * item.quantity;
       }, 0);
 
   const shipping = 0; // TODO: Calcular envío
@@ -412,7 +430,7 @@ export default function CheckoutPage() {
   // Actualizar el state sin buscar
   const handleIdentificationChange = (
     type: IdentificationType,
-    number: string
+    number: string,
   ) => {
     setIdentificationType(type);
     setIdentificationNumber(number);
@@ -426,7 +444,7 @@ export default function CheckoutPage() {
       try {
         const guestData = await guestCustomersService.searchByIdentification(
           identificationType,
-          identificationNumber
+          identificationNumber,
         );
         if (guestData) {
           // Guardar datos encontrados y mostrar modal
@@ -473,16 +491,7 @@ export default function CheckoutPage() {
   };
 
   const validatePaymentData = (): boolean => {
-    if (paymentMethod === "zelle") {
-      if (
-        !zellePayment.senderName ||
-        !zellePayment.senderBank ||
-        !zellePayment.receipt
-      ) {
-        toast.error("Por favor completa todos los campos del pago Zelle");
-        return false;
-      }
-    } else if (paymentMethod === "pagomovil") {
+    if (paymentMethod === "pagomovil") {
       if (
         !pagomovilPayment.phoneNumber ||
         !pagomovilPayment.cedula ||
@@ -521,7 +530,7 @@ export default function CheckoutPage() {
         (error) => {
           console.error("Error getting location:", error);
           toast.error("No se pudo obtener la ubicación");
-        }
+        },
       );
     } else {
       toast.error("Tu navegador no soporta geolocalización");
@@ -558,7 +567,7 @@ export default function CheckoutPage() {
         // Métodos automático o mapa: requiere coordenadas
         if (!formData.latitude || !formData.longitude) {
           toast.error(
-            "Por favor selecciona tu ubicación en el mapa o usa la ubicación automática"
+            "Por favor selecciona tu ubicación en el mapa o usa la ubicación automática",
           );
           return;
         }
@@ -583,11 +592,7 @@ export default function CheckoutPage() {
       let receiptFile: File | null = null;
 
       if (formData.paymentMethod === "zelle") {
-        paymentDetails = {
-          senderName: zellePayment.senderName,
-          senderBank: zellePayment.senderBank,
-        };
-        receiptFile = zellePayment.receipt;
+        paymentDetails = {};
       } else if (formData.paymentMethod === "pagomovil") {
         paymentDetails = {
           phoneNumber: pagomovilPayment.phoneNumber,
@@ -680,7 +685,7 @@ export default function CheckoutPage() {
       }
 
       // Redirigir a confirmación
-      router.push("/checkout/confirmacion");
+      router.push(`/checkout/confirmacion?method=${formData.paymentMethod}`);
     } catch (error) {
       console.error("Error processing checkout:", error);
 
@@ -710,7 +715,9 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">{t("title")}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">
+          {t("title")}
+        </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Formulario */}
@@ -779,14 +786,27 @@ export default function CheckoutPage() {
                   createAccount={createAccount || false}
                   cartItems={items.flatMap((item) => {
                     if (!item) return [];
-                    const price = 'price' in item ? parseFloat(item.price) : parseFloat(item.product.price);
-                    const priceVes = 'priceVes' in item && item.priceVes
-                      ? parseFloat(item.priceVes)
-                      : item.product.priceVes ? parseFloat(item.product.priceVes) : null;
-                    return [{ productName: item.product.name, quantity: item.quantity, price, priceVes }];
+                    const price =
+                      "price" in item
+                        ? parseFloat(item.price)
+                        : parseFloat(item.product.price);
+                    const priceVes =
+                      "priceVes" in item && item.priceVes
+                        ? parseFloat(item.priceVes)
+                        : item.product.priceVes
+                          ? parseFloat(item.product.priceVes)
+                          : null;
+                    return [
+                      {
+                        productName: item.product.name,
+                        quantity: item.quantity,
+                        price,
+                        priceVes,
+                      },
+                    ];
                   })}
-                  customerName={`${watch('firstName') || ''} ${watch('lastName') || ''}`.trim()}
-                  customerPhone={watch('phone') || ''}
+                  customerName={`${watch("firstName") || ""} ${watch("lastName") || ""}`.trim()}
+                  customerPhone={watch("phone") || ""}
                   deliveryMethod={deliveryMethod}
                 />
               )}
@@ -846,9 +866,9 @@ export default function CheckoutPage() {
                     return null;
                   }
                   const itemPriceUSD =
-                    parseFloat(item.product.price) * item.quantity;
-                  const itemPriceVES = item.product.priceVes
-                    ? parsePrice(item.product.priceVes) * item.quantity
+                    item.product.priceWithIva * item.quantity;
+                  const itemPriceVES = item.product.priceWithIvaVes
+                    ? item.product.priceWithIvaVes * item.quantity
                     : null;
                   const showVES =
                     paymentMethod &&
@@ -885,7 +905,9 @@ export default function CheckoutPage() {
                   exchangeRate &&
                   typeof exchangeRate === "number" && (
                     <div className="flex justify-between text-xs bg-blue-50 dark:bg-blue-950/40 p-2 rounded">
-                      <span className="text-gray-600 dark:text-gray-400">Tipo de cambio:</span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Tipo de cambio:
+                      </span>
                       <span className="font-medium">
                         1 USD = {exchangeRate.toFixed(2)} Bs
                       </span>
@@ -893,7 +915,9 @@ export default function CheckoutPage() {
                   )}
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">{t("subtotal")}:</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t("subtotal")}:
+                  </span>
                   <span className="font-medium">
                     {paymentMethod &&
                     ["pagomovil", "transferencia"].includes(paymentMethod) &&
@@ -903,8 +927,22 @@ export default function CheckoutPage() {
                       : formatUSD(subtotal)}
                   </span>
                 </div>
+                {ivaAmount > 0 && (
+                  <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                    <span>IVA:</span>
+                    <span className="font-medium">
+                      {paymentMethod &&
+                      ["pagomovil", "transferencia"].includes(paymentMethod) &&
+                      ivaAmountVes > 0
+                        ? formatVES(ivaAmountVes)
+                        : formatUSD(ivaAmount)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">{t("shipping")}:</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t("shipping")}:
+                  </span>
                   <span className="font-medium">
                     {shipping === 0 ? t("free") : formatUSD(shipping)}
                   </span>
@@ -979,13 +1017,17 @@ export default function CheckoutPage() {
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     {t("email")}:
                   </span>{" "}
-                  <span className="text-gray-900 dark:text-gray-100">{foundGuestData.email}</span>
+                  <span className="text-gray-900 dark:text-gray-100">
+                    {foundGuestData.email}
+                  </span>
                 </p>
                 <p className="text-sm">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     {t("phone")}:
                   </span>{" "}
-                  <span className="text-gray-900 dark:text-gray-100">{foundGuestData.phone}</span>
+                  <span className="text-gray-900 dark:text-gray-100">
+                    {foundGuestData.phone}
+                  </span>
                 </p>
                 {foundGuestData.address && (
                   <p className="text-sm">
