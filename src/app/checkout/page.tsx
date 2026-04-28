@@ -147,7 +147,7 @@ export default function CheckoutPage() {
     try {
       const data = JSON.parse(saved);
       if (data.form) reset(data.form);
-      if (data.currentStep !== undefined) setCurrentStep(data.currentStep);
+      // Always start at step 1 so the user can review/modify data, even if it was previously saved
       if (data.locationMethod) setLocationMethod(data.locationMethod);
       if (data.identificationType) setIdentificationType(data.identificationType);
       if (data.identificationNumber !== undefined) setIdentificationNumber(data.identificationNumber);
@@ -167,7 +167,6 @@ export default function CheckoutPage() {
       CHECKOUT_STORAGE_KEY,
       JSON.stringify({
         form: allFormValues,
-        currentStep,
         locationMethod,
         identificationType,
         identificationNumber,
