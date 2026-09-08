@@ -264,7 +264,14 @@ export default function RegisterPage() {
                   id="identificationNumber"
                   name="identificationNumber"
                   type="text"
-                  inputMode="numeric"
+                  // El teclado numérico sólo sirve para lo que es sólo dígitos.
+                  // Un pasaporte lleva letras, y con `numeric` fijo el móvil no
+                  // las ofrecía: fricción justo en el caso que sí se acepta.
+                  inputMode={
+                    formData.identificationType === IdentificationType.P
+                      ? "text"
+                      : "numeric"
+                  }
                   value={formData.identificationNumber}
                   onChange={handleChange}
                   placeholder={t("identificationPlaceholder")}

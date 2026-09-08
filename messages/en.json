@@ -144,7 +144,6 @@
     "registering": "Creating account...",
     "identification": "ID number",
     "identificationPlaceholder": "12345678",
-    "identificationHelp": "Digits only, no dots or dashes.",
     "idTypeV": "V — Venezuelan",
     "idTypeE": "E — Foreign resident",
     "idTypeJ": "J — Company",
@@ -163,7 +162,6 @@
     "checkEmailBody": "We sent a verification link to {email}. Click the link to activate your account.",
     "checkEmailSpam": "Don't see it? Check your spam folder or {link} to resend the email.",
     "checkEmailSpamLink": "try logging in",
-    "goToLogin": "Log in",
     "registerErrors": {
       "emailAlreadyRegistered": "An account with that email already exists. Log in or use a different email.",
       "invalidEmail": "Enter a valid email address.",

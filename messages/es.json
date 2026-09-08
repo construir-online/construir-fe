@@ -144,7 +144,6 @@
     "registering": "Registrando...",
     "identification": "Identificación",
     "identificationPlaceholder": "12345678",
-    "identificationHelp": "Sólo el número, sin puntos ni guiones.",
     "idTypeV": "V — Venezolano",
     "idTypeE": "E — Extranjero",
     "idTypeJ": "J — Jurídico",
@@ -163,7 +162,6 @@
     "checkEmailBody": "Te enviamos un enlace de verificación a {email}. Haz clic en el enlace para activar tu cuenta.",
     "checkEmailSpam": "¿No lo ves? Revisa la carpeta de spam o {link} para reenviar el correo.",
     "checkEmailSpamLink": "intenta iniciar sesión",
-    "goToLogin": "Iniciar sesión",
     "registerErrors": {
       "emailAlreadyRegistered": "Ya existe una cuenta con ese correo. Inicia sesión o usa otro correo.",
       "invalidEmail": "Escribe un correo electrónico válido.",
