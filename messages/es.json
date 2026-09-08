@@ -742,12 +742,13 @@
       "selectLocation": "Por favor selecciona tu ubicación",
       "completeIdentification": "Ingresa tu cédula o RIF para continuar",
       "phoneInvalid": "Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.",
-      "identificationInvalid": "La cédula debe tener 7 u 8 dígitos."
+      "identificationInvalid": "La cédula debe tener 7 u 8 dígitos.",
+      "completePhone": "Ingresa tu teléfono para continuar"
     },
     "applyDiscount": "Aplicar",
     "stepContactIdentification": "Tus datos",
     "stepContactConfirm": "Confirma tus datos",
-    "identificationHeadline": "Empecemos por tu cédula o RIF",
+    "identificationHeadline": "Identifícate: cédula o RIF y teléfono",
     "searchingByIdentification": "Buscando tus datos por cédula…",
     "identificationPrivacyNote": "Usamos tu cédula solo para identificar tu pedido y emitir el recibo.",
     "autofilledTitle": "Datos autocompletados",
@@ -756,7 +757,8 @@
     "allFieldsRequired": "Todos los campos son obligatorios.",
     "whatsapp": "WhatsApp",
     "callStore": "Llamar a la tienda: {phone}",
-    "emailStore": "Escribir a {email}"
+    "emailStore": "Escribir a {email}",
+    "identificationPhoneHelp": "Con tu cédula y tu teléfono reconocemos tus compras anteriores."
   },
   "discounts": {
     "title": "Gestión de Cupones",

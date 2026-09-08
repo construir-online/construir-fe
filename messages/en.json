@@ -742,12 +742,13 @@
       "selectLocation": "Please select your location",
       "completeIdentification": "Enter your ID or tax number to continue",
       "phoneInvalid": "Enter a Venezuelan mobile: 0412, 0414, 0416, 0424 or 0426 + 7 digits.",
-      "identificationInvalid": "The ID number must have 7 or 8 digits."
+      "identificationInvalid": "The ID number must have 7 or 8 digits.",
+      "completePhone": "Enter your phone number to continue"
     },
     "applyDiscount": "Apply",
     "stepContactIdentification": "Your details",
     "stepContactConfirm": "Confirm your details",
-    "identificationHeadline": "Let’s start with your ID or tax number",
+    "identificationHeadline": "Identify yourself: ID and phone",
     "searchingByIdentification": "Looking up your details…",
     "identificationPrivacyNote": "We use your ID only to identify your order and issue the receipt.",
     "autofilledTitle": "Details autofilled",
@@ -756,7 +757,8 @@
     "allFieldsRequired": "All fields are required.",
     "whatsapp": "WhatsApp",
     "callStore": "Call the store: {phone}",
-    "emailStore": "Email {email}"
+    "emailStore": "Email {email}",
+    "identificationPhoneHelp": "With your ID and phone we recognize your previous purchases."
   },
   "discounts": {
     "title": "Coupon Management",

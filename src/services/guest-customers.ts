@@ -8,18 +8,30 @@ export const guestCustomersService = {
   /**
    * Busca un cliente guest para autocompletar el checkout.
    *
-   * Basta la identificación. El endpoint es público y está limitado a 5
-   * consultas por minuto en el backend, así que conviene no dispararlo en cada
-   * pulsación: el checkout sólo consulta al salir del campo y no repite el
-   * mismo número dos veces.
+   * Hacen falta DOS datos, no sólo la identificación. Con la cédula sola el
+   * endpoint entregaba la ficha completa de cualquier comprador, y como las
+   * cédulas venezolanas son secuenciales bastaba con recorrerlas en orden para
+   * bajarse la base de clientes entera. El teléfono es el segundo dato: el
+   * cliente que vuelve se lo sabe, quien enumera cédulas no.
+   *
+   * El backend responde igual —cuerpo vacío— si la cédula no existe y si el
+   * teléfono no coincide, a propósito: distinguirlos permitiría enumerar otra
+   * vez. Acá eso se ve como un `null` en los dos casos, y no hay forma de
+   * saber cuál de los dos fue.
+   *
+   * Sigue limitado a 5 consultas por minuto, así que conviene no dispararlo en
+   * cada pulsación: el checkout sólo consulta al salir de un campo y no repite
+   * la misma combinación dos veces.
    */
   async searchByIdentification(
     identificationType: IdentificationType,
-    identificationNumber: string
+    identificationNumber: string,
+    phone: string
   ): Promise<GuestCustomer | null> {
     const params = new URLSearchParams({
       identificationType,
       identificationNumber,
+      phone,
     });
 
     const response = await apiClient.get<GuestCustomer | null>(

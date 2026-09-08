@@ -364,6 +364,31 @@ export default function CheckoutPage() {
         return;
       }
 
+      // El teléfono es el segundo dato con el que el backend decide si
+      // devuelve la ficha del cliente. Se pide acá, junto a la cédula, porque
+      // es lo que el comprador que vuelve sabe de memoria y porque lo iba a
+      // escribir igual en la pantalla siguiente: el autocompletado no pierde
+      // nada y la cédula deja de bastar para sacarle los datos a nadie.
+      const telefono = watch("phone");
+      if (!telefono?.trim()) {
+        toast.error(
+          t("errors.completePhone", {
+            defaultValue: "Ingresa tu teléfono para continuar",
+          }),
+        );
+        return;
+      }
+
+      if (!esTelefonoMovilVE(telefono)) {
+        toast.error(
+          t("errors.phoneInvalid", {
+            defaultValue:
+              "Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.",
+          }),
+        );
+        return;
+      }
+
       // Avanzar con Enter no hace `blur` del campo, así que la búsqueda que
       // cuelga de `onBlur` no llegaba a correr: el cliente pasaba de paso con
       // el formulario vacío aunque su cédula tuviera registro. Se dispara acá
@@ -719,7 +744,9 @@ export default function CheckoutPage() {
     restore("firstName", "");
     restore("lastName", "");
     restore("email", "");
-    restore("phone", "");
+    // El teléfono NO se toca: desde que es el segundo dato de la búsqueda lo
+    // escribe el cliente en la primera pantalla, no lo pone el autocompletado.
+    // Revertirlo sería borrarle lo que acaba de teclear.
     restore("address", "");
     restore("city", "");
     restore("state", "");
@@ -735,17 +762,19 @@ export default function CheckoutPage() {
     // Un autocompletado reemplaza al anterior por completo.
     revertGuestData();
 
+    // El teléfono queda fuera a propósito: es lo que el cliente acaba de
+    // escribir para identificarse, así que ya está puesto y es suyo.
+    // Pisárselo con la forma exacta que hay en la base ("0414-1234567" contra
+    // "04141234567") sería cambiarle el campo delante de los ojos sin motivo.
     const applied: Partial<CheckoutData> = {
       firstName: guest.firstName,
       lastName: guest.lastName,
       email: guest.email,
-      phone: guest.phone,
     };
 
     setValue("firstName", guest.firstName);
     setValue("lastName", guest.lastName);
     setValue("email", guest.email);
-    setValue("phone", guest.phone);
 
     if (guest.address) {
       setValue("address", guest.address);
@@ -791,15 +820,26 @@ export default function CheckoutPage() {
   /**
    * Busca los datos del invitado y autocompleta el formulario si hay registro.
    *
-   * Se dispara al salir del campo de identificación, no en cada pulsación: el
-   * endpoint público admite 5 consultas por minuto. El aviso "Datos
-   * autocompletados · Cambiar" del paso siguiente deja revertirlo.
+   * Ya no basta la cédula: el backend exige también el teléfono, porque con la
+   * cédula sola —y son secuenciales— cualquiera podía recorrer números y
+   * bajarse la ficha de todos los clientes de la tienda. Por eso los dos
+   * campos se piden juntos en la primera pantalla y por eso no se consulta
+   * hasta tener ambos.
+   *
+   * Se dispara al salir de un campo, no en cada pulsación: el endpoint público
+   * admite 5 consultas por minuto. El aviso "Datos autocompletados · Cambiar"
+   * del paso siguiente deja revertirlo.
    */
   const handleIdentificationSearch = async () => {
     if (isAuthenticated) return;
     if (identificationNumber.length < 7) return;
 
-    const lookupKey = `${identificationType}|${identificationNumber}`;
+    // Sin teléfono la consulta no puede devolver nada: se ahorra la petición
+    // en vez de gastar una de las cinco del minuto.
+    const telefono = getValues("phone") || "";
+    if (!esTelefonoMovilVE(telefono)) return;
+
+    const lookupKey = `${identificationType}|${identificationNumber}|${telefono}`;
 
     // Ya consultada: se resuelve con lo cacheado, sin gastar otra petición.
     if (lookupCache.current.has(lookupKey)) {
@@ -813,6 +853,7 @@ export default function CheckoutPage() {
       const guestData = await guestCustomersService.searchByIdentification(
         identificationType,
         identificationNumber,
+        telefono,
       );
       lookupCache.current.set(lookupKey, guestData);
 
