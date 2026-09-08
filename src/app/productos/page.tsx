@@ -3,7 +3,12 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  PackageSearch,
+} from "lucide-react";
 import { productsService } from "@/services/products";
 import type { Product } from "@/types";
 import { CategoryMenu } from "@/components/CategoryMenu";
@@ -63,7 +68,9 @@ function ProductsPageContent() {
         setLastPage(Math.max(1, response.lastPage));
       } catch (err: unknown) {
         if (cancelado) return;
-        setError(err instanceof Error ? err.message : "Error al cargar productos");
+        setError(
+          err instanceof Error ? err.message : "Error al cargar productos",
+        );
       } finally {
         if (!cancelado) setLoading(false);
       }
@@ -81,7 +88,15 @@ function ProductsPageContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
-  const ventana = buildPageWindow(page, lastPage);
+  // Cuando la página pedida se sale del listado (un enlace viejo con
+  // `pagina=999`), el paginador se dibuja alrededor de la última que sí existe:
+  // si no, "anterior" llevaría a la 998 y tampoco existiría.
+  const paginaEnPaginador = Math.min(Math.max(page, 1), lastPage);
+  const ventana = buildPageWindow(paginaEnPaginador, lastPage);
+
+  // Hay resultados, pero no en ESTA página: se llegó con un enlace compartido
+  // o un marcador viejo a una página que ya no existe.
+  const fueraDeRango = !loading && !error && products.length === 0 && total > 0;
 
   return (
     <div className="min-h-screen bg-sand-50 pb-28 md:pb-0">
@@ -151,7 +166,7 @@ function ProductsPageContent() {
               </div>
             )}
 
-            {!loading && !error && products.length === 0 && (
+            {!loading && !error && products.length === 0 && !fueraDeRango && (
               <div className="rounded-2xl border border-sand-300 bg-white py-14 text-center">
                 <PackageSearch
                   className="mx-auto mb-4 h-11 w-11 text-sand-500"
@@ -168,81 +183,107 @@ function ProductsPageContent() {
               </div>
             )}
 
+            {fueraDeRango && (
+              <div className="rounded-2xl border border-sand-300 bg-white py-14 text-center">
+                <PackageSearch
+                  className="mx-auto mb-4 h-11 w-11 text-sand-500"
+                  strokeWidth={1.6}
+                />
+                <p className="font-display text-lg font-bold text-ink">
+                  Esta página ya no existe
+                </p>
+                <p className="mt-2 text-sm text-sand-600">
+                  Hay {total} {total === 1 ? "producto" : "productos"}, pero la
+                  página {page} se sale del listado.
+                </p>
+                <Link
+                  href={buildProductListHref({ ...estado, page: 1 })}
+                  className="mt-4 inline-flex h-11 items-center rounded-xl bg-brand-600 px-4 text-sm font-bold text-white hover:bg-brand-700"
+                >
+                  Volver al principio
+                </Link>
+              </div>
+            )}
+
             {!loading && products.length > 0 && (
-              <>
-                <div className="mb-6 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3">
-                  {products.map((product, index) => (
-                    <ProductCard
-                      key={product.uuid}
-                      product={product}
-                      variant="default"
-                      showAddToCart={true}
-                      showBadges={true}
-                      showDescription={false}
-                      showStock={true}
-                      priority={index < 6}
-                    />
-                  ))}
-                </div>
+              <div className="mb-6 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3">
+                {products.map((product, index) => (
+                  <ProductCard
+                    key={product.uuid}
+                    product={product}
+                    variant="default"
+                    showAddToCart={true}
+                    showBadges={true}
+                    showDescription={false}
+                    showStock={true}
+                    priority={index < 6}
+                  />
+                ))}
+              </div>
+            )}
 
-                {/*
-                  Paginado en vez de scroll infinito: el listado tenía un
-                  IntersectionObserver que cargaba otra página cada vez que el
-                  final de la lista entraba en pantalla, así que el pie de
-                  página se alejaba justo cuando uno intentaba llegar a él y con
-                  1089 productos publicados no había forma de alcanzarlo.
-                */}
-                {lastPage > 1 && (
-                  <nav
-                    aria-label="Paginación de productos"
-                    className="flex flex-wrap items-center justify-center gap-1.5 py-2"
-                  >
-                    <PaginaLink
-                      estado={estado}
-                      pagina={page - 1}
-                      deshabilitado={page <= 1}
-                      etiqueta="Página anterior"
+            {/*
+              Paginado en vez de scroll infinito: el listado tenía un
+              IntersectionObserver que cargaba otra página cada vez que el final
+              de la lista entraba en pantalla, así que el pie de página se
+              alejaba justo cuando uno intentaba llegar a él y con 1089
+              productos publicados no había forma de alcanzarlo.
+
+              El <nav> se pinta aunque la página pedida no tenga productos: si
+              no, `?pagina=999` dejaba la pantalla sin NINGÚN control y sólo se
+              salía con el "atrás" del navegador o editando la URL a mano.
+            */}
+            {!loading && !error && lastPage > 1 && (
+              <nav
+                aria-label="Paginación de productos"
+                className="flex flex-wrap items-center justify-center gap-1.5 py-2"
+              >
+                <PaginaLink
+                  estado={estado}
+                  pagina={paginaEnPaginador - 1}
+                  deshabilitado={paginaEnPaginador <= 1}
+                  etiqueta="Página anterior"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </PaginaLink>
+
+                {ventana.map((numero, indice) =>
+                  numero === null ? (
+                    <span
+                      key={`hueco-${indice}`}
+                      aria-hidden="true"
+                      className="px-1 text-sm text-sand-600"
                     >
-                      <ChevronLeft className="h-4 w-4" />
-                    </PaginaLink>
-
-                    {ventana.map((numero, indice) =>
-                      numero === null ? (
-                        <span
-                          key={`hueco-${indice}`}
-                          aria-hidden="true"
-                          className="px-1 text-sm text-sand-600"
-                        >
-                          …
-                        </span>
-                      ) : (
-                        <PaginaLink
-                          key={numero}
-                          estado={estado}
-                          pagina={numero}
-                          etiqueta={`Página ${numero}`}
-                          activo={numero === page}
-                        >
-                          {numero}
-                        </PaginaLink>
-                      ),
-                    )}
-
+                      …
+                    </span>
+                  ) : (
                     <PaginaLink
+                      key={numero}
                       estado={estado}
-                      pagina={page + 1}
-                      deshabilitado={page >= lastPage}
-                      etiqueta="Página siguiente"
+                      pagina={numero}
+                      etiqueta={`Página ${numero}`}
+                      activo={numero === page}
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      {numero}
                     </PaginaLink>
-                  </nav>
+                  ),
                 )}
 
-                <p className="pb-2 pt-1 text-center text-xs text-sand-600">
-                  Página {page} de {lastPage}
-                </p>
-              </>
+                <PaginaLink
+                  estado={estado}
+                  pagina={paginaEnPaginador + 1}
+                  deshabilitado={paginaEnPaginador >= lastPage}
+                  etiqueta="Página siguiente"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </PaginaLink>
+              </nav>
+            )}
+
+            {!loading && !error && total > 0 && (
+              <p className="pb-2 pt-1 text-center text-xs text-sand-600">
+                Página {page} de {lastPage}
+              </p>
             )}
           </div>
         </div>
