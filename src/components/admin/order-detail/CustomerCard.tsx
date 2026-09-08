@@ -8,7 +8,9 @@ import { customersService } from "@/services/customers";
 import { formatUSD, formatVES } from "@/lib/currency";
 import type { CustomerDetailResponseDto, Order } from "@/types";
 import { Card, Pill } from "./primitives";
-import { getOrderCustomer, toWhatsAppUrl } from "./order-customer";
+import { getOrderCustomer } from "./order-customer";
+import { toWhatsAppUrl } from "@/lib/whatsapp";
+import PhoneLink from "@/components/common/PhoneLink";
 
 /**
  * Ficha del cliente que hizo la orden.
@@ -84,7 +86,12 @@ export function CustomerCard({ order }: { order: Order }) {
             label={t("phone")}
             value={
               <span className="inline-flex items-center gap-2">
-                {customer.phone}
+                {/* El número entero es el enlace: con un fijo el icono no sale
+                    y antes el teléfono quedaba muerto, sin ni siquiera tel: */}
+                <PhoneLink
+                  phone={customer.phone}
+                  className="hover:text-success-700 hover:underline"
+                />
                 {whatsAppUrl && (
                   <a
                     href={whatsAppUrl}

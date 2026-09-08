@@ -6,6 +6,7 @@ import type { CustomerResponseDto } from '@/types';
 import { Users, Search, Download, ChevronUp, ChevronDown } from 'lucide-react';
 import { formatUSD, formatVES } from '@/lib/currency';
 import Link from 'next/link';
+import PhoneLink from "@/components/common/PhoneLink";
 
 type SortField = GetCustomersParams['sortBy'];
 type SortOrder = GetCustomersParams['sortOrder'];
@@ -215,7 +216,10 @@ export default function CustomersPage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {customer.phone && (
-                        <div>{customer.phone}</div>
+                        <PhoneLink
+                          phone={customer.phone}
+                          className="block hover:text-success-700 hover:underline"
+                        />
                       )}
                       {customer.identification && (
                         <div className="text-xs text-gray-500">

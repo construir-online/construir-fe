@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { formatUSD, formatVES } from '@/lib/currency';
 import Link from 'next/link';
+import PhoneLink from "@/components/common/PhoneLink";
 
 export default function CustomerDetailPage() {
   const params = useParams();
@@ -120,7 +121,10 @@ export default function CustomerDetailPage() {
               <Phone className="w-4 h-4" />
               <span className="text-sm font-medium">Teléfono</span>
             </div>
-            <div className="text-gray-900">{customer.phone}</div>
+            <PhoneLink
+              phone={customer.phone}
+              className="block text-gray-900 hover:text-success-700 hover:underline"
+            />
           </div>
         )}
 

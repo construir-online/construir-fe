@@ -178,7 +178,8 @@
     "hours": "Horario de Atención",
     "allRightsReserved": "Todos los derechos reservados",
     "madeWith": "Hecho con",
-    "by": "por"
+    "by": "por",
+    "whatsapp": "WhatsApp"
   },
   "orders": {
     "title": "Órdenes",
@@ -716,7 +717,10 @@
     "autofilledTitle": "Datos autocompletados",
     "change": "Cambiar",
     "emailHelp": "Te enviamos el recibo y el estado del pedido aquí",
-    "allFieldsRequired": "Todos los campos son obligatorios."
+    "allFieldsRequired": "Todos los campos son obligatorios.",
+    "whatsapp": "WhatsApp",
+    "callStore": "Llamar a la tienda: {phone}",
+    "emailStore": "Escribir a {email}"
   },
   "discounts": {
     "title": "Gestión de Cupones",
@@ -1144,6 +1148,20 @@
     "date": "Fecha",
     "status": "Estado",
     "total": "Total",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "whatsapp": "WhatsApp"
+  },
+  "contact": {
+    "title": "Contacto",
+    "subtitle": "Escríbenos o visítanos. Estamos para ayudarte con tu obra.",
+    "whatsapp": "WhatsApp",
+    "whatsappGreeting": "Hola, quisiera más información sobre sus productos.",
+    "phone": "Teléfono de la tienda",
+    "email": "Correo",
+    "address": "Dirección",
+    "hours": "Horario de atención",
+    "viewOnMap": "Ver en el mapa",
+    "loadError": "No pudimos cargar los datos de la tienda.",
+    "retry": "Reintentar"
   }
 }

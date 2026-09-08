@@ -12,6 +12,7 @@ import { ZellePaymentDetails } from "@/components/admin/payment-details/ZellePay
 import { PagoMovilPaymentDetails } from "@/components/admin/payment-details/PagoMovilPaymentDetails";
 import { TransferenciaPaymentDetails } from "@/components/admin/payment-details/TransferenciaPaymentDetails";
 import { PaymentReceiptViewer } from "@/components/admin/PaymentReceiptViewer";
+import PhoneLink from "@/components/common/PhoneLink";
 
 interface OrderDetailProps {
   /** Acepta tanto el pedido completo (admin, mi cuenta) como el recortado del seguimiento público. */
@@ -249,7 +250,12 @@ export function OrderDetail({
                   {order.shippingAddress.firstName} {order.shippingAddress.lastName}
                 </p>
                 <p>{order.shippingAddress.email}</p>
-                <p>{order.shippingAddress.phone}</p>
+                <p>
+                  <PhoneLink
+                    phone={order.shippingAddress.phone}
+                    className="hover:text-success-700 hover:underline"
+                  />
+                </p>
                 <p>{order.shippingAddress.address}</p>
                 <p>
                   {order.shippingAddress.city}, {order.shippingAddress.state}{" "}

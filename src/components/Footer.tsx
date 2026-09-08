@@ -12,14 +12,19 @@ import {
   Instagram,
   Twitter,
   Heart,
+  MessageCircle,
   Send
 } from 'lucide-react';
 import { useStoreInfo } from '@/hooks/useStoreInfo';
+import PhoneLink from '@/components/common/PhoneLink';
+import { formatVenezuelanNumber, storeWhatsAppNumber, storeWhatsAppUrl } from '@/lib/whatsapp';
 
 export default function Footer() {
   const t = useTranslations('footer');
   const tNav = useTranslations('nav');
   const { storeInfo } = useStoreInfo();
+  const whatsAppUrl = storeWhatsAppUrl();
+  const whatsAppNumber = storeWhatsAppNumber();
   const [email, setEmail] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -153,17 +158,32 @@ export default function Footer() {
                   </span>
                 </li>
               )}
+              {/* El WhatsApp va antes que el fijo: es el canal que la tienda atiende */}
+              {whatsAppUrl && (
+                <li className="flex gap-3 text-sm">
+                  <MessageCircle className="w-5 h-5 flex-shrink-0 text-brand-300" />
+                  <div>
+                    <p className="font-medium text-white">{t('whatsapp')}</p>
+                    <a
+                      href={whatsAppUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-white transition-colors"
+                    >
+                      {formatVenezuelanNumber(whatsAppNumber)}
+                    </a>
+                  </div>
+                </li>
+              )}
               {storeInfo?.phone && (
                 <li className="flex gap-3 text-sm">
                   <Phone className="w-5 h-5 flex-shrink-0 text-brand-300" />
                   <div>
                     <p className="font-medium text-white">{t('phone')}</p>
-                    <a
-                      href={`tel:${storeInfo.phone.replace(/\s/g, '')}`}
+                    <PhoneLink
+                      phone={storeInfo.phone}
                       className="hover:text-white transition-colors"
-                    >
-                      {storeInfo.phone}
-                    </a>
+                    />
                   </div>
                 </li>
               )}

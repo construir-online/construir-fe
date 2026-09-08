@@ -63,22 +63,3 @@ function toInitials(name: string): string {
     .map((part) => part[0]!.toUpperCase())
     .join("");
 }
-
-/**
- * Enlace de WhatsApp a partir de un teléfono venezolano.
- *
- * Los teléfonos se guardan como los escribe el cliente ("0412-1234567",
- * "0412 123 45 67"), así que hay que quedarse con los dígitos y anteponer el 58
- * quitando el 0 inicial. Devuelve `null` si lo guardado no parece un teléfono,
- * para no ofrecer un botón que abre una conversación con nadie.
- */
-export function toWhatsAppUrl(phone: string): string | null {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length < 10) return null;
-
-  const international = digits.startsWith("58")
-    ? digits
-    : `58${digits.replace(/^0/, "")}`;
-
-  return `https://wa.me/${international}`;
-}
