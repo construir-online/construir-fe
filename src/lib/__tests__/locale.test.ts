@@ -46,6 +46,42 @@ describe('resolverLocale con el selector de idioma apagado', () => {
 });
 
 /**
+ * Cubre la rama que HOY no se ejecuta pero que se ejecutará entera el día que
+ * se reactive el selector (paso 1 del instructivo de `locale.ts`). Sin estas
+ * pruebas, la lógica de cookie y `accept-language` se podría podrir sin que
+ * nadie lo notara, y el problema aparecería justo al revertir — el peor
+ * momento, cuando ya no se sabe si lo rompió la reversión o llevaba meses mal.
+ */
+describe('resolverLocale con el selector de idioma encendido', () => {
+  const encendido = true;
+
+  it('la cookie NEXT_LOCALE manda sobre el navegador', () => {
+    expect(resolverLocale({ cookie: 'en', acceptLanguage: 'es-VE,es;q=0.9' }, encendido)).toBe('en');
+    expect(resolverLocale({ cookie: 'es', acceptLanguage: 'en-US,en;q=0.9' }, encendido)).toBe('es');
+  });
+
+  it('sin cookie usa el accept-language del navegador', () => {
+    expect(resolverLocale({ acceptLanguage: 'en-US,en;q=0.9' }, encendido)).toBe('en');
+    expect(resolverLocale({ acceptLanguage: 'es-VE,es;q=0.9' }, encendido)).toBe('es');
+    // El header trae la región pegada al idioma: hay que quedarse con "en", no "en-US".
+    expect(resolverLocale({ acceptLanguage: 'en-GB' }, encendido)).toBe('en');
+  });
+
+  it('cae en español ante una cookie o un idioma que no soportamos', () => {
+    expect(resolverLocale({ cookie: 'pt' }, encendido)).toBe('es');
+    // Cookie basura pero navegador en inglés: la cookie se descarta y manda el header.
+    expect(resolverLocale({ cookie: 'xx', acceptLanguage: 'en-US' }, encendido)).toBe('en');
+    expect(resolverLocale({ acceptLanguage: 'fr-FR,fr;q=0.9' }, encendido)).toBe('es');
+  });
+
+  it('no se cae sin cookie ni header', () => {
+    expect(resolverLocale({}, encendido)).toBe('es');
+    expect(resolverLocale({ cookie: null, acceptLanguage: null }, encendido)).toBe('es');
+    expect(resolverLocale({ cookie: '', acceptLanguage: ',,,' }, encendido)).toBe('es');
+  });
+});
+
+/**
  * La infraestructura de i18n se mantiene entera a propósito: apagar el selector
  * no debe convertirse con el tiempo en "borramos las traducciones". Si alguien
  * elimina `en.json` o desalinea las claves, reactivar el selector volvería a
