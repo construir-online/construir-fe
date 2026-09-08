@@ -8,26 +8,22 @@ import type { Category } from '@/types';
 interface CategoryTileProps {
   /** Sin categoría se pinta el acceso a "Todos los productos". */
   category?: Category;
-  onNavigate?: () => void;
 }
 
 /**
- * Casilla cuadrada de categoría del catálogo completo. La usan la página
- * /categorias y el CategoryDrawer, que tenían el mismo markup copiado y
- * pegado. (El drawer hoy no lo importa nadie: ver la nota en su cabecera.)
+ * Casilla cuadrada de la rejilla del catálogo completo, en /categorias.
  *
  * El nombre reserva la altura de dos líneas: como unos nombres ocupan una línea
  * y otros dos, las filas de la rejilla quedaban con las imágenes a distinta
  * altura y se veía un dentado feo al cambiar de ancho.
  */
-export default function CategoryTile({ category, onNavigate }: CategoryTileProps) {
+export default function CategoryTile({ category }: CategoryTileProps) {
   const esTodos = !category;
   const nombre = category?.name ?? 'Todos';
 
   return (
     <Link
       href={category ? `/productos?categoria=${category.uuid}` : '/productos'}
-      onClick={onNavigate}
       title={nombre}
       className="group flex flex-col rounded-xl transition-all hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-95"
     >
