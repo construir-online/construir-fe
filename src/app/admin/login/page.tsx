@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { authService } from '@/services/auth';
+import { loginErrorKey } from '@/lib/auth-errors';
 import { getDefaultAdminPath } from '@/lib/permissions';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -44,7 +47,9 @@ export default function AdminLoginPage() {
       const redirectPath = getDefaultAdminPath(response.user.role);
       router.push(redirectPath);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Credenciales inválidas');
+      // Mismo criterio que la pantalla de la tienda: nunca el `err.message`
+      // crudo del backend, que llega en inglés y con redacción de log.
+      setError(t(`loginErrors.${loginErrorKey(err)}`));
     } finally {
       setLoading(false);
     }

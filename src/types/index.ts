@@ -258,6 +258,8 @@ export interface ApiError {
   statusCode: number;
   message: string | string[];
   error: string;
+  /** Identificador estable del motivo, cuando el endpoint lo manda. */
+  code?: string;
 }
 
 // Bank types

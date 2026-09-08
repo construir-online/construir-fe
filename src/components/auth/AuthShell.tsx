@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
 interface AuthShellProps {
@@ -13,6 +16,7 @@ interface AuthShellProps {
  * pestañas ingresar / crear cuenta.
  */
 export default function AuthShell({ active, children }: AuthShellProps) {
+  const t = useTranslations('auth');
   const tabCls = (isActive: boolean) =>
     `flex min-h-11 flex-1 items-center justify-center rounded-[9px] text-[13px] transition-colors ${
       isActive
@@ -43,7 +47,7 @@ export default function AuthShell({ active, children }: AuthShellProps) {
           />
         </div>
         <p className="relative max-w-[260px] text-[13.5px] font-medium leading-[1.5] text-white/70">
-          Materiales de construcción con despacho en 24 h.
+          {t('tagline')}
         </p>
       </div>
 
@@ -51,10 +55,10 @@ export default function AuthShell({ active, children }: AuthShellProps) {
         {/* Pestañas */}
         <div className="mb-5 flex gap-1 rounded-xl bg-sand-100 p-1">
           <Link href="/login" className={tabCls(active === 'login')}>
-            Ingresar
+            {t('tabLogin')}
           </Link>
           <Link href="/register" className={tabCls(active === 'register')}>
-            Crear cuenta
+            {t('tabRegister')}
           </Link>
         </div>
 

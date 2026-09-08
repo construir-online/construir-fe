@@ -3,7 +3,9 @@
 import { useState, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/context/AuthContext";
+import { isEmailNotVerified, loginErrorKey } from "@/lib/auth-errors";
 import AuthShell from "@/components/auth/AuthShell";
 import { authService } from "@/services/auth";
 import { getDefaultAdminPath } from "@/lib/permissions";
@@ -12,6 +14,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const passwordReset = searchParams.get("reset") === "success";
+  const t = useTranslations("auth");
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,11 +36,14 @@ export default function LoginPage() {
       const user = await login({ email, password });
       router.push(getDefaultAdminPath(user.role));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error al iniciar sesión";
-      if (msg === "Email not verified") {
+      // Nunca se muestra `err.message`: es el texto del backend, en inglés y
+      // con redacción de log ("Invalid credentials"), o el "Failed to fetch"
+      // del navegador cuando el servidor no responde. Se clasifica el fallo y
+      // se pinta el texto del idioma que el cliente eligió.
+      if (isEmailNotVerified(err)) {
         setEmailNotVerified(true);
       } else {
-        setError(msg);
+        setError(t(`loginErrors.${loginErrorKey(err)}`));
       }
     } finally {
       setLoading(false);
@@ -66,7 +72,7 @@ export default function LoginPage() {
               <svg className="w-5 h-5 text-success-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm text-success-700">Contraseña actualizada correctamente. Ya puedes iniciar sesión.</p>
+              <p className="text-sm text-success-700">{t("passwordResetSuccess")}</p>
             </div>
           )}
 
@@ -78,16 +84,15 @@ export default function LoginPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-medium text-accent-700">Correo no verificado</p>
+                  <p className="text-sm font-medium text-accent-700">{t("emailNotVerifiedTitle")}</p>
                   <p className="text-sm text-accent-700 mt-0.5">
-                    Debes verificar tu correo antes de iniciar sesión.
-                    Revisa tu bandeja de entrada.
+                    {t("emailNotVerifiedBody", { email })}
                   </p>
                 </div>
               </div>
               {resendSuccess ? (
                 <p className="text-sm text-success-700 bg-success-50 rounded-md px-3 py-2">
-                  Enlace enviado. Revisa tu correo.
+                  {t("verificationSent")}
                 </p>
               ) : (
                 <button
@@ -96,7 +101,7 @@ export default function LoginPage() {
                   disabled={resendLoading || !email}
                   className="text-sm font-medium text-accent-700 hover:text-accent-700 underline underline-offset-2 disabled:opacity-50 transition-colors"
                 >
-                  {resendLoading ? "Enviando..." : "Reenviar enlace de verificación"}
+                  {resendLoading ? t("resending") : t("resendVerification")}
                 </button>
               )}
             </div>
@@ -115,7 +120,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                Correo electrónico
+                {t("email")}
               </label>
               <input
                 id="email"
@@ -124,14 +129,14 @@ export default function LoginPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="juan@ejemplo.com"
+                placeholder={t("emailPlaceholder")}
                 className="block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
               />
             </div>
 
             <div>
               <label htmlFor="password" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                Contraseña
+                {t("password")}
               </label>
               <div className="relative">
                 <input
@@ -141,7 +146,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Tu contraseña"
+                  placeholder={t("passwordPlaceholder")}
                   className="block pr-11 min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
                 />
                 <button
@@ -149,6 +154,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-sand-500 hover:text-sand-700"
                   tabIndex={-1}
+                  aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                 >
                   {showPassword ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +175,7 @@ export default function LoginPage() {
                 href="/forgot-password"
                 className="text-[12px] font-bold text-brand-600 transition-colors hover:text-brand-700"
               >
-                ¿Olvidaste tu contraseña?
+                {t("forgotPassword")}
               </Link>
             </div>
 
@@ -184,10 +190,10 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Iniciando sesión...
+                  {t("loggingIn")}
                 </>
               ) : (
-                "Iniciar sesión"
+                t("login")
               )}
             </button>
           </form>
@@ -195,7 +201,7 @@ export default function LoginPage() {
         {/* Comprar sin cuenta */}
         <div className="my-5 flex items-center gap-3 text-[11px] font-semibold text-sand-500">
           <span className="h-px flex-1 bg-sand-300" />
-          o
+          {t("or")}
           <span className="h-px flex-1 bg-sand-300" />
         </div>
 
@@ -203,10 +209,10 @@ export default function LoginPage() {
           href="/productos"
           className="flex min-h-11 w-full items-center justify-center rounded-xl border-[1.5px] border-ink py-3.5 text-sm font-bold text-ink transition-colors hover:bg-sand-100"
         >
-          Continuar como invitado
+          {t("continueAsGuest")}
         </Link>
         <p className="mt-3 text-center text-[11.5px] font-medium leading-[1.55] text-sand-600">
-          Puedes comprar sin cuenta: la creamos automáticamente al confirmar tu primer pedido.
+          {t("guestHint")}
         </p>
       </div>
     </AuthShell>

@@ -114,7 +114,32 @@
     "invalidCredentials": "Invalid credentials",
     "emailRequired": "Email is required",
     "passwordRequired": "Password is required",
-    "passwordsMismatch": "Passwords do not match"
+    "passwordsMismatch": "Passwords do not match",
+    "tagline": "Building materials delivered in 24 h.",
+    "tabLogin": "Log in",
+    "tabRegister": "Sign up",
+    "emailPlaceholder": "john@example.com",
+    "passwordPlaceholder": "Your password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "loggingIn": "Logging in...",
+    "or": "or",
+    "continueAsGuest": "Continue as a guest",
+    "guestHint": "You can shop without an account: we create one for you when you place your first order.",
+    "passwordResetSuccess": "Your password was updated. You can log in now.",
+    "emailNotVerifiedTitle": "Confirm your email first",
+    "emailNotVerifiedBody": "We sent a confirmation link to {email}. Open it to activate your account and log in.",
+    "resendVerification": "Resend confirmation link",
+    "resending": "Sending...",
+    "verificationSent": "Done — we sent you a new link. Check your inbox, including the spam folder.",
+    "loginErrors": {
+      "invalidCredentials": "That email and password don't match. Check them and try again.",
+      "accountDeactivated": "Your account is deactivated. Get in touch and we will reactivate it.",
+      "accountNotFound": "This account no longer exists. You can create a new one or shop as a guest.",
+      "invalidEmail": "Enter a valid email address.",
+      "network": "We couldn't reach the store. Check your connection and try again.",
+      "unexpected": "We couldn't log you in right now. Please try again in a few minutes."
+    }
   },
   "errors": {
     "generic": "An error occurred. Please try again.",

@@ -53,8 +53,16 @@ class ApiClient {
           ? 'No tienes permisos para realizar esta acción'
           : `HTTP Error: ${response.status} ${response.statusText}`;
 
-      const error = new Error(message) as Error & { statusCode?: number };
+      const error = new Error(message) as Error & {
+        statusCode?: number;
+        code?: string;
+      };
       error.statusCode = response.status;
+      // `code` es el identificador estable del motivo del rechazo (lo manda
+      // `/auth/login`, por ejemplo). Es lo que se traduce: el `message` viene
+      // en inglés y con redacción de log, así que mostrarlo tal cual le dejaba
+      // al cliente cosas como "Invalid credentials" sin importar su idioma.
+      error.code = body?.code;
       throw error;
     }
 

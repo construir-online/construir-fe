@@ -114,7 +114,32 @@
     "invalidCredentials": "Credenciales inválidas",
     "emailRequired": "El correo electrónico es requerido",
     "passwordRequired": "La contraseña es requerida",
-    "passwordsMismatch": "Las contraseñas no coinciden"
+    "passwordsMismatch": "Las contraseñas no coinciden",
+    "tagline": "Materiales de construcción con despacho en 24 h.",
+    "tabLogin": "Ingresar",
+    "tabRegister": "Crear cuenta",
+    "emailPlaceholder": "juan@ejemplo.com",
+    "passwordPlaceholder": "Tu contraseña",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "loggingIn": "Iniciando sesión...",
+    "or": "o",
+    "continueAsGuest": "Continuar como invitado",
+    "guestHint": "Puedes comprar sin cuenta: la creamos automáticamente al confirmar tu primer pedido.",
+    "passwordResetSuccess": "Contraseña actualizada correctamente. Ya puedes iniciar sesión.",
+    "emailNotVerifiedTitle": "Falta confirmar tu correo",
+    "emailNotVerifiedBody": "Te enviamos un enlace de confirmación a {email}. Ábrelo para activar tu cuenta y poder iniciar sesión.",
+    "resendVerification": "Reenviar enlace de confirmación",
+    "resending": "Enviando...",
+    "verificationSent": "Listo, te enviamos un enlace nuevo. Revisa tu correo, incluida la carpeta de spam.",
+    "loginErrors": {
+      "invalidCredentials": "El correo o la contraseña no coinciden. Revísalos e inténtalo de nuevo.",
+      "accountDeactivated": "Tu cuenta está desactivada. Escríbenos para que la reactivemos.",
+      "accountNotFound": "Esta cuenta ya no existe. Puedes crear una nueva o comprar como invitado.",
+      "invalidEmail": "Escribe un correo electrónico válido.",
+      "network": "No pudimos conectarnos con la tienda. Revisa tu conexión e inténtalo de nuevo.",
+      "unexpected": "No pudimos iniciar tu sesión en este momento. Vuelve a intentarlo en unos minutos."
+    }
   },
   "errors": {
     "generic": "Ocurrió un error. Intenta nuevamente.",
