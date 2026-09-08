@@ -53,12 +53,10 @@ export default function NewProductPage() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('No estás autenticado');
-        return;
-      }
-
+      // Ya no se comprueba `localStorage.getItem('token')` antes de llamar:
+      // el token está en una cookie `httpOnly` y este código no lo ve. La
+      // autorización la resuelven el `middleware.ts` (que sí lee la cookie,
+      // en el servidor) y el propio backend, que responde 401.
       const dataToCreate = {
         ...formData,
         categoryUuids: selectedCategories.map((c) => c.uuid),

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -25,15 +25,6 @@ export default function NewApiKeyPage() {
   const [createdKey, setCreatedKey] = useState<CreateApiKeyResponse | null>(
     null
   );
-
-  useEffect(() => {
-    // Verificar autenticación
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-  }, [router]);
 
   const handleChange = (
     e: React.ChangeEvent<

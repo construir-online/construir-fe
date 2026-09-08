@@ -1,21 +1,18 @@
+import { apiClient } from '@/lib/api';
 import type { Banner, CreateBannerDto, UpdateBannerDto } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 const BANNERS_ENDPOINT = '/banners';
 
+/**
+ * Todo este archivo se armaba sus `fetch` a mano con
+ * `Authorization: Bearer ${localStorage.getItem('token')}`. Con la sesión en
+ * una cookie `httpOnly` no hay token que leer: cada una de estas llamadas se
+ * habría ido sin credenciales y la pantalla de banners del panel dejaba de
+ * cargar y de guardar. Ahora pasan por `apiClient`, que adjunta la cookie.
+ */
 export async function getBanners(): Promise<Banner[]> {
-  const token = localStorage.getItem('token');
-  const response = await fetch(`${API_URL}${BANNERS_ENDPOINT}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Error al obtener banners');
-  }
-
-  return response.json();
+  return apiClient.get<Banner[]>(BANNERS_ENDPOINT);
 }
 
 export async function getActiveBanners(): Promise<Banner[]> {
@@ -29,22 +26,10 @@ export async function getActiveBanners(): Promise<Banner[]> {
 }
 
 export async function getBannerByUuid(uuid: string): Promise<Banner> {
-  const token = localStorage.getItem('token');
-  const response = await fetch(`${API_URL}${BANNERS_ENDPOINT}/${uuid}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Error al obtener banner');
-  }
-
-  return response.json();
+  return apiClient.get<Banner>(`${BANNERS_ENDPOINT}/${uuid}`);
 }
 
 export async function createBanner(data: CreateBannerDto): Promise<Banner> {
-  const token = localStorage.getItem('token');
   const formData = new FormData();
 
   formData.append('title', data.title);
@@ -65,24 +50,10 @@ export async function createBanner(data: CreateBannerDto): Promise<Banner> {
   if (data.tabletImage) formData.append('tabletImage', data.tabletImage);
   if (data.mobileImage) formData.append('mobileImage', data.mobileImage);
 
-  const response = await fetch(`${API_URL}${BANNERS_ENDPOINT}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Error al crear banner');
-  }
-
-  return response.json();
+  return apiClient.post<Banner>(BANNERS_ENDPOINT, formData);
 }
 
 export async function updateBanner(uuid: string, data: UpdateBannerDto): Promise<Banner> {
-  const token = localStorage.getItem('token');
   const formData = new FormData();
 
   if (data.title) formData.append('title', data.title);
@@ -101,33 +72,9 @@ export async function updateBanner(uuid: string, data: UpdateBannerDto): Promise
   if (data.tabletImage) formData.append('tabletImage', data.tabletImage);
   if (data.mobileImage) formData.append('mobileImage', data.mobileImage);
 
-  const response = await fetch(`${API_URL}${BANNERS_ENDPOINT}/${uuid}`, {
-    method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Error al actualizar banner');
-  }
-
-  return response.json();
+  return apiClient.patch<Banner>(`${BANNERS_ENDPOINT}/${uuid}`, formData);
 }
 
 export async function deleteBanner(uuid: string): Promise<void> {
-  const token = localStorage.getItem('token');
-  const response = await fetch(`${API_URL}${BANNERS_ENDPOINT}/${uuid}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Error al eliminar banner');
-  }
+  await apiClient.delete<void>(`${BANNERS_ENDPOINT}/${uuid}`);
 }

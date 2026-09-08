@@ -20,7 +20,7 @@ interface CartDrawerProps {
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const t = useTranslations("cart");
   const router = useRouter();
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const {
     cart,
     localCart,
@@ -35,7 +35,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  const isAuthenticated = !!token;
+
   const totalItems = getTotalItems();
 
   // Cargar productos para el carrito local cuando se abre el drawer

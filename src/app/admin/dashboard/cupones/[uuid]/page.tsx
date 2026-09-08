@@ -31,9 +31,10 @@ export default function EditDiscountPage() {
   const loadDiscount = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
+      // Ya no se comprueba `localStorage.getItem('token')` antes de llamar:
+      // el token está en una cookie `httpOnly` y este código no lo ve. La
+      // autorización la resuelven el `middleware.ts` (que sí lee la cookie,
+      // en el servidor) y el propio backend, que responde 401.
       const data = await discountsService.getByUuid(uuid);
       setDiscount(data);
       setFormData({
@@ -74,12 +75,6 @@ export default function EditDiscountPage() {
     setIsSaving(true);
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('No estás autenticado');
-        return;
-      }
-
       // Convertir código a mayúsculas si se cambió
       const dataToSend = {
         ...formData,

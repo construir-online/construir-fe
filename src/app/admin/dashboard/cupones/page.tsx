@@ -50,9 +50,10 @@ export default function CuponesPage() {
     if (!deleteModal.uuid) return;
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
+      // Ya no se comprueba `localStorage.getItem('token')` antes de llamar:
+      // el token está en una cookie `httpOnly` y este código no lo ve. La
+      // autorización la resuelven el `middleware.ts` (que sí lee la cookie,
+      // en el servidor) y el propio backend, que responde 401.
       await discountsService.delete(deleteModal.uuid);
       toast.success(t('deleteSuccess'));
       setDeleteModal({ isOpen: false, uuid: null });

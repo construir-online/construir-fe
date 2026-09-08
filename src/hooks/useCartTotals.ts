@@ -22,13 +22,13 @@ export interface EnrichedLocalCartItem {
  * totales calculados.
  */
 export function useCartTotals() {
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { cart, localCart, loading: cartLoading, refreshCart, getTotalItems } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  const isAuthenticated = !!token;
+
 
   // Se resuelve cada producto por su uuid. Antes se pedía la primera página del
   // catálogo (`limit: 100`) y se trataba como "ya no existe" todo lo que no

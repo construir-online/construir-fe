@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import type { User } from '@/types';
 import { UserRole } from '@/types';
+import { authService } from '@/services/auth';
 import { canAccessRoute, getDefaultAdminPath } from '@/lib/permissions';
 import {
   LayoutDashboard,
@@ -36,36 +37,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const t = useTranslations('nav');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    // Antes esto sacaba el token y el perfil de `localStorage`. Ninguno de los
+    // dos está ahí ya: el token vive en una cookie `httpOnly` que este código
+    // no puede leer, y el perfil se le pregunta al servidor. De paso deja de
+    // haber un `role` guardado en el navegador, que cualquiera podía editar a
+    // mano para que le apareciera el menú completo.
+    let vigente = true;
 
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-
-    if (userData) {
-      try {
-        const parsedUser: User = JSON.parse(userData);
-        setUser(parsedUser);
+    authService
+      .getProfile()
+      .then((perfil: User) => {
+        if (!vigente) return;
+        setUser(perfil);
 
         // Check if user has permission to access current route
-        if (!canAccessRoute(parsedUser.role, pathname)) {
+        if (!canAccessRoute(perfil.role, pathname)) {
           setAccessDenied(true);
 
           // Redirect to appropriate page based on role
-          const defaultPath = getDefaultAdminPath(parsedUser.role);
+          const defaultPath = getDefaultAdminPath(perfil.role);
           if (pathname !== defaultPath) {
             router.push(defaultPath);
           }
         }
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.push('/admin/login');
-      }
-    }
+      })
+      .catch(() => {
+        // Sin sesión válida. El `middleware.ts` ya debería haber atajado esto
+        // leyendo la cookie en el servidor; esto es la segunda línea, para el
+        // caso de una cookie que venció con la pestaña abierta.
+        if (vigente) router.push('/admin/login');
+      });
+
+    return () => {
+      vigente = false;
+    };
   }, [router, pathname]);
 
   // Close sidebar on route change (mobile)
@@ -74,22 +79,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setAccessDenied(false); // Reset access denied when changing routes
   }, [pathname]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-
-    // Clear cookie with proper attributes
-    const isProduction = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const cookieAttributes = [
-      'token=',
-      'path=/',
-      'max-age=0',
-      'SameSite=Lax',
-      isProduction ? 'Secure' : ''
-    ].filter(Boolean).join('; ');
-
-    document.cookie = cookieAttributes;
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    // La cookie es `httpOnly`, así que el `document.cookie` que había acá ya no
+    // la borra: tiene que hacerlo el servidor. Sin esto, "cerrar sesión"
+    // limpiaba la pantalla pero la sesión seguía viva en el navegador.
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Error cerrando sesión:', error);
+    } finally {
+      router.push('/admin/login');
+    }
   };
 
   if (!user) {
