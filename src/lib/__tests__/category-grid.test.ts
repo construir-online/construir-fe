@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   CATEGORY_GRID_CLASS,
   CATEGORY_GRID_MAX_COLS,
-  FEATURED_GRID_CLASS,
   FEATURED_MAX,
+  columnasDestacadas,
   contarEsqueletos,
   limitarDestacadas,
 } from '../category-grid';
@@ -22,29 +22,45 @@ describe('CATEGORY_GRID_CLASS', () => {
       'md:grid-cols-5',
       'lg:grid-cols-6',
       'xl:grid-cols-7',
-      '2xl:grid-cols-8',
     ]) {
       expect(CATEGORY_GRID_CLASS).toContain(clase);
     }
   });
 
   it('declara como máximo el número de columnas que dice CATEGORY_GRID_MAX_COLS', () => {
-    // Si alguien añade un `3xl:grid-cols-10` y olvida la constante, el número de
+    // Si alguien añade un `2xl:grid-cols-8` y olvida la constante, el número de
     // esqueletos deja de cuadrar con las columnas y la última fila queda coja.
     const columnas = [...CATEGORY_GRID_CLASS.matchAll(/grid-cols-(\d+)/g)].map((m) => Number(m[1]));
     expect(Math.max(...columnas)).toBe(CATEGORY_GRID_MAX_COLS);
   });
+
+  it('no pasa de 7 columnas, porque el contenedor deja de crecer en xl', () => {
+    // Con `max-w-7xl`, una octava columna repartía el MISMO ancho entre más
+    // tarjetas: de 160px a 138px, y volvían a truncarse nombres que a 1280 se
+    // leían enteros. Más pantalla no puede dar menos legibilidad.
+    expect(CATEGORY_GRID_MAX_COLS).toBeLessThanOrEqual(7);
+  });
 });
 
-describe('FEATURED_GRID_CLASS', () => {
-  it('sólo usa números de columna que dividen a FEATURED_MAX', () => {
-    // El bug original: el paso intermedio `sm:grid-cols-4` con seis destacadas
-    // dejaba la última fila con dos tarjetas y dos huecos entre 640 y 1023px.
-    const columnas = [...FEATURED_GRID_CLASS.matchAll(/grid-cols-(\d+)/g)].map((m) => Number(m[1]));
-    expect(columnas.length).toBeGreaterThan(0);
-    for (const c of columnas) {
-      expect(FEATURED_MAX % c).toBe(0);
+describe('columnasDestacadas', () => {
+  it('usa tantas columnas como categorías, así que nunca sobra hueco', () => {
+    // El bug original era un número FIJO de columnas: cuatro dejaba tres huecos
+    // con cinco destacadas, y seis (el primer intento de arreglo) dejaba uno,
+    // porque el backend devuelve cinco y no seis.
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+      expect(columnasDestacadas(n)).toBe(n);
     }
+  });
+
+  it('no pasa del tope aunque el backend mande de más', () => {
+    expect(columnasDestacadas(20)).toBe(FEATURED_MAX);
+    expect(columnasDestacadas(7)).toBe(FEATURED_MAX);
+  });
+
+  it('nunca devuelve cero: `repeat(0, …)` deja la rejilla sin columnas', () => {
+    expect(columnasDestacadas(0)).toBe(1);
+    expect(columnasDestacadas(-4)).toBe(1);
+    expect(columnasDestacadas(Number.NaN)).toBe(1);
   });
 });
 

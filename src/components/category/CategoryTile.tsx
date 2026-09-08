@@ -12,8 +12,9 @@ interface CategoryTileProps {
 }
 
 /**
- * Casilla cuadrada de categoría del catálogo completo (página /categorias y
- * drawer móvil). Estaba copiada y pegada en los dos sitios.
+ * Casilla cuadrada de categoría del catálogo completo. La usan la página
+ * /categorias y el CategoryDrawer, que tenían el mismo markup copiado y
+ * pegado. (El drawer hoy no lo importa nadie: ver la nota en su cabecera.)
  *
  * El nombre reserva la altura de dos líneas: como unos nombres ocupan una línea
  * y otros dos, las filas de la rejilla quedaban con las imágenes a distinta
@@ -47,7 +48,7 @@ export default function CategoryTile({ category, onNavigate }: CategoryTileProps
             className="object-cover"
             /* Antes decía siempre 33vw: en escritorio la rejilla llega a 8
                columnas y se descargaban imágenes tres veces más grandes. */
-            sizes="(max-width: 639px) 33vw, (max-width: 767px) 25vw, (max-width: 1023px) 20vw, (max-width: 1279px) 16vw, 12vw"
+            sizes="(max-width: 639px) 33vw, (max-width: 767px) 25vw, (max-width: 1023px) 20vw, (max-width: 1279px) 17vw, 14vw"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">

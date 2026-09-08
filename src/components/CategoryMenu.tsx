@@ -75,11 +75,13 @@ export function CategoryMenu() {
 
   return (
     /*
-     * Pegajoso a partir de lg: con 100 categorías el árbol mide casi 5000px y
-     * era él quien fijaba la altura de toda la página de productos, dejando
-     * kilómetros de blanco a la derecha de la rejilla.
+     * El árbol se desplaza por su cuenta desde md y encima se queda pegado
+     * desde lg: con las 100 categorías del catálogo medía 4971px y era él quien
+     * fijaba la altura de toda la página de productos, dejando kilómetros de
+     * blanco a la derecha de la rejilla. En tablet pasaba lo mismo al abrir el
+     * acordeón (la página se iba a 8354px).
      */
-    <div className="rounded-2xl border border-sand-300 bg-white lg:sticky lg:top-6 lg:flex lg:max-h-[calc(100vh-3rem)] lg:flex-col lg:overflow-hidden">
+    <div className="rounded-2xl border border-sand-300 bg-white md:flex md:max-h-[calc(100vh-3rem)] md:flex-col md:overflow-hidden lg:sticky lg:top-6">
       {/* Header — toggle en mobile, estático en desktop */}
       <button
         type="button"
@@ -102,7 +104,7 @@ export function CategoryMenu() {
       </button>
 
       {/* Contenido — visible siempre en desktop, toggle en mobile */}
-      <nav className={`p-2 ${isMenuOpen ? 'block' : 'hidden'} lg:block lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain`}>
+      <nav className={`p-2 ${isMenuOpen ? 'block' : 'hidden'} md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-contain lg:block`}>
         {/* All Products Link */}
         <Link
           href="/productos"
@@ -133,9 +135,10 @@ export function CategoryMenu() {
                       type="button"
                       onClick={() => toggleCategory(category.uuid)}
                       aria-expanded={isExpanded}
-                      /* Medía 24px: imposible de acertar con el dedo. Ahora
-                         cumple los 44px del diseño móvil sin ocupar más ancho. */
-                      className="flex h-11 w-7 flex-none items-center justify-center rounded transition-colors hover:bg-sand-100"
+                      /* Medía 24x24: imposible de acertar con el dedo. Ojo:
+                         hoy ninguna categoría del catálogo tiene hijas, así que
+                         esta rama no llega a pintarse en la tienda real. */
+                      className="touch-target -ml-1 flex flex-none items-center justify-center rounded transition-colors hover:bg-sand-100"
                       aria-label={isExpanded ? 'Contraer' : 'Expandir'}
                     >
                       {isExpanded ? (
@@ -151,7 +154,7 @@ export function CategoryMenu() {
                     /* min-w-0 + break-words: los nombres largos en mayúsculas
                        desbordaban la columna de 256px del escritorio. */
                     className={`flex min-h-11 min-w-0 flex-1 items-center break-words rounded-xl px-3 py-1.5 text-sm transition-colors ${
-                      !hasChildren ? 'ml-7' : ''
+                      !hasChildren ? 'ml-10' : ''
                     } ${
                       isActive
                         ? 'bg-brand-50 font-bold text-brand-700'

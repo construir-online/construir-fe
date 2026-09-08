@@ -9,7 +9,9 @@ import { FEATURED_MAX } from '@/lib/category-grid';
 
 /** next/image necesita configuración de dominios; en jsdom basta con un <img>. */
 vi.mock('next/image', () => ({
-  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+  default: ({ src, alt, sizes }: { src: string; alt: string; sizes?: string }) => (
+    <img src={src} alt={alt} data-sizes={sizes} />
+  ),
 }));
 
 const mockSearchParams = new URLSearchParams();
@@ -32,6 +34,8 @@ const categoria = (over: Partial<Category> = {}): Category => ({
   order: 0,
   visible: true,
   isFeatured: true,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
   ...over,
 });
 
@@ -76,12 +80,16 @@ describe('CategoryTile', () => {
   });
 
   it('pide a next/image un tamaño acorde a la rejilla ancha, no 33vw fijo', () => {
-    // El `sizes` viejo decía 33vw siempre y en escritorio (hasta 8 columnas) se
+    // El `sizes` viejo decía 33vw siempre y en escritorio (hasta 7 columnas) se
     // descargaban imágenes tres veces más grandes de lo necesario.
     const { container } = render(
       <CategoryTile category={categoria({ image: 'https://ejemplo/x.jpg' })} />,
     );
-    expect(container.querySelector('img')).not.toBeNull();
+    const sizes = container.querySelector('img')?.getAttribute('data-sizes') ?? '';
+    expect(sizes).toContain('33vw');
+    // Lo que importa: que el tramo ancho pida bastante menos de un tercio
+    const anchos = [...sizes.matchAll(/(\d+)vw/g)].map((m) => Number(m[1]));
+    expect(Math.min(...anchos)).toBeLessThanOrEqual(15);
   });
 });
 

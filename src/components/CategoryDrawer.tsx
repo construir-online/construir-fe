@@ -8,6 +8,11 @@ import type { Category } from '@/types';
 import CategoryTile from './category/CategoryTile';
 import { CATEGORY_GRID_CLASS, contarEsqueletos } from '@/lib/category-grid';
 
+/*
+ * OJO: hoy no lo importa ningún archivo. La navegación inferior lleva a la
+ * página /categorias en su lugar. Se mantiene sincronizado con CategoryTile
+ * para que no se pudra, pero conviene decidir si se borra o se conecta.
+ */
 interface CategoryDrawerProps {
   isOpen: boolean;
   onClose: () => void;

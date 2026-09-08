@@ -1,41 +1,55 @@
 /**
  * Clases y ayudas de layout compartidas por las rejillas de categorías.
  *
- * Estaban duplicadas a mano en `/categorias`, en el `CategoryDrawer` y en
- * `FeaturedCategories`, y se habían desincronizado: la página y el drawer se
- * quedaron clavados en `grid-cols-3` a todos los anchos, así que en escritorio
- * salían tres tarjetas cuadradas de casi 500px de lado. Centralizarlas evita
- * que vuelva a pasar.
+ * Estaban duplicadas a mano en `/categorias` y en `FeaturedCategories`, y se
+ * habían desincronizado: la página se quedó clavada en `grid-cols-3` a todos
+ * los anchos, así que en escritorio salían tres tarjetas cuadradas de casi
+ * 500px de lado. Centralizarlas evita que vuelva a pasar.
  */
 
 /**
  * Rejilla de catálogo completo (página de categorías y drawer móvil).
- * Sube de 3 a 8 columnas para que la tarjeta nunca crezca por encima de ~180px.
+ *
+ * Se detiene en 7 columnas a propósito. La página lleva `max-w-7xl`, así que
+ * pasados los 1280px el contenido ya no crece: añadir una octava columna sólo
+ * repartía el mismo ancho entre más tarjetas (de 160px a 138px) y volvían a
+ * truncarse nombres que a 1280 se leían enteros. Más pantalla no puede
+ * significar menos legibilidad.
  */
 export const CATEGORY_GRID_CLASS =
-  'grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8';
+  'grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7';
 
 /** Número máximo de columnas que llega a usar CATEGORY_GRID_CLASS. */
-export const CATEGORY_GRID_MAX_COLS = 8;
+export const CATEGORY_GRID_MAX_COLS = 7;
 
 /**
- * Rejilla de destacadas del home. Sólo usa 3 y 6 columnas —ambas divisores de
- * las 6 categorías que se muestran— porque el paso intermedio de 4 columnas
- * dejaba tres huecos en la última fila entre 640px y 1023px.
+ * Rejilla de destacadas del home. Tres columnas fijas en móvil y, a partir de
+ * 640px, tantas columnas como categorías haya (ver `.featured-grid` en
+ * globals.css, que lee la variable `--destacadas`).
+ *
+ * El número de columnas tiene que seguir al de categorías, no al revés: el
+ * backend devuelve cinco destacadas y cualquier número fijo —cuatro como antes,
+ * seis como en el primer intento de arreglo— dejaba huecos en la última fila.
  */
-export const FEATURED_GRID_CLASS =
-  'grid grid-cols-3 gap-2.5 sm:gap-4 md:grid-cols-6';
+export const FEATURED_GRID_CLASS = 'featured-grid gap-2.5 sm:gap-4';
 
-/** Cuántas destacadas caben sin dejar filas cojas en la rejilla de arriba. */
+/** Tope de destacadas: más de seis en una sola fila salen demasiado estrechas. */
 export const FEATURED_MAX = 6;
 
 /**
- * Recorta la lista de destacadas al máximo que la rejilla puede colocar en
- * filas completas. Sin esto, siete u ocho categorías dejaban una fila con una
- * sola tarjeta perdida a la izquierda.
+ * Recorta la lista de destacadas al tope que cabe en una fila de escritorio.
  */
 export function limitarDestacadas<T>(categorias: readonly T[], max = FEATURED_MAX): T[] {
   return categorias.slice(0, Math.max(0, max));
+}
+
+/**
+ * Columnas que debe usar la fila de destacadas en escritorio: exactamente
+ * tantas como categorías se pinten, para que nunca sobre un hueco a la derecha.
+ */
+export function columnasDestacadas(cantidad: number, max = FEATURED_MAX): number {
+  const n = Math.floor(cantidad) || 0;
+  return Math.min(Math.max(n, 1), Math.max(1, max));
 }
 
 /**
