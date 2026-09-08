@@ -46,8 +46,16 @@ describe('enlaces del pie de página', () => {
   });
 
   it('las páginas legales siguen enlazadas desde el pie', () => {
-    // Que existan no basta: si alguien quita el enlace, el cliente no tiene
-    // desde dónde llegar a ellas.
+    // Que existan no basta: el pie es hoy el único sitio de la tienda desde el
+    // que se llega a ellas, así que quitar el enlace las deja inalcanzables.
+    //
+    // Ojo con el alcance de esta prueba: el pie está envuelto en `hidden
+    // md:block` (ClientLayout.tsx), o sea que en móvil no se muestra y la barra
+    // inferior no lleva a las páginas legales. Este test en verde significa
+    // "el enlace está en el pie", NO "el cliente puede llegar": el cliente
+    // móvil hoy no puede. Eso se arregla en otra rama (fix/footer-movil); si
+    // aquella cambia de sitio los enlaces legales, esta prueba hay que
+    // reapuntarla a donde queden.
     const rutas = rutasInternasDelFooter();
     expect(rutas).toContain('/terms');
     expect(rutas).toContain('/privacy');

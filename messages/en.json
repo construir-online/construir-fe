@@ -1163,8 +1163,8 @@
     "retry": "Retry"
   },
   "legal": {
-    "draftTitle": "Draft pending legal review",
-    "draftBody": "This text has not been reviewed by a lawyer and is not final. It must not be published as it stands.",
+    "draftTitle": "DO NOT PUBLISH — draft with no legal review",
+    "draftBody": "This document has no legal force. No lawyer has reviewed it, it is not final, and it must not go to production as it stands.",
     "draftPlaceholders": "Anything highlighted as [TO BE DEFINED: …] is a decision the store owner has not made yet. They are left visible on purpose, instead of being filled in with something that would look real.",
     "lastUpdated": "Draft — no publication date yet.",
     "tableOfContents": "Contents",
@@ -1172,6 +1172,7 @@
     "email": "Email",
     "phone": "Store phone",
     "address": "Address",
+    "hours": "Opening hours",
     "fiscalPending": "[TO BE DEFINED: legal name, tax ID (RIF) and registered address] — the system does not store these, so this page cannot fill them in automatically.",
     "loadError": "We could not load the store details.",
     "retry": "Retry",
@@ -1199,8 +1200,8 @@
         "cuenta": {
           "title": "Registration and user account",
           "body": [
-            "You can browse the catalogue without an account, but you must register to complete an order.",
-            "Registration asks for an email address that must be verified: until you confirm the link we send you, the account cannot sign in."
+            "You can buy as a guest, without opening an account, or you can register. If you buy as a guest, the store still keeps your details in a record tied to your ID document: the privacy policy explains this.",
+            "If you do choose to register, registration asks for an email address that must be verified: until you confirm the link we send you, the account cannot sign in."
           ],
           "list": [
             "You are responsible for the data you register being true and up to date.",
@@ -1217,7 +1218,7 @@
           ],
           "list": [
             "Photos are for reference; colour, presentation or brand may differ between batches.",
-            "We correct obvious description or price errors even after an order is placed, telling you before we go on.",
+            "[TO BE DEFINED: what is done about an obvious description or price error spotted after an order is placed, and whether the customer is told before going on]",
             "[TO BE DEFINED: what happens if a product runs out after the order is confirmed: refund, substitute or wait]"
           ]
         },
@@ -1333,7 +1334,7 @@
         "cambios": {
           "title": "Changes to these terms",
           "body": [
-            "We may change these terms. The version that applies to your purchase is the one published on the day you placed the order.",
+            "We may change these terms. [TO BE DEFINED: which version governs a purchase: the one published on the day of the order, or whichever is in force at the time]",
             "[TO BE DEFINED: whether changes will be announced and through which channel]"
           ]
         },
@@ -1466,7 +1467,7 @@
           "list": [
             "Amazon Web Services: stores the payment receipt you upload.",
             "The outgoing email provider: receives your address and the contents of the messages we send you. [TO BE DEFINED: name of the email provider used in production]",
-            "The store's back-office system: receives each order with the name, ID document, address, city, email and phone, in order to invoice and dispatch it. [TO BE DEFINED: name of the company operating that system and under what agreement it handles the data]",
+            "The store's back-office system: receives each order with the name, ID document, address, city, email and phone, in order to invoice and dispatch it. It can also pull the full customer list and search it by name or email, not only the customers on a given order. [TO BE DEFINED: name of the company operating that system and under what agreement it handles the data]",
             "Google Analytics, if that integration is switched on, with whatever Google collects on its own account.",
             "OpenStreetMap: if you use the map to mark your address, your browser requests the map tiles directly and that service sees your IP and the area you are looking at.",
             "Other systems connected through automatic notifications, which receive orders and customers as they are created or changed. [TO BE DEFINED: which systems are connected today and what for]",

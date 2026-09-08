@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { AlertTriangle, Mail, MapPin, Phone } from 'lucide-react';
+import { AlertTriangle, Clock, Mail, MapPin, Phone } from 'lucide-react';
 import { useStoreInfo } from '@/hooks/useStoreInfo';
 import PhoneLink from '@/components/common/PhoneLink';
 import type { SeccionLegal } from '@/lib/legal';
@@ -72,14 +72,16 @@ export default function PaginaLegal({ documento, secciones }: PaginaLegalProps) 
       {/* El aviso va arriba del todo y en color: si esto se publica sin repasar,
           al menos el cliente ve que el texto no es definitivo. */}
       <div
-        role="note"
-        className="mb-10 rounded-xl border border-accent-300 bg-accent-50 p-4 sm:p-5"
+        role="alert"
+        className="mb-10 overflow-hidden rounded-xl border-2 border-danger-500 bg-danger-50"
       >
-        <div className="flex gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-accent-600" aria-hidden="true" />
+        <p className="flex items-center gap-2 bg-danger-600 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white sm:px-5">
+          <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+          {tComun('draftTitle')}
+        </p>
+        <div className="p-4 sm:p-5">
           <div className="min-w-0">
-            <p className="font-bold text-accent-700">{tComun('draftTitle')}</p>
-            <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-sand-700">
+            <p className="max-w-[65ch] font-bold leading-relaxed text-danger-700">
               {tComun('draftBody')}
             </p>
             <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-sand-700">
@@ -219,6 +221,25 @@ export default function PaginaLegal({ documento, secciones }: PaginaLegalProps) 
                   <p className="font-medium leading-snug text-ink">
                     {[storeInfo.address, storeInfo.city].filter(Boolean).join(', ')}
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* Los términos remiten al horario desde la sección de entrega, así
+                que la ficha tiene que pintarlo: si no, la remisión no lleva a
+                ninguna parte. */}
+            {storeInfo.hours && (
+              <div className="flex items-start gap-4 p-5">
+                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-sand-700" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium text-sand-600">
+                    {tComun('hours')}
+                  </p>
+                  {storeInfo.hours.split('·').map((linea) => (
+                    <p key={linea} className="text-sm leading-relaxed text-ink">
+                      {linea.trim()}
+                    </p>
+                  ))}
                 </div>
               </div>
             )}

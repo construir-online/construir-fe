@@ -1163,8 +1163,8 @@
     "retry": "Reintentar"
   },
   "legal": {
-    "draftTitle": "Borrador pendiente de revisión legal",
-    "draftBody": "Este texto todavía no lo ha revisado un abogado y no es definitivo. No debe publicarse tal como está.",
+    "draftTitle": "NO PUBLICAR — borrador sin revisión legal",
+    "draftBody": "Este documento no tiene valor legal. Ningún abogado lo ha revisado, no es definitivo y no debe ponerse en producción tal como está.",
     "draftPlaceholders": "Lo que aparece resaltado como [POR DEFINIR: …] son decisiones que el dueño de la tienda todavía no ha tomado. Se dejan a la vista a propósito, en lugar de rellenarlas con algo que parecería real.",
     "lastUpdated": "Borrador — sin fecha de publicación todavía.",
     "tableOfContents": "Contenido",
@@ -1172,6 +1172,7 @@
     "email": "Correo",
     "phone": "Teléfono de la tienda",
     "address": "Dirección",
+    "hours": "Horario de atención",
     "fiscalPending": "[POR DEFINIR: razón social, RIF y domicilio fiscal] — el sistema no guarda esos datos, así que esta página no los puede mostrar sola.",
     "loadError": "No pudimos cargar los datos de la tienda.",
     "retry": "Reintentar",
@@ -1199,8 +1200,8 @@
         "cuenta": {
           "title": "Registro y cuenta de usuario",
           "body": [
-            "Puedes ver el catálogo sin cuenta, pero para completar un pedido tienes que registrarte.",
-            "El registro pide un correo que hay que verificar: hasta que no confirmes el enlace que te enviamos, la cuenta no puede iniciar sesión."
+            "Puedes comprar como invitado, sin abrir cuenta, o registrarte. Si compras como invitado, la tienda guarda igualmente tus datos en una ficha asociada a tu documento: lo explicamos en la política de privacidad.",
+            "Si decides registrarte, el registro pide un correo que hay que verificar: hasta que no confirmes el enlace que te enviamos, la cuenta no puede iniciar sesión."
           ],
           "list": [
             "Eres responsable de que los datos que registras sean ciertos y estén al día.",
@@ -1217,7 +1218,7 @@
           ],
           "list": [
             "Las fotos son referenciales; puede haber diferencias de color, presentación o marca según el lote.",
-            "Corregimos errores evidentes de descripción o de precio aunque el pedido ya esté hecho, avisándote antes de seguir.",
+            "[POR DEFINIR: qué se hace ante un error evidente de descripción o de precio detectado después de hecho el pedido, y si se avisa antes de seguir]",
             "[POR DEFINIR: qué se hace si un producto se agota después de confirmado el pedido: reintegro, producto sustituto o espera]"
           ]
         },
@@ -1333,7 +1334,7 @@
         "cambios": {
           "title": "Cambios en estas condiciones",
           "body": [
-            "Podemos modificar estas condiciones. La versión que aplica a tu compra es la que estaba publicada el día que hiciste el pedido.",
+            "Podemos modificar estas condiciones. [POR DEFINIR: qué versión rige una compra: la publicada el día del pedido o la vigente en cada momento]",
             "[POR DEFINIR: si se avisará de los cambios y por qué medio]"
           ]
         },
@@ -1466,7 +1467,7 @@
           "list": [
             "Amazon Web Services: guarda el comprobante de pago que subes.",
             "El proveedor de correo saliente: recibe tu dirección y el contenido de los mensajes que te enviamos. [POR DEFINIR: nombre del proveedor de correo que se usa en producción]",
-            "El sistema administrativo de la tienda: recibe cada pedido con el nombre, el documento, la dirección, la ciudad, el correo y el teléfono, para facturarlo y despacharlo. [POR DEFINIR: nombre de la empresa que opera ese sistema y bajo qué acuerdo trata los datos]",
+            "El sistema administrativo de la tienda: recibe cada pedido con el nombre, el documento, la dirección, la ciudad, el correo y el teléfono, para facturarlo y despacharlo. Además puede consultar el listado completo de clientes y buscarlos por nombre o por correo, no sólo los de un pedido concreto. [POR DEFINIR: nombre de la empresa que opera ese sistema y bajo qué acuerdo trata los datos]",
             "Google Analytics, si esa integración está activa, con lo que Google recoja por su cuenta.",
             "OpenStreetMap: si usas el mapa para marcar tu dirección, tu navegador le pide los mapas directamente y ese servicio ve tu IP y la zona que estás mirando.",
             "Otros sistemas conectados por avisos automáticos, que reciben los pedidos y los clientes según se crean o cambian. [POR DEFINIR: qué sistemas están conectados hoy y para qué]",

@@ -44,6 +44,7 @@ const CLAVES_COMUNES = [
   'email',
   'phone',
   'address',
+  'hours',
   'fiscalPending',
   'loadError',
   'retry',
