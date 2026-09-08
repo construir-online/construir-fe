@@ -1163,5 +1163,373 @@
     "viewOnMap": "View on map",
     "loadError": "We couldn't load the store details.",
     "retry": "Retry"
+  },
+  "legal": {
+    "draftTitle": "DO NOT PUBLISH — draft with no legal review",
+    "draftBody": "This document has no legal force. No lawyer has reviewed it, it is not final, and it must not go to production as it stands.",
+    "draftPlaceholders": "Anything highlighted as [TO BE DEFINED: …] is a decision the store owner has not made yet. They are left visible on purpose, instead of being filled in with something that would look real.",
+    "lastUpdated": "Draft — no publication date yet.",
+    "tableOfContents": "Contents",
+    "contactTitle": "Contact",
+    "email": "Email",
+    "phone": "Store phone",
+    "address": "Address",
+    "hours": "Opening hours",
+    "fiscalPending": "[TO BE DEFINED: legal name, tax ID (RIF) and registered address] — the system does not store these, so this page cannot fill them in automatically.",
+    "loadError": "We could not load the store details.",
+    "retry": "Retry",
+    "terms": {
+      "title": "Terms and Conditions",
+      "intro": "These terms govern purchases made through this online store. Please read them before placing an order.",
+      "contactIntro": "For any claim or question about these terms, reach us here:",
+      "sections": {
+        "identidad": {
+          "title": "Who sells to you",
+          "body": [
+            "The products in this store are sold by the business whose contact details appear at the end of this document.",
+            "[TO BE DEFINED: seller's full legal name, tax ID (RIF) and registered address]",
+            "[TO BE DEFINED: commercial registry details, if they must be shown]"
+          ]
+        },
+        "aceptacion": {
+          "title": "Accepting these terms",
+          "body": [
+            "By placing an order in this store you accept these terms as published at that moment.",
+            "If you disagree with any of them, do not complete the purchase: write to us first and we will talk it through.",
+            "[TO BE DEFINED: whether checkout should require an explicit acceptance checkbox; today the store does not ask for one]"
+          ]
+        },
+        "cuenta": {
+          "title": "Registration and user account",
+          "body": [
+            "You can buy as a guest, without opening an account, or you can register. If you buy as a guest, the store still keeps your details in a record tied to your ID document: the privacy policy explains this.",
+            "If you do choose to register, registration asks for an email address that must be verified: until you confirm the link we send you, the account cannot sign in."
+          ],
+          "list": [
+            "You are responsible for the data you register being true and up to date.",
+            "You are responsible for your password and for whatever is done from your account.",
+            "We may deactivate an account [TO BE DEFINED: in which cases and with how much prior notice].",
+            "[TO BE DEFINED: how a customer closes their own account; the store offers no such option today and it has to be handled by hand]"
+          ]
+        },
+        "productos": {
+          "title": "Products, stock and presentation",
+          "body": [
+            "Each product is published with the description, photos and availability held in our system.",
+            "Stock is checked when the order is confirmed: a product showing in the catalogue does not guarantee there will be stock left when you pay."
+          ],
+          "list": [
+            "Photos are for reference; colour, presentation or brand may differ between batches.",
+            "[TO BE DEFINED: what is done about an obvious description or price error spotted after an order is placed, and whether the customer is told before going on]",
+            "[TO BE DEFINED: what happens if a product runs out after the order is confirmed: refund, substitute or wait]"
+          ]
+        },
+        "precios": {
+          "title": "Prices, VAT and exchange rate",
+          "body": [
+            "Catalogue prices include VAT. Checkout breaks out the taxable base and the VAT, but the total you pay is the same one you saw in the catalogue.",
+            "Prices are kept in US dollars and the bolívar amount is worked out with the official Central Bank of Venezuela rate held in the system."
+          ],
+          "list": [
+            "The VAT rate depends on each product's type; some products are exempt.",
+            "The BCV rate updates automatically, so the bolívar amount of the same order can change from one day to the next.",
+            "[TO BE DEFINED: which rate applies when the order is placed one day and paid on another: the order's or the payment's]",
+            "[TO BE DEFINED: how long the price of an unpaid order is honoured]"
+          ]
+        },
+        "pedido": {
+          "title": "How an order is placed",
+          "body": [
+            "You add products to the cart, choose store pickup or delivery, give the delivery details and pick a payment method. Once sent, the order is recorded with a number you can use to track it.",
+            "A submitted order is a purchase request. [TO BE DEFINED: at which moment the sale is considered closed: on submitting the order, on verifying payment, or on dispatch]",
+            "We may decline an order. [TO BE DEFINED: grounds on which the store may reject an order]"
+          ]
+        },
+        "pago": {
+          "title": "Payment methods and receipts",
+          "body": [
+            "We accept Zelle, mobile payment and bank transfer. After paying you must report the payment from the store, uploading the receipt and the reference number.",
+            "The order does not move forward until we verify the payment with the bank."
+          ],
+          "list": [
+            "The receipt must match the amount and the order; an incomplete payment leaves the order on hold.",
+            "[TO BE DEFINED: deadline to report a payment before the order is cancelled]",
+            "[TO BE DEFINED: how differences from bank fees or exchange-rate rounding are handled]",
+            "[TO BE DEFINED: whether cash is accepted on store pickup; the online store does not offer that today]"
+          ]
+        },
+        "entrega": {
+          "title": "Delivery: store pickup and dispatch",
+          "body": [
+            "You can pick your order up at the store or ask us to deliver it to the address you give at checkout.",
+            "For pickup, the address and opening hours are the ones shown at the end of this document."
+          ],
+          "list": [
+            "[TO BE DEFINED: delivery areas covered]",
+            "[TO BE DEFINED: delivery cost and who pays it]",
+            "[TO BE DEFINED: preparation and delivery times]",
+            "[TO BE DEFINED: how many days a ready order is held before being cancelled]",
+            "[TO BE DEFINED: who bears the risk on the goods while in transit]",
+            "[TO BE DEFINED: what is required for someone else to collect the order: ID, written authorisation]"
+          ]
+        },
+        "devoluciones": {
+          "title": "Returns and exchanges",
+          "body": [
+            "Check the goods when you receive or collect them. If anything is wrong, missing or damaged, tell us straight away through the contact details in this document.",
+            "The specific return conditions are the store's to decide and have not been set yet:"
+          ],
+          "list": [
+            "[TO BE DEFINED: window to request a return or exchange]",
+            "[TO BE DEFINED: condition the product must be in: original packaging, unused, with invoice]",
+            "[TO BE DEFINED: products that cannot be returned, such as cut-to-size or bulk material]",
+            "[TO BE DEFINED: who pays for shipping a return]",
+            "[TO BE DEFINED: whether money is refunded, a credit note is issued or the item is exchanged; in which currency and at which rate]",
+            "[TO BE DEFINED: deadline to actually pay out a refund]"
+          ]
+        },
+        "garantias": {
+          "title": "Warranties",
+          "body": [
+            "Products carrying a manufacturer's warranty are handled under whatever that manufacturer sets out.",
+            "The store's own warranty terms have yet to be defined:"
+          ],
+          "list": [
+            "[TO BE DEFINED: warranty period by product type: tools, equipment, materials]",
+            "[TO BE DEFINED: what the warranty covers and what it does not]",
+            "[TO BE DEFINED: paperwork and procedure for a warranty claim]",
+            "[TO BE DEFINED: when the warranty is void through improper installation or use, and who decides that]"
+          ]
+        },
+        "cancelacion": {
+          "title": "Cancelling and voiding orders",
+          "body": [
+            "To cancel an order you have to write to us: the online store does not let a customer cancel on their own today.",
+            "[TO BE DEFINED: up to which point an order can be cancelled without penalty]",
+            "[TO BE DEFINED: terms, currency, rate and deadline for refunding a cancelled order that was already paid]"
+          ]
+        },
+        "promociones": {
+          "title": "Coupons, discounts and promotions",
+          "body": [
+            "Coupons apply at checkout to the VAT-inclusive total and are spread proportionally across the order lines.",
+            "[TO BE DEFINED: whether coupons can be combined with each other and with other promotions]",
+            "[TO BE DEFINED: how long promotions last and whether they apply to already-reduced products]"
+          ]
+        },
+        "responsabilidad": {
+          "title": "Limits of liability",
+          "body": [
+            "We answer for delivering what we sell in the condition offered. We do not answer for how the materials are used or for the outcome of the work they go into.",
+            "The online store may be down for maintenance or because of technical faults.",
+            "[TO BE DEFINED: wording of the limitation of liability clause, which a lawyer must review so that it does not clash with Venezuelan consumer protection law]"
+          ]
+        },
+        "propiedad": {
+          "title": "Site content",
+          "body": [
+            "The text, photos, logos and design of this store belong to the company or its suppliers and may not be reproduced commercially without permission.",
+            "Product brands belong to their manufacturers.",
+            "[TO BE DEFINED: whether resellers or installers are allowed to reuse the catalogue]"
+          ]
+        },
+        "cambios": {
+          "title": "Changes to these terms",
+          "body": [
+            "We may change these terms. [TO BE DEFINED: which version governs a purchase: the one published on the day of the order, or whichever is in force at the time]",
+            "[TO BE DEFINED: whether changes will be announced and through which channel]"
+          ]
+        },
+        "ley": {
+          "title": "Governing law and claims",
+          "body": [
+            "These terms are governed by the laws of the Bolivarian Republic of Venezuela.",
+            "Before anything else, write to us: most problems get sorted out by talking to the store."
+          ],
+          "list": [
+            "[TO BE DEFINED: courts or chosen venue for resolving disputes]",
+            "[TO BE DEFINED: whether disputes go to arbitration or to consumer protection bodies]",
+            "[TO BE DEFINED: consumer protection legislation cited by name; a lawyer must confirm it, it is not invented here]"
+          ]
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "This page explains what data of yours this store collects, what it is used for and who it is shared with. It was written from what the system actually does, not from a generic template.",
+      "contactIntro": "To ask about your data, correct it or request that we delete it, write to us:",
+      "sections": {
+        "responsable": {
+          "title": "Who handles your data",
+          "body": [
+            "The data you give this store is handled by the business whose contact details appear at the end of this document.",
+            "[TO BE DEFINED: legal name, tax ID (RIF) and registered address of the data controller]",
+            "[TO BE DEFINED: specific email or person to address data protection requests to]"
+          ]
+        },
+        "alcance": {
+          "title": "What this policy covers",
+          "body": [
+            "This policy describes what the store's system does with your data today: it was written by going through the program itself, field by field.",
+            "It does not cover what other sites we link to do — social networks, WhatsApp, maps — nor what happens in the physical store outside this website."
+          ]
+        },
+        "datosCuenta": {
+          "title": "Data we ask for when you open an account",
+          "body": [
+            "You can browse the catalogue without identifying yourself. If you register, we store:"
+          ],
+          "list": [
+            "First and last name.",
+            "Email address, which must be verified through a link we send you.",
+            "Phone number.",
+            "Type and number of your ID document (V, E, J, G or P): national ID, tax ID or passport.",
+            "Password, stored hashed with bcrypt: nobody at the store can read it.",
+            "Alongside that, the date you created the account, whether it is active and whether the email was verified."
+          ]
+        },
+        "datosPedido": {
+          "title": "Data from each order",
+          "body": [
+            "When you buy, we store with the order whatever is needed to prepare and deliver it:"
+          ],
+          "list": [
+            "First name, last name, email and phone of the person receiving it.",
+            "Type and number of the ID document.",
+            "Delivery address: street, city, state, postal code, country and extra directions.",
+            "If you mark your location on the map, the exact coordinates — latitude and longitude — of the point you pick.",
+            "Any notes you write on the order.",
+            "The products, quantities and amounts, which over time build up your purchase history.",
+            "Internal notes store staff may write about the order.",
+            "If you are signed in, whatever you leave in the cart is stored on your account even if you do not finish the purchase.",
+            "If you buy without an account, that same data is kept in a record tied to your ID number, along with how many orders you have placed and the date of the last one. It is used so that on your next purchase, typing your ID number fills in your name, email, phone and address for you."
+          ]
+        },
+        "datosPago": {
+          "title": "Payment data",
+          "body": [
+            "Payments are verified by hand: there is no payment gateway, so the store never receives or stores card numbers. Depending on the method you use, we store:"
+          ],
+          "list": [
+            "Zelle: name of the sender and bank.",
+            "Mobile payment: phone, ID number, bank and reference number.",
+            "Bank transfer: account holder's name, bank and reference number.",
+            "The receipt you upload — image or PDF — stored on Amazon S3, and the outcome of its review.",
+            "The receipt is stored under a name nobody could guess, but the store does not serve it through temporary links. [TO BE DEFINED: confirm with whoever administers the Amazon storage that the receipts folder does not allow public reads, and state it here]"
+          ]
+        },
+        "datosTecnicos": {
+          "title": "Data collected on its own as you browse",
+          "body": [
+            "Even if you fill in no form, simply browsing records:"
+          ],
+          "list": [
+            "Every page you visit, with its title, the page you came from, your IP address and your browser's identifier. That is stored in our own database, one row per visit.",
+            "If the integration is switched on, Google Analytics also records the pages you view, along with whatever Google collects on its own account.",
+            "Requests from the integration with the store's back-office system are logged with the path, the request contents — which on an order include your contact and delivery details — the IP and the browser. Passwords and keys are replaced with asterisks before being stored.",
+            "None of this asks your permission first today: the store has no cookie notice. [TO BE DEFINED: whether a cookie notice with prior consent will be added; worth checking with a lawyer]"
+          ]
+        },
+        "cookies": {
+          "title": "Cookies and data kept in your browser",
+          "body": [
+            "The following is stored in your own browser, not on our servers:"
+          ],
+          "list": [
+            "token: your signed-in session, in a cookie lasting seven days. A copy is also kept in the browser's local storage.",
+            "user: your basic details — name, surname, email and role — in local storage, so they need not be fetched on every screen.",
+            "cart: your cart, when you shop without an account.",
+            "checkout_draft: the checkout draft while you fill it in, so it is not lost if you reload. It is cleared when the order is confirmed and when the tab is closed. It includes the password if you ticked create an account.",
+            "NEXT_LOCALE: the language you chose, for one year.",
+            "Google Analytics cookies, if that integration is switched on.",
+            "Signing out clears the session and your basic details; the rest goes when you clear the site's data in your browser."
+          ]
+        },
+        "finalidades": {
+          "title": "What we use your data for",
+          "body": [
+            "Every piece of data we ask for has a specific use:"
+          ],
+          "list": [
+            "Preparing your order, verifying your payment and delivering it or holding it for pickup.",
+            "Sending you the emails about your purchase: order received, payment verified or rejected, order dispatched or ready for pickup.",
+            "Sending you the emails about your account: email verification, password reset and welcome.",
+            "Letting store staff know a new order has come in.",
+            "Handling your questions and complaints.",
+            "Knowing which pages get visited, so we can improve the store.",
+            "Meeting the tax and accounting obligations of a sale.",
+            "We do not use your data for advertising and we do not sell it to anyone. The subscription form in the footer is not connected to any service yet: today it sends your address nowhere and subscribes you to no list."
+          ]
+        },
+        "terceros": {
+          "title": "Who it is shared with",
+          "body": [
+            "We do not sell your data. It is shared only with whoever is needed for the purchase to work:"
+          ],
+          "list": [
+            "Amazon Web Services: stores the payment receipt you upload.",
+            "The outgoing email provider: receives your address and the contents of the messages we send you. [TO BE DEFINED: name of the email provider used in production]",
+            "The store's back-office system: receives each order with the name, ID document, address, city, email and phone, in order to invoice and dispatch it. It can also pull the full customer list and search it by name or email, not only the customers on a given order. [TO BE DEFINED: name of the company operating that system and under what agreement it handles the data]",
+            "Google Analytics, if that integration is switched on, with whatever Google collects on its own account.",
+            "OpenStreetMap: if you use the map to mark your address, your browser requests the map tiles directly and that service sees your IP and the area you are looking at.",
+            "Other systems connected through automatic notifications, which receive orders and customers as they are created or changed. [TO BE DEFINED: which systems are connected today and what for]",
+            "The authorities, where the law requires it.",
+            "Several of these services are outside Venezuela, so your data is processed and stored abroad."
+          ]
+        },
+        "conservacion": {
+          "title": "How long it is kept",
+          "body": [
+            "Plainly: today the system deletes nothing on its own. There is no automatic clean-up, so your account, your orders, your addresses, your receipts and the browsing logs are kept indefinitely.",
+            "When an account is deleted from the back office, it is marked as deleted but the information stays in the database.",
+            "[TO BE DEFINED: retention period for each kind of data — account, orders and receipts, browsing and request logs — and how they will be purged. None of it is implemented: any period written here before it is built would be a promise with nothing behind it]"
+          ]
+        },
+        "seguridad": {
+          "title": "How it is protected",
+          "body": [
+            "These are the measures the system has today, stated without embellishment:"
+          ],
+          "list": [
+            "Passwords are stored hashed with bcrypt; nobody at the store can read them.",
+            "Getting into the back office requires signing in, and each internal user has permissions according to their role.",
+            "Passwords and keys are masked before being written to the request logs.",
+            "Looking up a buyer's details by ID number is limited to a few times per minute.",
+            "No system is infallible. [TO BE DEFINED: how and within what time frame affected people will be notified if unauthorised access to their data is detected]"
+          ]
+        },
+        "derechos": {
+          "title": "Your rights and how to exercise them",
+          "body": [
+            "You can ask us to access your data, correct it, update it or delete it.",
+            "It matters that you know what you can do yourself today and what has to be requested, because the store does not have screens for everything yet:"
+          ],
+          "list": [
+            "You can see your orders and the detail of each one from My account.",
+            "You can track an order with its number, without signing in.",
+            "You can reset your password if you forgot it, and sign out whenever you want.",
+            "There is no screen yet to edit your name or email, nor to change your password while signed in: you have to ask us.",
+            "Phone number and ID number cannot be changed from the store; staff correct them.",
+            "There is no way yet to delete your account or download your data from the store: it is done by hand when you ask.",
+            "Cancelling an order also has to be requested; the online store does not allow it on your own.",
+            "[TO BE DEFINED: time frame within which the store commits to answering a data protection request]"
+          ]
+        },
+        "menores": {
+          "title": "Minors",
+          "body": [
+            "This store is meant for adults. Today the system neither asks nor checks the age of whoever buys.",
+            "[TO BE DEFINED: minimum age required to buy and what is done if a minor's account is found]"
+          ]
+        },
+        "cambios": {
+          "title": "Changes to this policy",
+          "body": [
+            "If what the system does with your data changes, this page must change with it: it describes the program, not an ideal.",
+            "[TO BE DEFINED: whether changes will be announced and through which channel]"
+          ]
+        }
+      }
+    }
   }
 }
