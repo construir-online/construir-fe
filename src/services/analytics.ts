@@ -1,5 +1,33 @@
 import { apiClient } from '@/lib/api';
 
+/** Topes que impone el backend (`CreatePageViewDto`), que son los de sus columnas. */
+const LIMITES: Record<keyof PageViewDto, number> = {
+  path: 500,
+  title: 500,
+  referrer: 500,
+  userAgent: 512,
+};
+
+/**
+ * Recorta cada campo a lo que el backend acepta.
+ *
+ * `document.referrer` es una URL ajena y puede pasar de 500 caracteres sin
+ * problema. Antes eso reventaba el varchar contra la base; ahora el backend
+ * valida longitudes y devolvería un 400, así que la visita se perdería entera
+ * por un referrer largo. Recortando aquí se sigue registrando la visita, que es
+ * lo único que se consulta de esta tabla.
+ */
+function recortar(data: PageViewDto): PageViewDto {
+  const salida: PageViewDto = { ...data };
+  (Object.keys(LIMITES) as Array<keyof PageViewDto>).forEach((campo) => {
+    const valor = salida[campo];
+    if (typeof valor === 'string' && valor.length > LIMITES[campo]) {
+      salida[campo] = valor.slice(0, LIMITES[campo]);
+    }
+  });
+  return salida;
+}
+
 export interface PageViewDto {
   path: string;
   title?: string;
@@ -24,7 +52,7 @@ export const analyticsService = {
    */
   async trackPageView(data: PageViewDto): Promise<void> {
     try {
-      await apiClient.post('/analytics/page-view', data);
+      await apiClient.post('/analytics/page-view', recortar(data));
     } catch (error) {
       console.error('Error tracking page view:', error);
       // Silently fail - analytics shouldn't block user experience
