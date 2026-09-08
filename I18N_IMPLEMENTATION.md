@@ -1,5 +1,19 @@
 # Implementación de i18n (Internacionalización)
 
+> ## ⚠️ ESTADO ACTUAL: la tienda va SIEMPRE en español
+>
+> El selector de idioma está **desactivado** y **no se muestra en ninguna
+> pantalla**. La resolución del idioma vive en `src/lib/locale.ts` y devuelve
+> `es` siempre, ignorando a propósito la cookie `NEXT_LOCALE` y el header
+> `accept-language`.
+>
+> Lo que sigue documentado abajo (selector, detección por cookie/navegador,
+> routing por locale) describe el comportamiento **que vuelve al reactivar el
+> selector**, no el de hoy. La infraestructura sigue entera y sin tocar
+> —next-intl, `messages/es.json`, `messages/en.json` y todos los
+> `useTranslations`—, así que reactivarlo son 4 pasos: están escritos en el
+> comentario de cabecera de **`src/lib/locale.ts`**, que es la fuente de verdad.
+
 ## Descripción General
 
 Se ha implementado **next-intl** para soportar múltiples idiomas en la aplicación. Actualmente soporta **Español (es)** e **Inglés (en)** con español como idioma predeterminado.
@@ -7,8 +21,8 @@ Se ha implementado **next-intl** para soportar múltiples idiomas en la aplicaci
 ## Características Implementadas
 
 - ✅ **Routing con locale**: URLs tipo `/es/productos` y `/en/products`
-- ✅ **Detección automática**: Detecta el idioma del navegador
-- ✅ **Cambio de idioma**: Componente Language Switcher en el Navbar
+- ⛔ **Detección automática**: Detecta el idioma del navegador — *desactivada, ver el aviso de arriba*
+- ⛔ **Cambio de idioma**: Componente Language Switcher en el Navbar — *desactivado, ver el aviso de arriba*
 - ✅ **Traducciones completas**: Navbar, Cart, Productos, Auth
 - ✅ **Rutas protegidas**: Admin sin locale, rutas públicas con locale
 - ✅ **SEO-friendly**: URLs indexables por Google en cada idioma
@@ -28,7 +42,7 @@ src/
 │   │   └── productos/
 │   └── admin/                        # Admin SIN locale
 ├── components/
-│   └── LanguageSwitcher.tsx          # Selector de idioma
+│   └── LanguageSwitcher.tsx          # Selector de idioma (HOY NO SE MONTA)
 └── middleware.ts                     # Middleware con locale routing
 
 messages/
@@ -222,12 +236,22 @@ export const config = {
 
 ## Detección del Idioma
 
-Next-intl detecta el idioma en este orden:
+**Hoy no hay detección**: `resolverLocale()` en `src/lib/locale.ts` devuelve
+`es` en todos los casos, con el interruptor `SELECTOR_IDIOMA_ACTIVO` en `false`.
+Da igual lo que traiga la cookie o el navegador.
 
-1. **URL**: `/es/productos` → español
-2. **Cookie**: `NEXT_LOCALE=en`
-3. **Header Accept-Language**: Del navegador
-4. **Default**: Español (configurado en middleware)
+Con el selector reactivado (`SELECTOR_IDIOMA_ACTIVO = true`) vuelve este orden,
+que es el que sigue implementado en `resolverLocale()` y cubierto por
+`src/lib/__tests__/locale.test.ts`:
+
+1. **Cookie**: `NEXT_LOCALE=en` (la escribe el `LanguageSwitcher`)
+2. **Header Accept-Language**: Del navegador, quedándose con el idioma sin
+   región (`en-US` → `en`)
+3. **Default**: Español, también ante una cookie o un idioma no soportados
+
+Pendiente conocido para ese día: `src/app/layout.tsx` tiene `lang="es"` cableado
+en el `<html>`; con el selector encendido el atributo miente si el usuario elige
+inglés y hay que derivarlo del locale real.
 
 ## Plurales y Formateo
 
@@ -344,6 +368,8 @@ const t = useTranslations('mipage');
 - Asegúrate de que el namespace esté en el JSON
 
 ### El idioma no cambia
+- **Es lo esperado hoy**: la tienda está fija en español (ver el aviso del
+  principio). Sólo aplica lo de abajo con el selector reactivado.
 - Verifica que la cookie `NEXT_LOCALE` esté configurada
 - Limpia caché del navegador
 - Reinicia el servidor de desarrollo

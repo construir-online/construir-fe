@@ -4,25 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useLocale } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { ChevronDown, Package, LogOut, ShoppingCart } from 'lucide-react';
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import CartButton from "./cart/CartButton";
-import LanguageSwitcher from "./LanguageSwitcher";
 import RateChip from "./RateChip";
 import SearchBar from "./SearchBar";
 
-const LANGUAGES = [
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-];
-
 export default function Navbar() {
   const t = useTranslations('nav');
-  const locale = useLocale();
-  const router = useRouter();
   const { user, logout, isAdmin } = useAuth();
   const { openCart, getTotalItems } = useCart();
 
@@ -49,12 +39,6 @@ export default function Navbar() {
     setIsUserMenuOpen(false);
   };
 
-  const handleLanguageChange = (newLocale: string) => {
-    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
-    setIsUserMenuOpen(false);
-    router.refresh();
-  };
-
   const userInitial = user?.firstName?.[0]?.toUpperCase() ?? '?';
 
   return (
@@ -75,10 +59,10 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* ── Móvil: tasa BCV, idioma y carrito ── */}
+          {/* ── Móvil: tasa BCV y carrito ── */}
+          {/* selector de idioma desmontado: la tienda va fija en español (ver src/lib/locale.ts) */}
           <div className="flex md:hidden items-center gap-2 flex-shrink-0">
             <RateChip />
-            <LanguageSwitcher />
             <Link
               href="/carrito"
               aria-label={`Carrito, ${totalItems} artículos`}
@@ -154,27 +138,7 @@ export default function Navbar() {
                       </Link>
                     )}
 
-                    <div className="px-4 py-3 border-t border-sand-200">
-                      <p className="text-xs font-medium text-sand-500 mb-2 uppercase tracking-wide">
-                        Idioma
-                      </p>
-                      <div className="flex gap-1.5">
-                        {LANGUAGES.map((lang) => (
-                          <button
-                            key={lang.code}
-                            onClick={() => handleLanguageChange(lang.code)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex-1 justify-center ${
-                              locale === lang.code
-                                ? 'bg-brand-50 text-brand-600 ring-1 ring-brand-200'
-                                : 'bg-sand-100 text-sand-700 hover:bg-sand-200'
-                            }`}
-                          >
-                            <span>{lang.flag}</span>
-                            <span>{lang.code.toUpperCase()}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    {/* selector de idioma desmontado: la tienda va fija en español (ver src/lib/locale.ts) */}
 
                     <div className="border-t border-sand-200">
                       <button
@@ -190,7 +154,7 @@ export default function Navbar() {
               </div>
             ) : (
               <>
-                <LanguageSwitcher />
+                {/* selector de idioma desmontado: la tienda va fija en español (ver src/lib/locale.ts) */}
                 <div className="flex items-center gap-3">
                   <Link
                     href="/login"
