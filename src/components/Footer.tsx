@@ -70,12 +70,15 @@ export default function Footer() {
               <h4 className="text-white font-semibold mb-3 text-sm">
                 {t('followUs')}
               </h4>
+              {/* El pie nunca se había visto en el teléfono: los 40px de estos
+                  botones se quedaban cortos para el dedo, así que en móvil suben
+                  a 44 y sólo vuelven a 40 en escritorio, donde hay ratón. */}
               <div className="flex gap-3">
                 <a
                   href="https://facebook.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-brand-600 flex items-center justify-center transition-colors"
+                  className="w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-brand-600 flex items-center justify-center transition-colors"
                   aria-label="Facebook"
                 >
                   <Facebook className="w-5 h-5" />
@@ -84,7 +87,7 @@ export default function Footer() {
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-accent-500 flex items-center justify-center transition-colors"
+                  className="w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-accent-500 flex items-center justify-center transition-colors"
                   aria-label="Instagram"
                 >
                   <Instagram className="w-5 h-5" />
@@ -93,7 +96,7 @@ export default function Footer() {
                   href="https://twitter.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-brand-500 flex items-center justify-center transition-colors"
+                  className="w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/10 hover:bg-brand-500 flex items-center justify-center transition-colors"
                   aria-label="Twitter"
                 >
                   <Twitter className="w-5 h-5" />
@@ -107,11 +110,14 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">
               {t('quickLinks')}
             </h4>
+            {/* Igual que las redes: en el teléfono estos enlaces medían 20px de
+                alto y eran casi imposibles de acertar; el `min-h-11` sólo aplica
+                en móvil para no estirar la columna en escritorio. */}
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {tNav('home')}
                 </Link>
@@ -119,7 +125,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/productos"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {tNav('products')}
                 </Link>
@@ -127,7 +133,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {tNav('about')}
                 </Link>
@@ -135,7 +141,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/contact"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {t('contact')}
                 </Link>
@@ -168,7 +174,7 @@ export default function Footer() {
                       href={whatsAppUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-white md:min-h-0"
                     >
                       {formatVenezuelanNumber(whatsAppNumber)}
                     </a>
@@ -182,7 +188,7 @@ export default function Footer() {
                     <p className="font-medium text-white">{t('phone')}</p>
                     <PhoneLink
                       phone={storeInfo.phone}
-                      className="hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-white md:min-h-0"
                     />
                   </div>
                 </li>
@@ -194,7 +200,7 @@ export default function Footer() {
                     <p className="font-medium text-white">{t('email')}</p>
                     <a
                       href={`mailto:${storeInfo.email}`}
-                      className="hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-white md:min-h-0"
                     >
                       {storeInfo.email}
                     </a>
@@ -287,13 +293,13 @@ export default function Footer() {
             <div className="flex gap-6 text-sm">
               <Link
                 href="/terms"
-                className="text-sand-500 hover:text-white transition-colors"
+                className="inline-flex min-h-11 items-center text-sand-500 transition-colors hover:text-white md:min-h-0"
               >
                 {t('terms')}
               </Link>
               <Link
                 href="/privacy"
-                className="text-sand-500 hover:text-white transition-colors"
+                className="inline-flex min-h-11 items-center text-sand-500 transition-colors hover:text-white md:min-h-0"
               >
                 {t('privacy')}
               </Link>
