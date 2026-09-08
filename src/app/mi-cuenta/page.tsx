@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ShoppingBag,
   Phone,
@@ -29,6 +30,7 @@ import {
 
 /** Contacto de la tienda. Los datos vienen del backend (variables STORE_*). */
 function ContactSection() {
+  const t = useTranslations("myAccount");
   const { storeInfo } = useStoreInfo();
   const whatsAppUrl = storeWhatsAppUrl();
   const whatsAppNumber = storeWhatsAppNumber();
@@ -57,7 +59,9 @@ function ContactSection() {
               <MessageCircle className="w-5 h-5 text-success-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-medium text-sand-600">WhatsApp</p>
+              <p className="text-[11px] font-medium text-sand-600">
+                {t("whatsapp")}
+              </p>
               <p className="font-medium text-ink">
                 {formatVenezuelanNumber(whatsAppNumber)}
               </p>

@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { Clock, CreditCard } from 'lucide-react';
 import { storeWhatsAppNumber, storeWhatsAppUrl, toTelHref } from '@/lib/whatsapp';
+import PhoneLink from '@/components/common/PhoneLink';
+import { useStoreInfo } from '@/hooks/useStoreInfo';
 import { useTranslations } from 'next-intl';
 import ZelleForm from '@/components/payment/ZelleForm';
 import PagoMovilForm from '@/components/payment/PagoMovilForm';
@@ -53,6 +55,8 @@ export default function Step4Payment({
 }: Step4PaymentProps) {
   const t = useTranslations('checkout');
   const { methods: paymentMethods, loading, error } = usePaymentMethods();
+  // Respaldo de contacto por si además falta el WhatsApp configurado
+  const { storeInfo } = useStoreInfo();
 
   // Auto-seleccionar el primer método disponible si el actual no está en la lista
   useEffect(() => {
@@ -152,6 +156,25 @@ export default function Step4Payment({
             </svg>
             <span>Llamar ahora</span>
           </a>
+          )}
+
+          {/* Sin WhatsApp configurado el bloque quedaba vacío: la pantalla pedía
+              escribir a la tienda y no ofrecía por dónde. */}
+          {!waUrl && storeInfo?.phone && (
+            <PhoneLink
+              phone={storeInfo.phone}
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-sand-300 bg-white px-4 py-3 font-medium text-sand-700 transition-colors hover:bg-sand-50"
+            >
+              {t('callStore', { phone: storeInfo.phone })}
+            </PhoneLink>
+          )}
+          {!waUrl && storeInfo?.email && (
+            <a
+              href={`mailto:${storeInfo.email}`}
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-sand-300 bg-white px-4 py-3 font-medium text-sand-700 transition-colors hover:bg-sand-50"
+            >
+              {t('emailStore', { email: storeInfo.email })}
+            </a>
           )}
         </div>
 

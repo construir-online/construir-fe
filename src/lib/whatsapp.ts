@@ -34,6 +34,13 @@ export function toVenezuelanNumber(phone: string | null | undefined): string | n
   } else if (digitos.length === 11 && digitos.startsWith('0')) {
     nacional = digitos.slice(1);
   } else if (digitos.length === 10) {
+    // Formato corto, sin 0 ni +58 ("412 1234567"). Se acepta porque es como
+    // mucha gente teclea su móvil, pero tiene una colisión conocida: un número
+    // norteamericano escrito sin su +1 y con código de área 412 (Pittsburgh),
+    // 416 (Toronto) o 424 (Los Ángeles) sale de aquí como móvil venezolano, y
+    // el chat se abriría con un desconocido. Con el +1 delante sí se rechaza.
+    // Se asume a sabiendas: en una ferretería de Ciudad Bolívar perder el
+    // formato corto molestaría a diario y el caso contrario no se ha visto.
     nacional = digitos;
   } else {
     return null;

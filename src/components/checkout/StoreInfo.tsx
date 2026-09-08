@@ -78,6 +78,7 @@ export default function StoreInfo() {
               href={whatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={t('whatsapp')}
               className="text-sm text-brand-600 hover:text-brand-700 font-medium"
             >
               {formatVenezuelanNumber(whatsAppNumber)}

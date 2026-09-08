@@ -718,7 +718,9 @@
     "change": "Change",
     "emailHelp": "We send the receipt and order updates here",
     "allFieldsRequired": "All fields are required.",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "callStore": "Call the store: {phone}",
+    "emailStore": "Email {email}"
   },
   "discounts": {
     "title": "Coupon Management",

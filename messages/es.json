@@ -718,7 +718,9 @@
     "change": "Cambiar",
     "emailHelp": "Te enviamos el recibo y el estado del pedido aquí",
     "allFieldsRequired": "Todos los campos son obligatorios.",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "callStore": "Llamar a la tienda: {phone}",
+    "emailStore": "Escribir a {email}"
   },
   "discounts": {
     "title": "Gestión de Cupones",
