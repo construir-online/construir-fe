@@ -133,7 +133,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = async (productUuid: string, quantity: number) => {
     try {
       if (token) {
-        const itemUuid = cart?.items.find(i => i.product.uuid === productUuid)?.uuid;
+        const itemUuid = cart?.items.find(i => i.product?.uuid === productUuid)?.uuid;
         if (!itemUuid) throw new Error("Item not found in cart");
         const updatedCart = await cartService.updateItem(itemUuid, { quantity });
         setCart(updatedCart);
@@ -154,7 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeFromCart = async (productUuid: string) => {
     try {
       if (token) {
-        const itemUuid = cart?.items.find(i => i.product.uuid === productUuid)?.uuid;
+        const itemUuid = cart?.items.find(i => i.product?.uuid === productUuid)?.uuid;
         if (!itemUuid) throw new Error("Item not found in cart");
         const updatedCart = await cartService.removeItem(itemUuid);
         setCart(updatedCart);
@@ -222,7 +222,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
    */
   const getItemQuantity = useCallback((productUuid: string): number => {
     if (token && cart) {
-      const item = (cart.items ?? []).find((item) => item.product.uuid === productUuid);
+      // `item.product?.uuid`: defensa en profundidad. El backend ya no manda
+      // renglones sin producto (ver `CartService.getCart`), pero backend y
+      // frontend se despliegan por separado: contra uno viejo, un solo `null`
+      // acá tumbaba el render de todo el catálogo — este hook lo llama cada
+      // tarjeta de producto — y el cliente con sesión iniciada se quedaba sin
+      // botones para agregar nada.
+      const item = (cart.items ?? []).find((item) => item.product?.uuid === productUuid);
       return item?.quantity || 0;
     }
 

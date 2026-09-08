@@ -186,7 +186,7 @@ export const cartService = {
     for (const item of localCart.items) {
       try {
         const existing = serverCart.items.find(
-          (si) => si.product.uuid === item.productUuid,
+          (si) => si.product?.uuid === item.productUuid,
         );
 
         if (existing) {
