@@ -22,6 +22,11 @@ import type { Product } from '@/types';
  * hueco.
  */
 
+// La primera prueba del fichero paga el import en frío de toda la página y sus
+// dependencias, y con la máquina cargada eso se pasaba de los 5 s por defecto.
+// No es lentitud de las pruebas: las siguientes tardan ~1 s cada una.
+vi.setConfig({ testTimeout: 20000 });
+
 const push = vi.fn();
 let paramsActuales = new URLSearchParams();
 
