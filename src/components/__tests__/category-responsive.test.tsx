@@ -39,6 +39,14 @@ const categoria = (over: Partial<Category> = {}): Category => ({
   ...over,
 });
 
+/*
+ * El primer render del archivo paga el arranque en frío de jsdom + React (17s
+ * medidos, frente a 230ms el segundo render idéntico) y con el timeout de 5s
+ * por defecto el archivo fallaba de forma intermitente según la carga de la
+ * máquina. No es lentitud de los componentes.
+ */
+vi.setConfig({ testTimeout: 30000 });
+
 const NOMBRE_LARGO =
   'TANQUES DE AGUA - ACCESORIOS - CONEXIONES - VALVULAS Y REPUESTOS PARA INSTALACIONES SANITARIAS';
 
@@ -115,8 +123,26 @@ describe('FeaturedCategories', () => {
 
   it('con una sola categoría no deja la rejilla rota', async () => {
     mockGetFeatured.mockResolvedValue([categoria()]);
-    render(<FeaturedCategories />);
+    const { container } = render(<FeaturedCategories />);
     expect(await screen.findByText('MARTILLOS')).toBeInTheDocument();
+    expect(
+      (container.querySelector('.featured-grid') as HTMLElement).style.getPropertyValue(
+        '--destacadas',
+      ),
+    ).toBe('1');
+  });
+
+  it('con cinco destacadas (lo que devuelve el backend) usa cinco columnas', async () => {
+    // Es el caso que se escapó en la primera pasada: con seis columnas fijas
+    // sobraba un hueco a la derecha en TODAS las pantallas de escritorio.
+    mockGetFeatured.mockResolvedValue(
+      Array.from({ length: 5 }, (_, i) => categoria({ uuid: `c${i}`, name: `CAT ${i}` })),
+    );
+    const { container } = render(<FeaturedCategories />);
+    await screen.findByText('CAT 0');
+    const rejilla = container.querySelector('.featured-grid') as HTMLElement;
+    expect(rejilla.style.getPropertyValue('--destacadas')).toBe('5');
+    expect(within(rejilla).getAllByRole('link')).toHaveLength(5);
   });
 
   it('recorta a filas completas cuando el backend manda de más', async () => {
@@ -126,8 +152,10 @@ describe('FeaturedCategories', () => {
     );
     const { container } = render(<FeaturedCategories />);
     await screen.findByText('CAT 0');
-    const rejilla = container.querySelector('.grid') as HTMLElement;
+    const rejilla = container.querySelector('.featured-grid') as HTMLElement;
     expect(within(rejilla).getAllByRole('link')).toHaveLength(FEATURED_MAX);
+    // Y las columnas siguen al número de tarjetas, así no sobra hueco.
+    expect(rejilla.style.getPropertyValue('--destacadas')).toBe(String(FEATURED_MAX));
   });
 
   it('sobrevive a un fallo del backend sin romper la página', async () => {
