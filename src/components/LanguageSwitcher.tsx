@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Selector de idioma. HOY NO SE MONTA EN NINGUNA PANTALLA: la tienda va fija en
+ * español. Se conserva a propósito, entero y compilando, para que reactivarlo
+ * sea sólo volver a importarlo desde `Navbar.tsx` y poner
+ * `SELECTOR_IDIOMA_ACTIVO = true` en `src/lib/locale.ts` (ahí está el detalle).
+ */
+
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Languages } from 'lucide-react';
