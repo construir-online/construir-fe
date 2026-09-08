@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Clock, CreditCard } from 'lucide-react';
+import { storeWhatsAppNumber, storeWhatsAppUrl, toTelHref } from '@/lib/whatsapp';
 import { useTranslations } from 'next-intl';
 import ZelleForm from '@/components/payment/ZelleForm';
 import PagoMovilForm from '@/components/payment/PagoMovilForm';
@@ -71,7 +72,6 @@ export default function Step4Payment({
   }
 
   if (error || paymentMethods.length === 0) {
-    const waNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '584120000000';
     const productLines = cartItems.map(
       (item) => `• ${item.quantity}x ${item.productName} - $${item.price.toFixed(2)}`
     );
@@ -88,7 +88,9 @@ export default function Step4Payment({
       customerPhone ? `Teléfono: ${customerPhone}` : null,
       `Entrega: ${deliveryMethod === 'delivery' ? 'Delivery a domicilio' : 'Retiro en tienda'}`,
     ].filter((l): l is string => l !== null);
-    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(messageLines.join('\n'))}`;
+    // El enlace lo arma el helper compartido: aquí se repetía la normalización
+    const waUrl = storeWhatsAppUrl(messageLines.join('\n'));
+    const waTel = toTelHref(storeWhatsAppNumber());
 
     return (
       <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
@@ -125,6 +127,7 @@ export default function Step4Payment({
 
         {/* Opciones de contacto */}
         <div className="w-full max-w-xs space-y-3">
+          {waUrl && (
           <a
             href={waUrl}
             target="_blank"
@@ -137,9 +140,11 @@ export default function Step4Payment({
             </svg>
             <span>Escribir por WhatsApp</span>
           </a>
+          )}
 
+          {waTel && (
           <a
-            href={`tel:+${waNumber}`}
+            href={waTel}
             className="flex items-center gap-3 w-full px-4 py-3 bg-white hover:bg-sand-50 active:bg-sand-100 text-sand-700 font-medium rounded-xl border border-sand-300 transition-colors"
           >
             <svg className="w-5 h-5 flex-shrink-0 text-sand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,6 +152,7 @@ export default function Step4Payment({
             </svg>
             <span>Llamar ahora</span>
           </a>
+          )}
         </div>
 
         {/* Nota final */}

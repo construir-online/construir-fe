@@ -178,7 +178,8 @@
     "hours": "Business Hours",
     "allRightsReserved": "All rights reserved",
     "madeWith": "Made with",
-    "by": "by"
+    "by": "by",
+    "whatsapp": "WhatsApp"
   },
   "orders": {
     "title": "Orders",
@@ -716,7 +717,8 @@
     "autofilledTitle": "Details autofilled",
     "change": "Change",
     "emailHelp": "We send the receipt and order updates here",
-    "allFieldsRequired": "All fields are required."
+    "allFieldsRequired": "All fields are required.",
+    "whatsapp": "WhatsApp"
   },
   "discounts": {
     "title": "Coupon Management",
@@ -1144,6 +1146,20 @@
     "date": "Date",
     "status": "Status",
     "total": "Total",
-    "actions": "Actions"
+    "actions": "Actions",
+    "whatsapp": "WhatsApp"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Write to us or come by. We are here to help with your project.",
+    "whatsapp": "WhatsApp",
+    "whatsappGreeting": "Hello, I would like more information about your products.",
+    "phone": "Store phone",
+    "email": "Email",
+    "address": "Address",
+    "hours": "Opening hours",
+    "viewOnMap": "View on map",
+    "loadError": "We couldn't load the store details.",
+    "retry": "Retry"
   }
 }

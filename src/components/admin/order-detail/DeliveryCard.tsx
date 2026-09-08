@@ -5,6 +5,7 @@ import { Check, Copy, MapPin, Store } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Order } from "@/types";
 import { Card, Field } from "./primitives";
+import PhoneLink from "@/components/common/PhoneLink";
 
 /**
  * Entrega. Dos formas según `deliveryMethod`: el delivery muestra la dirección
@@ -60,7 +61,15 @@ export function DeliveryCard({ order }: { order: Order }) {
                 {[address.firstName, address.lastName]
                   .filter(Boolean)
                   .join(" ")}
-                {address.phone ? ` · ${address.phone}` : ""}
+                {address.phone ? (
+                  <>
+                    {" · "}
+                    <PhoneLink
+                      phone={address.phone}
+                      className="hover:text-success-700 hover:underline"
+                    />
+                  </>
+                ) : null}
               </Field>
 
               {!isPickup && fullAddress && (

@@ -25,10 +25,8 @@ import {
   orderStatusTone,
   paymentStatusTone,
 } from "@/components/admin/order-detail/primitives";
-import {
-  getOrderCustomer,
-  toWhatsAppUrl,
-} from "@/components/admin/order-detail/order-customer";
+import { getOrderCustomer } from "@/components/admin/order-detail/order-customer";
+import { toWhatsAppUrl } from "@/lib/whatsapp";
 
 export default function OrderDetailPage() {
   const t = useTranslations("orders");

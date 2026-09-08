@@ -8,7 +8,8 @@ import { customersService } from "@/services/customers";
 import { formatUSD, formatVES } from "@/lib/currency";
 import type { CustomerDetailResponseDto, Order } from "@/types";
 import { Card, Pill } from "./primitives";
-import { getOrderCustomer, toWhatsAppUrl } from "./order-customer";
+import { getOrderCustomer } from "./order-customer";
+import { toWhatsAppUrl } from "@/lib/whatsapp";
 
 /**
  * Ficha del cliente que hizo la orden.

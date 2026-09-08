@@ -15,14 +15,23 @@ import {
   Instagram,
   Twitter,
   LogIn,
+  MessageCircle,
   UserPlus,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useStoreInfo } from "@/hooks/useStoreInfo";
+import PhoneLink from "@/components/common/PhoneLink";
+import {
+  formatVenezuelanNumber,
+  storeWhatsAppNumber,
+  storeWhatsAppUrl,
+} from "@/lib/whatsapp";
 
 /** Contacto de la tienda. Los datos vienen del backend (variables STORE_*). */
 function ContactSection() {
   const { storeInfo } = useStoreInfo();
+  const whatsAppUrl = storeWhatsAppUrl();
+  const whatsAppNumber = storeWhatsAppNumber();
 
   if (!storeInfo) return null;
 
@@ -36,20 +45,41 @@ function ContactSection() {
         Contacto
       </h2>
       <div className="bg-white rounded-2xl border border-sand-300 divide-y divide-sand-200 overflow-hidden">
-        {storeInfo.phone && (
+        {/* WhatsApp aparte del fijo: el número publicado de la tienda no lo tiene */}
+        {whatsAppUrl && (
           <a
-            href={`tel:${storeInfo.phone.replace(/\s/g, "")}`}
+            href={whatsAppUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-4 p-5 hover:bg-sand-50 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-success-50 flex items-center justify-center">
-              <Phone className="w-5 h-5 text-success-600" />
+              <MessageCircle className="w-5 h-5 text-success-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium text-sand-600">WhatsApp</p>
+              <p className="font-medium text-ink">
+                {formatVenezuelanNumber(whatsAppNumber)}
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-sand-500 shrink-0" />
+          </a>
+        )}
+
+        {storeInfo.phone && (
+          <PhoneLink
+            phone={storeInfo.phone}
+            className="flex items-center gap-4 p-5 hover:bg-sand-50 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center">
+              <Phone className="w-5 h-5 text-brand-600" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-medium text-sand-600">Teléfono</p>
               <p className="font-medium text-ink">{storeInfo.phone}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-sand-500 shrink-0" />
-          </a>
+          </PhoneLink>
         )}
 
         {storeInfo.email && (

@@ -1,12 +1,16 @@
 'use client';
 
-import { MapPin, Phone, Clock, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Clock, ExternalLink, MessageCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useStoreInfo } from '@/hooks/useStoreInfo';
+import PhoneLink from '@/components/common/PhoneLink';
+import { formatVenezuelanNumber, storeWhatsAppNumber, storeWhatsAppUrl } from '@/lib/whatsapp';
 
 export default function StoreInfo() {
   const t = useTranslations('checkout');
   const { storeInfo, loading, error, reload } = useStoreInfo();
+  const whatsAppUrl = storeWhatsAppUrl();
+  const whatsAppNumber = storeWhatsAppNumber();
 
   if (loading) {
     return (
@@ -66,16 +70,29 @@ export default function StoreInfo() {
           </div>
         </div>
 
+        {/* WhatsApp: el fijo de la tienda no lo tiene, así que es un número aparte */}
+        {whatsAppUrl && (
+          <div className="flex items-center gap-3">
+            <MessageCircle className="w-5 h-5 text-sand-700 flex-shrink-0" />
+            <a
+              href={whatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-brand-600 hover:text-brand-700 font-medium"
+            >
+              {formatVenezuelanNumber(whatsAppNumber)}
+            </a>
+          </div>
+        )}
+
         {/* Teléfono */}
         {storeInfo.phone && (
           <div className="flex items-center gap-3">
             <Phone className="w-5 h-5 text-sand-700 flex-shrink-0" />
-            <a
-              href={`tel:${storeInfo.phone.replace(/\s/g, '')}`}
+            <PhoneLink
+              phone={storeInfo.phone}
               className="text-sm text-brand-600 hover:text-brand-700 font-medium"
-            >
-              {storeInfo.phone}
-            </a>
+            />
           </div>
         )}
 
