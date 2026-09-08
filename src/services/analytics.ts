@@ -5,7 +5,6 @@ const LIMITES: Record<keyof PageViewDto, number> = {
   path: 500,
   title: 500,
   referrer: 500,
-  userAgent: 512,
 };
 
 /**
@@ -31,8 +30,15 @@ function recortar(data: PageViewDto): PageViewDto {
 export interface PageViewDto {
   path: string;
   title?: string;
+  /**
+   * Se manda entero; el backend lo recorta a su origen antes de guardarlo.
+   *
+   * La regla de recorte no se copia aquí a propósito: vive en un solo sitio
+   * (`aOrigenDeReferrer`, en el backend), que es el que la aplica a todos sus
+   * clientes. Dos definiciones de "origen" en dos repos distintos acabarían
+   * discrepando sin que nadie se entere.
+   */
   referrer?: string;
-  userAgent?: string;
 }
 
 export interface PageViewStats {

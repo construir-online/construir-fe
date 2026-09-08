@@ -36,11 +36,14 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!pathname) return;
     trackPageView(pathname);
+    // Sin `navigator.userAgent`: el backend dejó de guardarlo y, como valida
+    // con `forbidNonWhitelisted`, mandarlo ahora devuelve un 400 y la visita se
+    // perdería en silencio. El `referrer` sí va entero y lo recorta el backend
+    // a su origen, que es donde vive esa regla.
     analyticsService.trackPageView({
       path: pathname,
       title: document.title,
       referrer: document.referrer,
-      userAgent: navigator.userAgent,
     });
   }, [pathname]);
 

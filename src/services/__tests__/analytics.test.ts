@@ -9,8 +9,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
  *    validaba y el varchar(500) reventaba contra la base). `document.referrer`
  *    es una URL ajena que pasa de 500 caracteres sin esfuerzo, así que si no se
  *    recorta aquí la visita se pierde entera con un 400.
- * 2. El cuerpo no lleva —ni debe llevar— nada que identifique al visitante más
- *    allá de lo que ya se guardaba: la IP la dejó de recoger el backend.
+ * 2. El cuerpo no lleva —ni debe llevar— nada que identifique al visitante: la
+ *    IP y el `userAgent` los dejó de recoger el backend, y como valida con
+ *    `forbidNonWhitelisted`, mandar `userAgent` ahora devuelve un 400 y la
+ *    visita se perdería en silencio.
  */
 
 const post = vi.fn().mockResolvedValue(undefined);
@@ -26,14 +28,12 @@ describe('analyticsService.trackPageView', () => {
       path: '/productos',
       title: 'Productos',
       referrer: 'https://google.com',
-      userAgent: 'Mozilla/5.0',
     });
 
     expect(post).toHaveBeenCalledWith('/analytics/page-view', {
       path: '/productos',
       title: 'Productos',
       referrer: 'https://google.com',
-      userAgent: 'Mozilla/5.0',
     });
   });
 
@@ -48,17 +48,27 @@ describe('analyticsService.trackPageView', () => {
     expect(cuerpo.path).toBe('/');
   });
 
-  it('recorta también path, title y userAgent a lo que acepta el backend', async () => {
+  it('recorta también path y title a lo que acepta el backend', async () => {
     await analyticsService.trackPageView({
       path: `/${'a'.repeat(900)}`,
       title: 'b'.repeat(900),
-      userAgent: 'c'.repeat(900),
     });
 
     const cuerpo = post.mock.calls[0][1];
     expect(cuerpo.path).toHaveLength(500);
     expect(cuerpo.title).toHaveLength(500);
-    expect(cuerpo.userAgent).toHaveLength(512);
+  });
+
+  it('no manda el navegador: el backend lo rechazaría con un 400', async () => {
+    // El DTO del backend ya no declara `userAgent` y la validación global corre
+    // con forbidNonWhitelisted, así que colarlo aquí costaría la visita entera.
+    await analyticsService.trackPageView({
+      path: '/',
+      title: 'Inicio',
+      referrer: 'https://google.com',
+    });
+
+    expect(post.mock.calls[0][1]).not.toHaveProperty('userAgent');
   });
 
   it('no manda ningún campo de IP: ese dato ya no se recoge', async () => {
@@ -68,6 +78,7 @@ describe('analyticsService.trackPageView', () => {
     expect(Object.keys(cuerpo)).toEqual(['path']);
     expect(cuerpo).not.toHaveProperty('ip');
     expect(cuerpo).not.toHaveProperty('ipAddress');
+    expect(cuerpo).not.toHaveProperty('userAgent');
   });
 
   it('no rompe la navegación si el backend falla', async () => {
