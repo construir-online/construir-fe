@@ -20,6 +20,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { perfilesSociales, type RedSocial } from "@/lib/social";
 import { useStoreInfo } from "@/hooks/useStoreInfo";
 import PhoneLink from "@/components/common/PhoneLink";
 import {
@@ -136,6 +137,83 @@ function ContactSection() {
   );
 }
 
+/** Iconos de cada red, para pintar sólo las que tienen perfil configurado. */
+const REDES: Record<RedSocial, { Icono: typeof Facebook; etiqueta: string; borde: string; fondo: string; color: string }> = {
+  facebook: { Icono: Facebook, etiqueta: "Facebook", borde: "hover:border-brand-300", fondo: "hover:bg-brand-50", color: "text-brand-600" },
+  instagram: { Icono: Instagram, etiqueta: "Instagram", borde: "hover:border-accent-300", fondo: "hover:bg-accent-50", color: "text-accent-600" },
+  twitter: { Icono: Twitter, etiqueta: "Twitter / X", borde: "hover:border-brand-300", fondo: "hover:bg-brand-50", color: "text-brand-500" },
+};
+
+/** Redes de la tienda; si no hay ninguna configurada, no se pinta la sección. */
+function SocialSection() {
+  const redes = perfilesSociales();
+  if (redes.length === 0) return null;
+
+  return (
+    <section>
+      <h2 className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.12em] text-sand-600">
+        Síguenos
+      </h2>
+      <div className="flex gap-3">
+        {redes.map(({ red, url }) => {
+          const { Icono, etiqueta, borde, fondo, color } = REDES[red];
+          return (
+            <a
+              key={red}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex-1 flex min-h-11 items-center justify-center gap-2 py-3 bg-white rounded-2xl border border-sand-300 ${borde} ${fondo} transition-all`}
+              aria-label={etiqueta}
+            >
+              <Icono className={`w-5 h-5 ${color}`} />
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Atajo a contacto y a las páginas legales.
+ *
+ * Estos enlaces sólo existían en el pie, que no se muestra en las pantallas a
+ * pantalla completa: desde el listado de productos o el checkout, llegar a los
+ * términos obligaba a volver al inicio y bajar el pie entero. "Cuenta" está en
+ * la barra inferior desde cualquier pantalla, así que es el camino corto.
+ */
+function LegalSection() {
+  const t = useTranslations("myAccount");
+  const tFooter = useTranslations("footer");
+
+  const enlaces = [
+    { href: "/contact", texto: tFooter("contact") },
+    { href: "/terms", texto: tFooter("terms") },
+    { href: "/privacy", texto: tFooter("privacy") },
+  ];
+
+  return (
+    <section>
+      <h2 className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.12em] text-sand-600">
+        {t("helpAndInfo")}
+      </h2>
+      <div className="overflow-hidden rounded-2xl border border-sand-300 divide-y divide-sand-200 bg-white">
+        {enlaces.map(({ href, texto }) => (
+          <Link
+            key={href}
+            href={href}
+            className="flex min-h-11 items-center gap-3 px-5 py-3.5 text-sm text-sand-700 transition-colors hover:bg-sand-50"
+          >
+            <span className="flex-1">{texto}</span>
+            <ChevronRight className="w-4 h-4 shrink-0 text-sand-500" />
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function GuestView() {
   return (
     <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
@@ -172,40 +250,11 @@ function GuestView() {
       <ContactSection />
 
       {/* Redes sociales */}
-      <section>
-        <h2 className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.12em] text-sand-600">
-          Síguenos
-        </h2>
-        <div className="flex gap-3">
-          <a
-            href="https://facebook.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white rounded-2xl border border-sand-300 hover:border-brand-300 hover:bg-brand-50 transition-all"
-            aria-label="Facebook"
-          >
-            <Facebook className="w-5 h-5 text-brand-600" />
-          </a>
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white rounded-2xl border border-sand-300 hover:border-accent-300 hover:bg-accent-50 transition-all"
-            aria-label="Instagram"
-          >
-            <Instagram className="w-5 h-5 text-accent-600" />
-          </a>
-          <a
-            href="https://twitter.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white rounded-2xl border border-sand-300 hover:border-brand-300 hover:bg-brand-50 transition-all"
-            aria-label="Twitter / X"
-          >
-            <Twitter className="w-5 h-5 text-brand-500" />
-          </a>
-        </div>
-      </section>
+      <SocialSection />
+
+      {/* Contacto y páginas legales */}
+      <LegalSection />
+
     </div>
   );
 }
@@ -247,6 +296,9 @@ function AuthenticatedView({ user, onLogout }: { user: NonNullable<ReturnType<ty
 
       {/* Contacto */}
       <ContactSection />
+
+      {/* Contacto y páginas legales */}
+      <LegalSection />
 
       {/* Cerrar sesión */}
       <button

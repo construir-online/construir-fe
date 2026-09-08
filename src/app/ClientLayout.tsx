@@ -24,10 +24,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     (route) => pathname === route || pathname?.startsWith(`${route}/`)
   );
   const showChrome = !isAdminRoute && !isAuthRoute;
-  const showBottomNav = showChrome && !isMobileFullscreenRoute;
-  // El pie se ve en móvil sólo donde hay cromo; en las pantallas completas sigue
-  // siendo de escritorio (`hidden md:block`)
-  const showFooter = showChrome && !isMobileFullscreenRoute;
+  // La barra inferior y el pie en móvil van siempre juntos: donde hay cromo y no
+  // es pantalla completa se ven los dos, y en las pantallas completas ninguno.
+  // Es una sola condición a propósito; el colchón que separa el contenido de la
+  // barra depende de eso (ver más abajo).
+  const showMobileChrome = showChrome && !isMobileFullscreenRoute;
   const { isCartOpen, closeCart } = useCart();
 
   // Initialize GA4 on mount
@@ -57,11 +58,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         ) : (
           <Navbar />
         ))}
-      {/* El colchón que separa el contenido de la barra inferior pasa al final del
-          pie cuando el pie se muestra; dejarlo también aquí abría una franja
-          blanca entre el contenido y el pie. La condición queda por si alguna vez
-          hay barra inferior sin pie debajo: entonces el hueco lo pone `main`. */}
-      <main className={`min-h-screen${showBottomNav && !showFooter ? ' pb-16 md:pb-0' : ''}`}>
+      {/* `main` ya no lleva colchón inferior: siempre que hay barra inferior hay
+          pie debajo, y es el pie el que deja el hueco. Ponerlo también aquí abría
+          una franja blanca entre el contenido y el pie. Si alguna vez la barra
+          apareciera sin pie debajo, el hueco habría que devolverlo aquí. */}
+      <main className="min-h-screen">
         {children}
       </main>
       {/* El pie llevaba `hidden md:block`, así que en el teléfono no existía en
@@ -71,7 +72,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           normales; en las de pantalla completa (productos, carrito, checkout) se
           mantiene oculto porque ese diseño quita el cromo a propósito. */}
       {showChrome &&
-        (showFooter ? (
+        (showMobileChrome ? (
           /* La barra inferior es fija y el pie va después de `main`: sin este
              colchón tapaba el copyright y los enlaces legales, justo lo que
              veníamos a rescatar. Va en un envoltorio del color del pie para que
@@ -84,7 +85,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
             <Footer />
           </div>
         ))}
-      {showBottomNav && <BottomNav />}
+      {showMobileChrome && <BottomNav />}
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );
