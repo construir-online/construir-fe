@@ -17,7 +17,8 @@ export default function CategoryCard({ category, index = 0 }: CategoryCardProps)
   return (
     <Link
       href={`/productos?categoria=${category.uuid}`}
-      className="group flex flex-col gap-2"
+      title={category.name}
+      className="group flex flex-col gap-2 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
       style={{ animation: `fadeInUp 0.5s ease-out ${index * 0.06}s both` }}
     >
       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-sand-300 bg-sand-200">
@@ -25,6 +26,7 @@ export default function CategoryCard({ category, index = 0 }: CategoryCardProps)
           <img
             src={category.image}
             alt={category.name}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -34,7 +36,12 @@ export default function CategoryCard({ category, index = 0 }: CategoryCardProps)
         )}
       </div>
 
-      <span className="line-clamp-2 text-[11.5px] font-semibold leading-tight text-ink transition-colors group-hover:text-brand-600 sm:text-sm">
+      {/*
+        Altura de dos líneas reservada: con nombres de una y de dos líneas
+        mezclados, la fila de la rejilla crecía por la tarjeta más alta y las
+        demás quedaban con un hueco debajo, distinto en cada ancho.
+      */}
+      <span className="line-clamp-2 min-h-[2.1em] text-[11.5px] font-semibold leading-tight text-ink transition-colors group-hover:text-brand-600 sm:text-sm">
         {category.name}
       </span>
 

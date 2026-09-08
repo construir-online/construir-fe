@@ -74,29 +74,35 @@ export function CategoryMenu() {
   }
 
   return (
-    <div className="rounded-2xl border border-sand-300 bg-white">
+    /*
+     * Pegajoso a partir de lg: con 100 categorías el árbol mide casi 5000px y
+     * era él quien fijaba la altura de toda la página de productos, dejando
+     * kilómetros de blanco a la derecha de la rejilla.
+     */
+    <div className="rounded-2xl border border-sand-300 bg-white lg:sticky lg:top-6 lg:flex lg:max-h-[calc(100vh-3rem)] lg:flex-col lg:overflow-hidden">
       {/* Header — toggle en mobile, estático en desktop */}
       <button
         type="button"
         onClick={() => setIsMenuOpen(prev => !prev)}
-        className="flex min-h-11 w-full items-center justify-between border-b border-sand-200 p-4 lg:cursor-default"
+        aria-expanded={isMenuOpen}
+        className="flex min-h-11 w-full flex-none items-center justify-between gap-2 border-b border-sand-200 p-4 text-left lg:pointer-events-none lg:cursor-default"
       >
-        <h2 className="flex items-center gap-2 font-display text-base font-bold text-ink">
-          <Grid className="w-5 h-5" />
+        <h2 className="flex min-w-0 items-center gap-2 font-display text-base font-bold text-ink">
+          <Grid className="w-5 h-5 flex-none" />
           Categorías
           {selectedCategory && (
-            <span className="ml-1 text-sm font-normal text-brand-600 truncate max-w-[120px]">
+            <span className="ml-1 truncate text-sm font-normal text-brand-600">
               · {selectedCategory.name}
             </span>
           )}
         </h2>
         <ChevronDown
-          className={`w-5 h-5 text-sand-600 transition-transform lg:hidden ${isMenuOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 flex-none text-sand-600 transition-transform lg:hidden ${isMenuOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {/* Contenido — visible siempre en desktop, toggle en mobile */}
-      <nav className={`p-2 ${isMenuOpen ? 'block' : 'hidden'} lg:block`}>
+      <nav className={`p-2 ${isMenuOpen ? 'block' : 'hidden'} lg:block lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain`}>
         {/* All Products Link */}
         <Link
           href="/productos"
@@ -124,8 +130,12 @@ export function CategoryMenu() {
                 <div className="flex items-center">
                   {hasChildren && (
                     <button
+                      type="button"
                       onClick={() => toggleCategory(category.uuid)}
-                      className="p-1 hover:bg-sand-100 rounded transition-colors"
+                      aria-expanded={isExpanded}
+                      /* Medía 24px: imposible de acertar con el dedo. Ahora
+                         cumple los 44px del diseño móvil sin ocupar más ancho. */
+                      className="flex h-11 w-7 flex-none items-center justify-center rounded transition-colors hover:bg-sand-100"
                       aria-label={isExpanded ? 'Contraer' : 'Expandir'}
                     >
                       {isExpanded ? (
@@ -138,8 +148,10 @@ export function CategoryMenu() {
                   <Link
                     href={`/productos?categoria=${category.uuid}`}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex min-h-11 flex-1 items-center rounded-xl px-3 text-sm transition-colors ${
-                      !hasChildren ? 'ml-5' : ''
+                    /* min-w-0 + break-words: los nombres largos en mayúsculas
+                       desbordaban la columna de 256px del escritorio. */
+                    className={`flex min-h-11 min-w-0 flex-1 items-center break-words rounded-xl px-3 py-1.5 text-sm transition-colors ${
+                      !hasChildren ? 'ml-7' : ''
                     } ${
                       isActive
                         ? 'bg-brand-50 font-bold text-brand-700'
@@ -165,7 +177,7 @@ export function CategoryMenu() {
                           key={child.uuid}
                           href={`/productos?categoria=${child.uuid}`}
                           onClick={() => setIsMenuOpen(false)}
-                          className={`flex min-h-11 items-center rounded-xl px-3 text-sm transition-colors ${
+                          className={`flex min-h-11 min-w-0 items-center break-words rounded-xl px-3 py-1.5 text-sm transition-colors ${
                             isChildActive
                               ? 'bg-brand-50 font-bold text-brand-700'
                               : 'text-sand-700 hover:bg-sand-100'

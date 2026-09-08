@@ -95,8 +95,15 @@ body {
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
+    /* Sin esto la fila se estira dentro de contenedores flex y los chips
+       pierden su alto mínimo de 44px */
+    align-items: center;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* Al desplazar al chip activo, que no quede pegado al borde */
+    scroll-padding-inline: 1rem;
+    /* Que el gesto horizontal no arrastre la página al llegar al extremo */
+    overscroll-behavior-x: contain;
   }
   .chip-row::-webkit-scrollbar {
     display: none;

@@ -7,6 +7,7 @@ import type { Category } from '@/types';
 import CategoryCard from './category/CategoryCard';
 import CategoryCardSkeleton from './category/CategoryCardSkeleton';
 import SectionHeader from './SectionHeader';
+import { FEATURED_GRID_CLASS, FEATURED_MAX, limitarDestacadas } from '@/lib/category-grid';
 
 export default function FeaturedCategories() {
   const t = useTranslations('categories');
@@ -43,10 +44,15 @@ export default function FeaturedCategories() {
           className="mb-3 sm:mb-5"
         />
 
-        <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-4 lg:grid-cols-6">
+        {/*
+          Sólo 3 o 6 columnas: el paso intermedio de 4 dejaba la última fila con
+          tres huecos entre 640px y 1023px, porque aquí se muestran seis
+          categorías como mucho y 4 no divide a 6.
+        */}
+        <div className={FEATURED_GRID_CLASS}>
           {loading
-            ? [1, 2, 3, 4, 5, 6].map((i) => <CategoryCardSkeleton key={i} />)
-            : categories.map((category, index) => (
+            ? Array.from({ length: FEATURED_MAX }).map((_, i) => <CategoryCardSkeleton key={i} />)
+            : limitarDestacadas(categories).map((category, index) => (
                 <CategoryCard key={category.uuid} category={category} index={index} />
               ))}
         </div>
