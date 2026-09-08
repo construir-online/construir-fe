@@ -56,6 +56,25 @@ export const ordersService = {
   },
 
   /**
+   * Pide un enlace temporal para ver o descargar el comprobante de una orden.
+   *
+   * Antes la URL del comprobante venía dentro de la propia orden y apuntaba
+   * directo al bucket, que responde a cualquiera. Ahora hay que pedirla, el
+   * backend comprueba quién pregunta -admin, order_admin o el cliente dueño de
+   * la orden- y lo que devuelve caduca a los pocos minutos, así que no se
+   * cachea ni se guarda: se pide cada vez que hace falta.
+   */
+  async getReceiptUrl(
+    orderUuid: string,
+    options: { download?: boolean } = {},
+  ): Promise<{ url: string; expiresIn: number }> {
+    const query = options.download ? '?download=1' : '';
+    return apiClient.get<{ url: string; expiresIn: number }>(
+      `/orders/${orderUuid}/receipt${query}`,
+    );
+  },
+
+  /**
    * Obtiene todas las órdenes del usuario autenticado
    */
   async getMyOrders(): Promise<OrderSummary[]> {
