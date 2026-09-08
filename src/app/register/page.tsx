@@ -2,19 +2,44 @@
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/context/AuthContext";
 import AuthShell from "@/components/auth/AuthShell";
+import { registerErrorKey } from "@/lib/register-errors";
+import { digitosCedulaVE, normalizarTelefonoMovilVE } from "@/lib/venezuela";
 import { IdentificationType } from "@/types";
 
+/** El `select` de tipo. La etiqueta larga se traduce; la letra no. */
 const ID_TYPES = [
-  { value: IdentificationType.V, label: "V — Venezolano" },
-  { value: IdentificationType.E, label: "E — Extranjero" },
-  { value: IdentificationType.J, label: "J — Jurídico" },
-  { value: IdentificationType.G, label: "G — Gobierno" },
-  { value: IdentificationType.P, label: "P — Pasaporte" },
-];
+  { value: IdentificationType.V, labelKey: "idTypeV" },
+  { value: IdentificationType.E, labelKey: "idTypeE" },
+  { value: IdentificationType.J, labelKey: "idTypeJ" },
+  { value: IdentificationType.G, labelKey: "idTypeG" },
+  { value: IdentificationType.P, labelKey: "idTypeP" },
+] as const;
+
+const INPUT_CLASS =
+  "block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25";
+const INPUT_ERROR_CLASS =
+  "border-danger-500 bg-danger-50 focus:border-danger-500 focus:ring-danger-500/25";
+const LABEL_CLASS = "mb-1.5 block text-[11.5px] font-bold text-sand-700";
+
+/** Clave de `auth.fieldErrors` por campo; ausente = el campo está bien. */
+type FieldErrors = Partial<
+  Record<
+    | "firstName"
+    | "lastName"
+    | "email"
+    | "password"
+    | "confirmPassword"
+    | "phone"
+    | "identificationNumber",
+    string
+  >
+>;
 
 export default function RegisterPage() {
+  const t = useTranslations("auth");
   const { register } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -23,46 +48,112 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     phone: "",
-    identificationType: IdentificationType.V,
+    identificationType: IdentificationType.V as IdentificationType,
     identificationNumber: "",
   });
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // El aviso desaparece en cuanto el cliente empieza a corregir: dejarlo
+    // puesto mientras escribe da la impresión de que sigue estando mal.
+    setFieldErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+  };
+
+  /**
+   * Revisa el formulario antes de enviarlo.
+   *
+   * Es una cortesía —avisar sin gastar un viaje al servidor—, no la autoridad:
+   * la regla que manda es la del backend, que valida lo mismo porque a esa API
+   * se le puede hablar sin pasar por este formulario.
+   */
+  const validar = (): FieldErrors => {
+    const errores: FieldErrors = {};
+
+    if (!formData.firstName.trim()) errores.firstName = "required";
+    if (!formData.lastName.trim()) errores.lastName = "required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(formData.email.trim())) {
+      errores.email = "email";
+    }
+    if (formData.password.length < 6) errores.password = "password";
+    if (formData.password !== formData.confirmPassword) {
+      errores.confirmPassword = "passwordsMismatch";
+    }
+    if (!normalizarTelefonoMovilVE(formData.phone)) errores.phone = "phone";
+
+    // La forma de cédula sólo aplica a V y E. Un RIF (J, G) o un pasaporte (P)
+    // tienen otras reglas que no se definen acá: exigirles la de la cédula
+    // dejaría fuera a las empresas.
+    const esCedula =
+      formData.identificationType === IdentificationType.V ||
+      formData.identificationType === IdentificationType.E;
+    if (esCedula) {
+      if (
+        !digitosCedulaVE(
+          formData.identificationType,
+          formData.identificationNumber,
+        )
+      ) {
+        errores.identificationNumber = "identification";
+      }
+    } else if (!formData.identificationNumber.trim()) {
+      errores.identificationNumber = "required";
+    }
+
+    return errores;
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
+    const errores = validar();
+    setFieldErrors(errores);
+    if (Object.keys(errores).length > 0) return;
 
     setLoading(true);
     try {
       await register({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
         password: formData.password,
-        phone: formData.phone,
+        // Se envía normalizado: el mismo número escrito "0412-1234567",
+        // "+58 412 1234567" o "04121234567" tiene que quedar igual guardado,
+        // o buscar al cliente por su teléfono no encuentra nada.
+        phone: normalizarTelefonoMovilVE(formData.phone) ?? formData.phone,
         identificationType: formData.identificationType,
-        identificationNumber: formData.identificationNumber,
+        identificationNumber:
+          digitosCedulaVE(
+            formData.identificationType,
+            formData.identificationNumber,
+          ) ?? formData.identificationNumber.trim(),
       });
       setSuccess(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al registrarse");
+      // Nunca se muestra `err.message`: es el texto del backend, en inglés y
+      // con redacción de log ("Email already exists", "phone must be a
+      // Venezuelan mobile number"), o el "Failed to fetch" del navegador
+      // cuando el servidor no responde. Se clasifica el fallo y se pinta el
+      // texto del idioma que el cliente eligió.
+      setError(t(`registerErrors.${registerErrorKey(err)}`));
     } finally {
       setLoading(false);
     }
   };
+
+  const errorDe = (campo: keyof FieldErrors) =>
+    fieldErrors[campo] ? t(`fieldErrors.${fieldErrors[campo]}`) : null;
+
+  const claseDe = (campo: keyof FieldErrors) =>
+    `${INPUT_CLASS} ${fieldErrors[campo] ? INPUT_ERROR_CLASS : ""}`;
 
   if (success) {
     return (
@@ -75,19 +166,19 @@ export default function RegisterPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-ink">Revisa tu correo</h2>
+              <h2 className="text-2xl font-bold text-ink">{t("checkEmailTitle")}</h2>
               <p className="mt-2 text-sand-600 text-sm leading-relaxed">
-                Te enviamos un enlace de verificación a{" "}
-                <span className="font-medium text-sand-700">{formData.email}</span>.
-                Haz clic en el enlace para activar tu cuenta.
+                {t("checkEmailBody", { email: formData.email })}
               </p>
             </div>
             <p className="text-xs text-sand-500">
-              ¿No lo ves? Revisa la carpeta de spam o{" "}
-              <Link href="/login" className="text-brand-600 hover:underline">
-                intenta iniciar sesión
-              </Link>{" "}
-              para reenviar el correo.
+              {t.rich("checkEmailSpam", {
+                link: () => (
+                  <Link href="/login" className="text-brand-600 hover:underline">
+                    {t("checkEmailSpamLink")}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         </div>
@@ -99,7 +190,7 @@ export default function RegisterPage() {
     <AuthShell active="register">
       <div>
           {error && (
-            <div className="mb-6 flex items-start gap-3 rounded-lg bg-danger-50 border border-danger-100 px-4 py-3">
+            <div role="alert" className="mb-6 flex items-start gap-3 rounded-lg bg-danger-50 border border-danger-100 px-4 py-3">
               <svg className="w-5 h-5 text-danger-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -107,135 +198,162 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             {/* Nombre y Apellido */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                  Nombre <span className="text-danger-500">*</span>
+                <label htmlFor="firstName" className={LABEL_CLASS}>
+                  {t("firstName")} <span className="text-danger-500">*</span>
                 </label>
                 <input
                   id="firstName"
                   name="firstName"
                   type="text"
-                  required
                   autoComplete="given-name"
                   value={formData.firstName}
                   onChange={handleChange}
-                  placeholder="Juan"
-                  className="block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+                  placeholder={t("firstNamePlaceholder")}
+                  aria-invalid={!!fieldErrors.firstName}
+                  className={claseDe("firstName")}
                 />
+                {errorDe("firstName") && (
+                  <p className="mt-1 text-xs text-danger-600">{errorDe("firstName")}</p>
+                )}
               </div>
               <div>
-                <label htmlFor="lastName" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                  Apellido <span className="text-danger-500">*</span>
+                <label htmlFor="lastName" className={LABEL_CLASS}>
+                  {t("lastName")} <span className="text-danger-500">*</span>
                 </label>
                 <input
                   id="lastName"
                   name="lastName"
                   type="text"
-                  required
                   autoComplete="family-name"
                   value={formData.lastName}
                   onChange={handleChange}
-                  placeholder="Pérez"
-                  className="block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+                  placeholder={t("lastNamePlaceholder")}
+                  aria-invalid={!!fieldErrors.lastName}
+                  className={claseDe("lastName")}
                 />
+                {errorDe("lastName") && (
+                  <p className="mt-1 text-xs text-danger-600">{errorDe("lastName")}</p>
+                )}
               </div>
             </div>
 
             {/* Identificación */}
             <div>
-              <label className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                Identificación <span className="text-danger-500">*</span>
+              <label htmlFor="identificationNumber" className={LABEL_CLASS}>
+                {t("identification")} <span className="text-danger-500">*</span>
               </label>
               <div className="flex gap-2">
                 <select
                   name="identificationType"
-                  required
+                  aria-label={t("identification")}
                   value={formData.identificationType}
                   onChange={handleChange}
-                  className="w-24 shrink-0 min-h-11 rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+                  className={`w-24 shrink-0 ${INPUT_CLASS}`}
                 >
-                  {ID_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.value}
+                  {ID_TYPES.map((tipo) => (
+                    <option key={tipo.value} value={tipo.value}>
+                      {tipo.value}
                     </option>
                   ))}
                 </select>
                 <input
+                  id="identificationNumber"
                   name="identificationNumber"
                   type="text"
-                  required
+                  inputMode="numeric"
                   value={formData.identificationNumber}
                   onChange={handleChange}
-                  placeholder="12345678"
-                  className="min-w-0 flex-1 min-h-11 rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+                  placeholder={t("identificationPlaceholder")}
+                  aria-invalid={!!fieldErrors.identificationNumber}
+                  className={`min-w-0 flex-1 ${claseDe("identificationNumber")}`}
                 />
               </div>
-              <p className="mt-1 text-xs text-sand-500">
-                {ID_TYPES.find((t) => t.value === formData.identificationType)?.label}
-              </p>
+              {errorDe("identificationNumber") ? (
+                <p className="mt-1 text-xs text-danger-600">
+                  {errorDe("identificationNumber")}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-sand-500">
+                  {t(
+                    ID_TYPES.find(
+                      (tipo) => tipo.value === formData.identificationType,
+                    )?.labelKey ?? "idTypeV",
+                  )}
+                </p>
+              )}
             </div>
 
             {/* Teléfono */}
             <div>
-              <label htmlFor="phone" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                Teléfono <span className="text-danger-500">*</span>
+              <label htmlFor="phone" className={LABEL_CLASS}>
+                {t("phone")} <span className="text-danger-500">*</span>
               </label>
               <input
                 id="phone"
                 name="phone"
                 type="tel"
-                required
+                inputMode="tel"
                 autoComplete="tel"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="0412-1234567"
-                className="block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+                placeholder={t("phonePlaceholder")}
+                aria-invalid={!!fieldErrors.phone}
+                className={claseDe("phone")}
               />
+              {errorDe("phone") ? (
+                <p className="mt-1 text-xs text-danger-600">{errorDe("phone")}</p>
+              ) : (
+                <p className="mt-1 text-xs text-sand-500">{t("phoneHelp")}</p>
+              )}
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                Correo electrónico <span className="text-danger-500">*</span>
+              <label htmlFor="email" className={LABEL_CLASS}>
+                {t("email")} <span className="text-danger-500">*</span>
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
-                required
                 autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="juan@ejemplo.com"
-                className="block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+                placeholder={t("emailPlaceholder")}
+                aria-invalid={!!fieldErrors.email}
+                className={claseDe("email")}
               />
+              {errorDe("email") && (
+                <p className="mt-1 text-xs text-danger-600">{errorDe("email")}</p>
+              )}
             </div>
 
             {/* Contraseñas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="password" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                  Contraseña <span className="text-danger-500">*</span>
+                <label htmlFor="password" className={LABEL_CLASS}>
+                  {t("password")} <span className="text-danger-500">*</span>
                 </label>
                 <div className="relative">
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    required
-                    minLength={6}
                     autoComplete="new-password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Mín. 6 caracteres"
-                    className="block pr-11 min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+                    placeholder={t("passwordMinPlaceholder")}
+                    aria-invalid={!!fieldErrors.password}
+                    className={`pr-11 ${claseDe("password")}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-sand-500 hover:text-sand-700"
                     tabIndex={-1}
                   >
@@ -251,31 +369,30 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
+                {errorDe("password") && (
+                  <p className="mt-1 text-xs text-danger-600">{errorDe("password")}</p>
+                )}
               </div>
               <div>
-                <label htmlFor="confirmPassword" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                  Confirmar contraseña <span className="text-danger-500">*</span>
+                <label htmlFor="confirmPassword" className={LABEL_CLASS}>
+                  {t("confirmPassword")} <span className="text-danger-500">*</span>
                 </label>
                 <div className="relative">
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirm ? "text" : "password"}
-                    required
-                    minLength={6}
                     autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    placeholder="Repite la contraseña"
-                    className={`block w-full px-3.5 py-2.5 pr-10 border rounded-lg text-ink placeholder-sand-500 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition ${
-                      formData.confirmPassword && formData.password !== formData.confirmPassword
-                        ? "border-danger-500 bg-danger-50"
-                        : "border-sand-300"
-                    }`}
+                    placeholder={t("confirmPasswordPlaceholder")}
+                    aria-invalid={!!fieldErrors.confirmPassword}
+                    className={`pr-11 ${claseDe("confirmPassword")}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
+                    aria-label={showConfirm ? t("hidePassword") : t("showPassword")}
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-sand-500 hover:text-sand-700"
                     tabIndex={-1}
                   >
@@ -291,8 +408,10 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <p className="mt-1 text-xs text-danger-500">Las contraseñas no coinciden</p>
+                {errorDe("confirmPassword") && (
+                  <p className="mt-1 text-xs text-danger-600">
+                    {errorDe("confirmPassword")}
+                  </p>
                 )}
               </div>
             </div>
@@ -308,16 +427,16 @@ export default function RegisterPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Registrando...
+                  {t("registering")}
                 </>
               ) : (
-                "Crear cuenta"
+                t("registerTitle")
               )}
             </button>
 
             <p className="text-center text-xs text-sand-500">
-              Al registrarte aceptas nuestros{" "}
-              <span className="text-sand-600 font-medium">términos y condiciones</span>
+              {t("termsNotice")}{" "}
+              <span className="text-sand-600 font-medium">{t("termsLink")}</span>
             </p>
           </form>
       </div>
