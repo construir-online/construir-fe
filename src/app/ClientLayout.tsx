@@ -24,7 +24,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     (route) => pathname === route || pathname?.startsWith(`${route}/`)
   );
   const showChrome = !isAdminRoute && !isAuthRoute;
-  const showBottomNav = showChrome && !isMobileFullscreenRoute;
+  // La barra inferior y el pie en móvil van siempre juntos: donde hay cromo y no
+  // es pantalla completa se ven los dos, y en las pantallas completas ninguno.
+  // Es una sola condición a propósito; el colchón que separa el contenido de la
+  // barra depende de eso (ver más abajo).
+  const showMobileChrome = showChrome && !isMobileFullscreenRoute;
   const { isCartOpen, closeCart } = useCart();
 
   // Initialize GA4 on mount
@@ -54,11 +58,34 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         ) : (
           <Navbar />
         ))}
-      <main className={`min-h-screen${showBottomNav ? ' pb-16 md:pb-0' : ''}`}>
+      {/* `main` ya no lleva colchón inferior: siempre que hay barra inferior hay
+          pie debajo, y es el pie el que deja el hueco. Ponerlo también aquí abría
+          una franja blanca entre el contenido y el pie. Si alguna vez la barra
+          apareciera sin pie debajo, el hueco habría que devolverlo aquí. */}
+      <main className="min-h-screen">
         {children}
       </main>
-      {showChrome && <div className="hidden md:block"><Footer /></div>}
-      {showBottomNav && <BottomNav />}
+      {/* El pie llevaba `hidden md:block`, así que en el teléfono no existía en
+          ninguna ruta, y con él desaparecían los únicos enlaces a contacto y a las
+          páginas legales: quien compra desde el móvil no tenía forma de llegar a
+          /contact, /about, /terms ni /privacy. Ahora se muestra en las rutas
+          normales; en las de pantalla completa (productos, carrito, checkout) se
+          mantiene oculto porque ese diseño quita el cromo a propósito. */}
+      {showChrome &&
+        (showMobileChrome ? (
+          /* La barra inferior es fija y el pie va después de `main`: sin este
+             colchón tapaba el copyright y los enlaces legales, justo lo que
+             veníamos a rescatar. Va en un envoltorio del color del pie para que
+             no se vea una franja clara bajo él. */
+          <div className="bg-brand-900 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+            <Footer />
+          </div>
+        ) : (
+          <div className="hidden md:block">
+            <Footer />
+          </div>
+        ))}
+      {showMobileChrome && <BottomNav />}
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );

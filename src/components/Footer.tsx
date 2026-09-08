@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import {
@@ -11,13 +10,20 @@ import {
   Facebook,
   Instagram,
   Twitter,
-  Heart,
-  MessageCircle,
-  Send
+  MessageCircle
 } from 'lucide-react';
 import { useStoreInfo } from '@/hooks/useStoreInfo';
 import PhoneLink from '@/components/common/PhoneLink';
 import { formatVenezuelanNumber, storeWhatsAppNumber, storeWhatsAppUrl } from '@/lib/whatsapp';
+import { perfilesSociales, type RedSocial } from '@/lib/social';
+import { lineaCopyright } from '@/lib/copyright';
+
+/** Cada red con su icono y el color con el que se ilumina al pasar por encima. */
+const REDES: Record<RedSocial, { Icono: typeof Facebook; etiqueta: string; hover: string }> = {
+  facebook: { Icono: Facebook, etiqueta: 'Facebook', hover: 'hover:bg-brand-600' },
+  instagram: { Icono: Instagram, etiqueta: 'Instagram', hover: 'hover:bg-accent-500' },
+  twitter: { Icono: Twitter, etiqueta: 'Twitter', hover: 'hover:bg-brand-500' },
+};
 
 export default function Footer() {
   const t = useTranslations('footer');
@@ -25,34 +31,15 @@ export default function Footer() {
   const { storeInfo } = useStoreInfo();
   const whatsAppUrl = storeWhatsAppUrl();
   const whatsAppNumber = storeWhatsAppNumber();
-  const [email, setEmail] = useState('');
-  const [isSubscribing, setIsSubscribing] = useState(false);
-  const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const redes = perfilesSociales();
 
   const currentYear = new Date().getFullYear();
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
-    setIsSubscribing(true);
-
-    // Simular suscripción (aquí conectarías con tu backend/servicio de newsletter)
-    setTimeout(() => {
-      setIsSubscribing(false);
-      setSubscribeStatus('success');
-      setEmail('');
-
-      // Reset status después de 3 segundos
-      setTimeout(() => setSubscribeStatus('idle'), 3000);
-    }, 1000);
-  };
 
   return (
     <footer className="bg-brand-900 text-sand-500">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
 
           {/* Columna 1: Sobre la Empresa */}
           <div className="space-y-4">
@@ -65,41 +52,37 @@ export default function Footer() {
               </p>
             </div>
 
-            {/* Redes Sociales */}
-            <div>
-              <h4 className="text-white font-semibold mb-3 text-sm">
-                {t('followUs')}
-              </h4>
-              <div className="flex gap-3">
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-brand-600 flex items-center justify-center transition-colors"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-5 h-5" />
-                </a>
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-accent-500 flex items-center justify-center transition-colors"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-brand-500 flex items-center justify-center transition-colors"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-5 h-5" />
-                </a>
+            {/* Redes Sociales: sólo las que tienen perfil configurado. Los tres
+                iconos llevaban a las portadas genéricas de cada red, y al
+                agrandarlos para el dedo se volvían más fáciles de pulsar sin
+                llevar a ninguna parte. */}
+            {redes.length > 0 && (
+              <div>
+                <h4 className="text-white font-semibold mb-3 text-sm">
+                  {t('followUs')}
+                </h4>
+                {/* El pie nunca se había visto en el teléfono: los 40px de estos
+                    botones se quedaban cortos para el dedo, así que en móvil suben
+                    a 44 y sólo vuelven a 40 en escritorio, donde hay ratón. */}
+                <div className="flex gap-3">
+                  {redes.map(({ red, url }) => {
+                    const { Icono, etiqueta, hover } = REDES[red];
+                    return (
+                      <a
+                        key={red}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`w-11 h-11 md:w-10 md:h-10 rounded-full bg-white/10 ${hover} flex items-center justify-center transition-colors`}
+                        aria-label={etiqueta}
+                      >
+                        <Icono className="w-5 h-5" />
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Columna 2: Enlaces Rápidos */}
@@ -107,11 +90,14 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">
               {t('quickLinks')}
             </h4>
+            {/* Igual que las redes: en el teléfono estos enlaces medían 20px de
+                alto y eran casi imposibles de acertar; el `min-h-11` sólo aplica
+                en móvil para no estirar la columna en escritorio. */}
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {tNav('home')}
                 </Link>
@@ -119,7 +105,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/productos"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {tNav('products')}
                 </Link>
@@ -127,7 +113,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {tNav('about')}
                 </Link>
@@ -135,7 +121,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/contact"
-                  className="text-sm hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  className="inline-flex min-h-11 items-center text-sm transition-colors hover:translate-x-1 hover:text-white md:min-h-0 md:inline-block"
                 >
                   {t('contact')}
                 </Link>
@@ -168,7 +154,7 @@ export default function Footer() {
                       href={whatsAppUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-white md:inline md:min-h-0"
                     >
                       {formatVenezuelanNumber(whatsAppNumber)}
                     </a>
@@ -182,7 +168,7 @@ export default function Footer() {
                     <p className="font-medium text-white">{t('phone')}</p>
                     <PhoneLink
                       phone={storeInfo.phone}
-                      className="hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-white md:inline md:min-h-0"
                     />
                   </div>
                 </li>
@@ -194,7 +180,7 @@ export default function Footer() {
                     <p className="font-medium text-white">{t('email')}</p>
                     <a
                       href={`mailto:${storeInfo.email}`}
-                      className="hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center transition-colors hover:text-white md:inline md:min-h-0"
                     >
                       {storeInfo.email}
                     </a>
@@ -217,58 +203,13 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Columna 4: Newsletter */}
-          <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">
-              {t('newsletter')}
-            </h4>
-            <p className="text-sm text-sand-500 mb-4">
-              {t('newsletterDescription')}
-            </p>
-
-            <form onSubmit={handleSubscribe} className="space-y-3">
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('emailPlaceholder')}
-                  className="w-full px-4 py-3 bg-white/8 text-white rounded-xl border border-white/15 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 text-sm"
-                  required
-                  disabled={isSubscribing}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubscribing || !email}
-                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSubscribing ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    {t('subscribing')}
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    {t('subscribe')}
-                  </>
-                )}
-              </button>
-
-              {subscribeStatus === 'success' && (
-                <p className="text-success-500 text-sm">
-                  {t('subscribeSuccess')}
-                </p>
-              )}
-              {subscribeStatus === 'error' && (
-                <p className="text-danger-500 text-sm">
-                  {t('subscribeError')}
-                </p>
-              )}
-            </form>
-          </div>
+          {/* Aquí vivía el boletín. Era un `setTimeout` que contestaba
+              "¡Gracias por suscribirte!" sin llamar a ningún backend: mientras
+              el pie sólo se veía en escritorio era deuda tolerable, pero al
+              mostrarlo en el teléfono pasaba a ser la mayoría de los clientes
+              recibiendo una confirmación falsa. Si algún día hay servicio de
+              boletín, la columna vuelve aquí con su formulario conectado; las
+              claves de traducción se quitaron con él. */}
 
         </div>
       </div>
@@ -280,20 +221,20 @@ export default function Footer() {
 
             {/* Copyright */}
             <div className="text-sm text-sand-500 text-center md:text-left">
-              © {currentYear} {t('companyName')}. {t('allRightsReserved')}.
+              {lineaCopyright(currentYear, t('companyName'), t('allRightsReserved'))}
             </div>
 
             {/* Legal Links */}
             <div className="flex gap-6 text-sm">
               <Link
                 href="/terms"
-                className="text-sand-500 hover:text-white transition-colors"
+                className="inline-flex min-h-11 items-center text-sand-500 transition-colors hover:text-white md:inline md:min-h-0"
               >
                 {t('terms')}
               </Link>
               <Link
                 href="/privacy"
-                className="text-sand-500 hover:text-white transition-colors"
+                className="inline-flex min-h-11 items-center text-sand-500 transition-colors hover:text-white md:inline md:min-h-0"
               >
                 {t('privacy')}
               </Link>

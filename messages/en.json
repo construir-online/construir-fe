@@ -166,13 +166,6 @@
     "quickLinks": "Quick Links",
     "contactInfo": "Contact Information",
     "followUs": "Follow Us",
-    "newsletter": "Newsletter",
-    "newsletterDescription": "Subscribe to receive exclusive offers and news",
-    "emailPlaceholder": "Your email address",
-    "subscribe": "Subscribe",
-    "subscribing": "Subscribing...",
-    "subscribeSuccess": "Thanks for subscribing!",
-    "subscribeError": "Error subscribing. Please try again.",
     "phone": "Phone",
     "email": "Email",
     "hours": "Business Hours",
@@ -1149,7 +1142,8 @@
     "status": "Status",
     "total": "Total",
     "actions": "Actions",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "helpAndInfo": "Help and information"
   },
   "contact": {
     "title": "Contact",
