@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Search, X } from 'lucide-react';
 import Image from 'next/image';
 import { productsService } from '@/services/products';
 import type { Product } from '@/types';
 import { parsePrice, formatUSD } from '@/lib/currency';
+import { buildSearchHref } from '@/lib/product-list-params';
 
 interface SearchBarProps {
   inputClassName?: string;
@@ -16,10 +17,17 @@ interface SearchBarProps {
   autoFocus?: boolean;
 }
 
-export default function SearchBar({ inputClassName = '', onSearch, onClickOutside, autoFocus = false }: SearchBarProps) {
+function SearchBarContent({ inputClassName = '', onSearch, onClickOutside, autoFocus = false }: SearchBarProps) {
   const t = useTranslations('nav');
   const router = useRouter();
-  const [query, setQuery] = useState('');
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  // En el listado la barra arranca con el término que ya está en la URL: al
+  // recargar o volver con "atrás", lo que se ve escrito coincide con lo que se
+  // está mostrando.
+  const [query, setQuery] = useState(
+    () => (pathname === '/productos' ? searchParams.get('search') ?? '' : ''),
+  );
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -62,12 +70,27 @@ export default function SearchBar({ inputClassName = '', onSearch, onClickOutsid
     debounceRef.current = setTimeout(() => fetchSuggestions(value), 300);
   };
 
+  /**
+   * A dónde lleva buscar `q`.
+   *
+   * Regresión: esto hacía `router.push('/productos?search=' + q)`, que
+   * reescribe la URL entera. Si el usuario venía filtrando por una categoría y
+   * escribía algo en la barra, la categoría y el orden desaparecían y se
+   * encontraba buscando en todo el catálogo sin haber tocado los filtros.
+   *
+   * Los filtros sólo se conservan cuando ya se está EN el listado: buscar
+   * desde el navbar en la portada o en una ficha de producto tiene que llevar
+   * al catálogo completo, no arrastrar parámetros de otra pantalla.
+   */
+  const hrefDeBusqueda = (q: string) =>
+    buildSearchHref(q, pathname === '/productos' ? searchParams : undefined);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
     setShowDropdown(false);
-    router.push(`/productos?search=${encodeURIComponent(q)}`);
+    router.push(hrefDeBusqueda(q));
     onSearch?.();
   };
 
@@ -82,7 +105,7 @@ export default function SearchBar({ inputClassName = '', onSearch, onClickOutsid
     const q = query.trim();
     if (!q) return;
     setShowDropdown(false);
-    router.push(`/productos?search=${encodeURIComponent(q)}`);
+    router.push(hrefDeBusqueda(q));
     onSearch?.();
   };
 
@@ -166,5 +189,18 @@ export default function SearchBar({ inputClassName = '', onSearch, onClickOutsid
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * `useSearchParams` obliga a un límite de Suspense para que las páginas que
+ * montan la barra (el navbar va en el layout, o sea todas) se puedan seguir
+ * prerenderizando; sin él `next build` falla.
+ */
+export default function SearchBar(props: SearchBarProps) {
+  return (
+    <Suspense fallback={<div className="h-11 w-full rounded-2xl bg-sand-100 md:h-10 md:rounded-xl" />}>
+      <SearchBarContent {...props} />
+    </Suspense>
   );
 }
