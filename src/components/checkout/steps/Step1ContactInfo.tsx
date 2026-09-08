@@ -31,6 +31,12 @@ interface Step1ContactInfoProps {
   /** Vuelve a la pantalla de identificación desde el aviso de autocompletado. */
   onChangeIdentification?: () => void;
   createAccount: boolean;
+  /**
+   * El borrador restaurado quería crear cuenta pero la contraseña no se
+   * guarda: hay que decir por qué el campo está vacío en vez de dejar que el
+   * cliente descubra el problema al enviar.
+   */
+  pedirContrasenaDeNuevo?: boolean;
 }
 
 export default function Step1ContactInfo({
@@ -47,6 +53,7 @@ export default function Step1ContactInfo({
   autofilledOrdersCount,
   onChangeIdentification,
   createAccount,
+  pedirContrasenaDeNuevo,
 }: Step1ContactInfoProps) {
   const t = useTranslations('checkout');
 
@@ -319,10 +326,22 @@ export default function Step1ContactInfo({
                 placeholder={t('passwordPlaceholder')}
                 className={FIELD_CLASS}
               />
-              {errors.password && (
+              {errors.password ? (
                 <span className="text-danger-500 text-xs mt-1">
                   {t('errors.passwordMin', { defaultValue: 'Mínimo 6 caracteres' })}
                 </span>
+              ) : (
+                pedirContrasenaDeNuevo && (
+                  // El borrador no guarda la contraseña: si no se dice, el
+                  // cliente vuelve, ve la casilla marcada y el campo vacío, y
+                  // no entiende por qué falla al enviar.
+                  <p className="mt-1.5 text-[11px] font-medium text-sand-600">
+                    {t('passwordNotSaved', {
+                      defaultValue:
+                        'Por seguridad no guardamos tu contraseña: vuelve a escribirla.',
+                    })}
+                  </p>
+                )
               )}
             </div>
           )}

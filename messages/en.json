@@ -758,7 +758,8 @@
     "whatsapp": "WhatsApp",
     "callStore": "Call the store: {phone}",
     "emailStore": "Email {email}",
-    "identificationPhoneHelp": "With your ID and phone we recognize your previous purchases."
+    "identificationPhoneHelp": "With your ID and phone we recognize your previous purchases.",
+    "passwordNotSaved": "For your security we do not save your password: please type it again."
   },
   "discounts": {
     "title": "Coupon Management",

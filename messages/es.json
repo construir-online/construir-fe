@@ -758,7 +758,8 @@
     "whatsapp": "WhatsApp",
     "callStore": "Llamar a la tienda: {phone}",
     "emailStore": "Escribir a {email}",
-    "identificationPhoneHelp": "Con tu cédula y tu teléfono reconocemos tus compras anteriores."
+    "identificationPhoneHelp": "Con tu cédula y tu teléfono reconocemos tus compras anteriores.",
+    "passwordNotSaved": "Por seguridad no guardamos tu contraseña: vuelve a escribirla."
   },
   "discounts": {
     "title": "Gestión de Cupones",

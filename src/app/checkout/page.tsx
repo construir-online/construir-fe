@@ -15,6 +15,11 @@ import { guestCustomersService } from "@/services/guest-customers";
 import { exchangeRateService } from "@/services/exchangeRate";
 import { formatVES, formatUSD } from "@/lib/currency";
 import { esIdentificacionValidaVE, esTelefonoMovilVE } from "@/lib/venezuela";
+import {
+  CLAVE_BORRADOR_CHECKOUT,
+  restaurarBorradorCheckout,
+  serializarBorradorCheckout,
+} from "@/lib/checkout-draft";
 
 import CheckoutStepper from "@/components/checkout/CheckoutStepper";
 import Step1ContactInfo, {
@@ -83,6 +88,13 @@ export default function CheckoutPage() {
     label: string;
     ordersCount: number;
   } | null>(null);
+  /**
+   * El borrador restaurado venía con "crear cuenta" marcado y la contraseña
+   * ya no se guarda, así que el campo aparece vacío. Sin decirlo, el cliente
+   * se encuentra un formulario que promete crear su cuenta y que falla al
+   * enviarlo sin explicar por qué.
+   */
+  const [pedirContrasenaDeNuevo, setPedirContrasenaDeNuevo] = useState(false);
 
   const toast = useToast();
 
@@ -167,43 +179,49 @@ export default function CheckoutPage() {
     currentStep > 0 ||
     ((!isAuthenticated || perfilIncompleto) && contactSubStep === "details");
 
-  const CHECKOUT_STORAGE_KEY = 'checkout_draft';
-
   // Restaurar datos guardados al montar
   useEffect(() => {
-    const saved = sessionStorage.getItem(CHECKOUT_STORAGE_KEY);
-    if (!saved) return;
-    try {
-      const data = JSON.parse(saved);
-      if (data.form) reset(data.form);
-      // Always start at step 1 so the user can review/modify data, even if it was previously saved
-      // Un borrador viejo puede traer un método que hoy está deshabilitado: se
-      // descarta y queda el manual, que es el valor inicial.
-      if (esMetodoHabilitado(data.locationMethod)) setLocationMethod(data.locationMethod);
-      if (data.identificationType) setIdentificationType(data.identificationType);
-      if (data.identificationNumber !== undefined) setIdentificationNumber(data.identificationNumber);
-      if (data.zellePayment) setZellePayment({ ...data.zellePayment, receipt: null });
-      if (data.pagomovilPayment) setPagomovilPayment({ ...data.pagomovilPayment, receipt: null });
-      if (data.transferenciaPayment) setTransferenciaPayment({ ...data.transferenciaPayment, receipt: null });
-    } catch {
-      sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
+    const restaurado = restaurarBorradorCheckout(
+      sessionStorage.getItem(CLAVE_BORRADOR_CHECKOUT),
+    );
+    if (!restaurado) {
+      sessionStorage.removeItem(CLAVE_BORRADOR_CHECKOUT);
+      return;
     }
+
+    const data = restaurado.estado;
+    // El borrador nunca trae contraseña: `restaurarBorradorCheckout` la vacía
+    // aunque venga escrita por la versión anterior del checkout, que sí la
+    // guardaba.
+    if (data.form) reset(data.form);
+    setPedirContrasenaDeNuevo(restaurado.pedirContrasenaDeNuevo);
+    // Always start at step 1 so the user can review/modify data, even if it was previously saved
+    // Un borrador viejo puede traer un método que hoy está deshabilitado: se
+    // descarta y queda el manual, que es el valor inicial.
+    if (esMetodoHabilitado(data.locationMethod)) setLocationMethod(data.locationMethod);
+    if (data.identificationType) setIdentificationType(data.identificationType);
+    if (data.identificationNumber !== undefined) setIdentificationNumber(data.identificationNumber);
+    if (data.zellePayment) setZellePayment({ ...data.zellePayment, receipt: null });
+    if (data.pagomovilPayment) setPagomovilPayment({ ...data.pagomovilPayment, receipt: null });
+    if (data.transferenciaPayment) setTransferenciaPayment({ ...data.transferenciaPayment, receipt: null });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persistir datos en sessionStorage cuando cambian
   const allFormValues = watch();
   useEffect(() => {
+    // Qué entra al borrador y qué no lo decide `serializarBorradorCheckout`:
+    // la contraseña se queda fuera, por la misma razón que los comprobantes.
     sessionStorage.setItem(
-      CHECKOUT_STORAGE_KEY,
-      JSON.stringify({
+      CLAVE_BORRADOR_CHECKOUT,
+      serializarBorradorCheckout({
         form: allFormValues,
         locationMethod,
         identificationType,
         identificationNumber,
-        zellePayment: { ...zellePayment, receipt: null },
-        pagomovilPayment: { ...pagomovilPayment, receipt: null },
-        transferenciaPayment: { ...transferenciaPayment, receipt: null },
+        zellePayment,
+        pagomovilPayment,
+        transferenciaPayment,
       }),
     );
   }, [allFormValues, currentStep, locationMethod, identificationType, identificationNumber, zellePayment, pagomovilPayment, transferenciaPayment]);
@@ -1077,7 +1095,7 @@ export default function CheckoutPage() {
       // quedar en el historial. Con push, el botón atrás del teléfono devolvía
       // al formulario con el carrito ya vacío.
       orderPlaced.current = true;
-      sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
+      sessionStorage.removeItem(CLAVE_BORRADOR_CHECKOUT);
       router.replace(`/checkout/confirmacion?method=${formData.paymentMethod}`);
     } catch (error) {
       console.error("Error processing checkout:", error);
@@ -1189,6 +1207,10 @@ export default function CheckoutPage() {
                     setContactSubStep("identification")
                   }
                   createAccount={createAccount || false}
+                  // El aviso deja de mostrarse en cuanto la escribe.
+                  pedirContrasenaDeNuevo={
+                    pedirContrasenaDeNuevo && !allFormValues.password
+                  }
                 />
               )}
 
