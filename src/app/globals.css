@@ -90,13 +90,37 @@ body {
     min-width: 2.75rem;
   }
 
+  /*
+   * Rejilla de categorías destacadas. En móvil son tres columnas fijas; a
+   * partir de 640px el número de columnas lo pone el componente en
+   * `--destacadas`, porque con un número fijo la última fila se quedaba con
+   * huecos: el backend devuelve cinco destacadas y ni cuatro ni seis columnas
+   * las reparten sin que sobre sitio.
+   */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (min-width: 40rem) {
+    .featured-grid {
+      grid-template-columns: repeat(var(--destacadas, 3), minmax(0, 1fr));
+    }
+  }
+
   /* Fila de chips desplazable sin barra visible */
   .chip-row {
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
+    /* Sin esto la fila se estira dentro de contenedores flex y los chips
+       pierden su alto mínimo de 44px */
+    align-items: center;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* Al desplazar al chip activo, que no quede pegado al borde */
+    scroll-padding-inline: 1rem;
+    /* Que el gesto horizontal no arrastre la página al llegar al extremo */
+    overscroll-behavior-x: contain;
   }
   .chip-row::-webkit-scrollbar {
     display: none;

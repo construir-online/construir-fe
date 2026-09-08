@@ -2,12 +2,17 @@
 
 import { useEffect } from 'react';
 import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { X, LayoutGrid, Package } from 'lucide-react';
+import { X, LayoutGrid } from 'lucide-react';
 import { categoriesService } from '@/services/categories';
 import type { Category } from '@/types';
+import CategoryTile from './category/CategoryTile';
+import { CATEGORY_GRID_CLASS, contarEsqueletos } from '@/lib/category-grid';
 
+/*
+ * OJO: hoy no lo importa ningún archivo. La navegación inferior lleva a la
+ * página /categorias en su lugar. Se mantiene sincronizado con CategoryTile
+ * para que no se pudra, pero conviene decidir si se borra o se conecta.
+ */
 interface CategoryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,72 +56,33 @@ export default function CategoryDrawer({ isOpen, onClose }: CategoryDrawerProps)
         <button
           type="button"
           onClick={onClose}
-          className="p-2 text-sand-600 hover:text-ink hover:bg-sand-100 rounded-lg transition-colors"
+          /* touch-target: el botón medía 36px y quedaba por debajo del mínimo
+             de 44px que pide el diseño móvil. */
+          className="touch-target flex items-center justify-center rounded-lg text-sand-600 transition-colors hover:bg-sand-100 hover:text-ink"
           aria-label="Cerrar categorías"
         >
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Grid */}
-      <div className="flex-1 overflow-y-auto px-3 py-4">
+      {/* Rejilla */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
         {loading ? (
-          <div className="grid grid-cols-3 gap-3">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-sand-200 animate-pulse">
-                <div className="aspect-square bg-sand-100" />
-                <div className="p-2">
-                  <div className="h-3 bg-sand-100 rounded w-3/4 mx-auto" />
+          <div className={CATEGORY_GRID_CLASS}>
+            {Array.from({ length: contarEsqueletos(3, 12) }).map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-square rounded-xl bg-sand-100" />
+                <div className="flex min-h-[2.75rem] items-start justify-center px-1 py-2">
+                  <div className="h-3 w-3/4 rounded bg-sand-100" />
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-3">
-            {/* Todos los productos */}
-            <Link
-              href="/productos"
-              onClick={onClose}
-              className="rounded-xl overflow-hidden hover:shadow-md transition-all active:scale-95"
-            >
-              <div className="aspect-square bg-brand-50 flex items-center justify-center">
-                <LayoutGrid className="w-10 h-10 text-brand-500" />
-              </div>
-              <div className="p-2 text-center">
-                <span className="text-xs font-medium text-sand-700 leading-tight line-clamp-2">
-                  Todos
-                </span>
-              </div>
-            </Link>
-
+          <div className={CATEGORY_GRID_CLASS}>
+            <CategoryTile onNavigate={onClose} />
             {categories.map((category) => (
-              <Link
-                key={category.uuid}
-                href={`/productos?categoria=${category.uuid}`}
-                onClick={onClose}
-                className="rounded-xl overflow-hidden hover:shadow-md transition-all active:scale-95"
-              >
-                <div className="aspect-square relative bg-sand-50">
-                  {category.image ? (
-                    <Image
-                      src={category.image}
-                      alt={category.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 33vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package className="w-10 h-10 text-sand-500" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-2 text-center">
-                  <span className="text-xs font-medium text-sand-700 leading-tight line-clamp-2">
-                    {category.name}
-                  </span>
-                </div>
-              </Link>
+              <CategoryTile key={category.uuid} category={category} onNavigate={onClose} />
             ))}
           </div>
         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
@@ -20,6 +20,8 @@ export default function CategoryChips({ className = '' }: CategoryChipsProps) {
   const searchParams = useSearchParams();
   const activeUuid = searchParams.get('categoria');
   const [categories, setCategories] = useState<Category[]>([]);
+  const filaRef = useRef<HTMLDivElement>(null);
+  const activoRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     categoriesService
@@ -27,6 +29,21 @@ export default function CategoryChips({ className = '' }: CategoryChipsProps) {
       .then(setCategories)
       .catch((error) => console.error('Error loading category chips:', error));
   }, []);
+
+  /*
+   * Al entrar por una URL con ?categoria=..., el chip activo podía quedar fuera
+   * de la parte visible del scroller y parecía que no había ningún filtro puesto.
+   */
+  useEffect(() => {
+    const chip = activoRef.current;
+    const fila = filaRef.current;
+    // typeof: jsdom (y navegadores viejos) no implementan scrollTo con opciones
+    if (!chip || !fila || !activeUuid || typeof fila.scrollTo !== 'function') return;
+    fila.scrollTo({
+      left: chip.offsetLeft - fila.clientWidth / 2 + chip.offsetWidth / 2,
+      behavior: 'smooth',
+    });
+  }, [activeUuid, categories]);
 
   if (categories.length === 0) return null;
 
@@ -38,19 +55,34 @@ export default function CategoryChips({ className = '' }: CategoryChipsProps) {
     }`;
 
   return (
-    <div className={`chip-row ${className}`}>
-      <Link href="/productos" className={chipCls(!activeUuid)}>
+    <div ref={filaRef} className={`chip-row ${className}`}>
+      <Link
+        href="/productos"
+        aria-current={!activeUuid ? 'page' : undefined}
+        className={chipCls(!activeUuid)}
+      >
         {t('allProducts')}
       </Link>
-      {categories.map((category) => (
-        <Link
-          key={category.uuid}
-          href={`/productos?categoria=${category.uuid}`}
-          className={chipCls(activeUuid === category.uuid)}
-        >
-          {category.name}
-        </Link>
-      ))}
+      {categories.map((category) => {
+        const activo = activeUuid === category.uuid;
+        return (
+          <Link
+            key={category.uuid}
+            ref={activo ? activoRef : undefined}
+            href={`/productos?categoria=${category.uuid}`}
+            aria-current={activo ? 'page' : undefined}
+            className={chipCls(activo)}
+          >
+            {category.name}
+          </Link>
+        );
+      })}
+      {/*
+        Cierre del scroller: el padding derecho del contenedor se ignora al
+        llegar al final del scroll en WebKit y el último chip quedaba pegado al
+        borde de la pantalla.
+      */}
+      <span aria-hidden="true" className="flex-none pe-4" />
     </div>
   );
 }

@@ -7,6 +7,12 @@ import type { Category } from '@/types';
 import CategoryCard from './category/CategoryCard';
 import CategoryCardSkeleton from './category/CategoryCardSkeleton';
 import SectionHeader from './SectionHeader';
+import {
+  FEATURED_GRID_CLASS,
+  FEATURED_MAX,
+  columnasDestacadas,
+  limitarDestacadas,
+} from '@/lib/category-grid';
 
 export default function FeaturedCategories() {
   const t = useTranslations('categories');
@@ -33,6 +39,8 @@ export default function FeaturedCategories() {
     return null;
   }
 
+  const destacadas = limitarDestacadas(categories);
+
   return (
     <section className="py-6 sm:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -43,10 +51,22 @@ export default function FeaturedCategories() {
           className="mb-3 sm:mb-5"
         />
 
-        <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-4 lg:grid-cols-6">
+        {/*
+          A partir de 640px la fila tiene tantas columnas como categorías: el
+          backend devuelve cinco destacadas y con un número fijo de columnas
+          (cuatro antes, seis después) siempre sobraba hueco a la derecha.
+        */}
+        <div
+          className={FEATURED_GRID_CLASS}
+          style={
+            {
+              '--destacadas': columnasDestacadas(loading ? FEATURED_MAX : destacadas.length),
+            } as React.CSSProperties
+          }
+        >
           {loading
-            ? [1, 2, 3, 4, 5, 6].map((i) => <CategoryCardSkeleton key={i} />)
-            : categories.map((category, index) => (
+            ? Array.from({ length: FEATURED_MAX }).map((_, i) => <CategoryCardSkeleton key={i} />)
+            : destacadas.map((category, index) => (
                 <CategoryCard key={category.uuid} category={category} index={index} />
               ))}
         </div>
