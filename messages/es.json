@@ -1161,5 +1161,372 @@
     "viewOnMap": "Ver en el mapa",
     "loadError": "No pudimos cargar los datos de la tienda.",
     "retry": "Reintentar"
+  },
+  "legal": {
+    "draftTitle": "Borrador pendiente de revisión legal",
+    "draftBody": "Este texto todavía no lo ha revisado un abogado y no es definitivo. No debe publicarse tal como está.",
+    "draftPlaceholders": "Lo que aparece resaltado como [POR DEFINIR: …] son decisiones que el dueño de la tienda todavía no ha tomado. Se dejan a la vista a propósito, en lugar de rellenarlas con algo que parecería real.",
+    "lastUpdated": "Borrador — sin fecha de publicación todavía.",
+    "tableOfContents": "Contenido",
+    "contactTitle": "Contacto",
+    "email": "Correo",
+    "phone": "Teléfono de la tienda",
+    "address": "Dirección",
+    "fiscalPending": "[POR DEFINIR: razón social, RIF y domicilio fiscal] — el sistema no guarda esos datos, así que esta página no los puede mostrar sola.",
+    "loadError": "No pudimos cargar los datos de la tienda.",
+    "retry": "Reintentar",
+    "terms": {
+      "title": "Términos y Condiciones",
+      "intro": "Estas condiciones rigen las compras que se hacen a través de esta tienda en línea. Léelas antes de hacer un pedido.",
+      "contactIntro": "Para cualquier reclamo o consulta sobre estas condiciones, escríbenos por estos medios:",
+      "sections": {
+        "identidad": {
+          "title": "Quién te vende",
+          "body": [
+            "Los productos de esta tienda los vende el establecimiento cuyos datos de contacto aparecen al final de este documento.",
+            "[POR DEFINIR: razón social completa, RIF y domicilio fiscal del vendedor]",
+            "[POR DEFINIR: datos de inscripción en el registro mercantil, si deben figurar]"
+          ]
+        },
+        "aceptacion": {
+          "title": "Aceptación de estas condiciones",
+          "body": [
+            "Al hacer un pedido en esta tienda aceptas estas condiciones tal como estén publicadas en ese momento.",
+            "Si no estás de acuerdo con alguna, no completes la compra: escríbenos primero y lo conversamos.",
+            "[POR DEFINIR: si el checkout debe exigir una casilla de aceptación expresa; hoy la tienda no la pide]"
+          ]
+        },
+        "cuenta": {
+          "title": "Registro y cuenta de usuario",
+          "body": [
+            "Puedes ver el catálogo sin cuenta, pero para completar un pedido tienes que registrarte.",
+            "El registro pide un correo que hay que verificar: hasta que no confirmes el enlace que te enviamos, la cuenta no puede iniciar sesión."
+          ],
+          "list": [
+            "Eres responsable de que los datos que registras sean ciertos y estén al día.",
+            "Eres responsable de tu contraseña y de lo que se haga desde tu cuenta.",
+            "Podemos desactivar una cuenta [POR DEFINIR: en qué casos y con qué aviso previo].",
+            "[POR DEFINIR: cómo cierra su cuenta un cliente que ya no quiere estar registrado; la tienda no ofrece hoy esa opción y hay que atenderla a mano]"
+          ]
+        },
+        "productos": {
+          "title": "Productos, existencias y presentación",
+          "body": [
+            "Publicamos cada producto con su descripción, sus fotos y su disponibilidad tal como están en nuestro sistema.",
+            "La existencia se comprueba al confirmar el pedido: que un producto aparezca en el catálogo no garantiza que quede inventario cuando lo pagues."
+          ],
+          "list": [
+            "Las fotos son referenciales; puede haber diferencias de color, presentación o marca según el lote.",
+            "Corregimos errores evidentes de descripción o de precio aunque el pedido ya esté hecho, avisándote antes de seguir.",
+            "[POR DEFINIR: qué se hace si un producto se agota después de confirmado el pedido: reintegro, producto sustituto o espera]"
+          ]
+        },
+        "precios": {
+          "title": "Precios, IVA y tasa de cambio",
+          "body": [
+            "Los precios del catálogo se muestran con el IVA incluido. En el checkout se desglosa la base imponible y el IVA, pero el total que pagas es el mismo que viste en el catálogo.",
+            "Los precios se llevan en dólares estadounidenses y el monto en bolívares se calcula con la tasa oficial del Banco Central de Venezuela que el sistema tenga registrada."
+          ],
+          "list": [
+            "La alícuota de IVA depende del tipo de cada producto; hay productos exentos.",
+            "La tasa del BCV se actualiza automáticamente, así que el monto en bolívares de un mismo pedido puede cambiar de un día para otro.",
+            "[POR DEFINIR: qué tasa manda si el pedido se hace un día y se paga otro: la del pedido o la del pago]",
+            "[POR DEFINIR: hasta cuándo se respeta el precio de un pedido que no se ha pagado]"
+          ]
+        },
+        "pedido": {
+          "title": "Cómo se hace un pedido",
+          "body": [
+            "Agregas productos al carrito, eliges retiro en tienda o despacho, indicas los datos de entrega y escoges la forma de pago. Al enviarlo, el pedido queda registrado con un número con el que puedes hacerle seguimiento.",
+            "Un pedido enviado es una solicitud de compra. [POR DEFINIR: en qué momento se entiende cerrada la venta: al enviar el pedido, al verificar el pago o al despachar]",
+            "Podemos no aceptar un pedido. [POR DEFINIR: causales por las que la tienda puede rechazar un pedido]"
+          ]
+        },
+        "pago": {
+          "title": "Formas de pago y comprobantes",
+          "body": [
+            "Se acepta Zelle, pago móvil y transferencia bancaria. Después de pagar tienes que reportar el pago desde la tienda, cargando el comprobante y el número de referencia.",
+            "El pedido no avanza hasta que verificamos el pago contra el banco."
+          ],
+          "list": [
+            "El comprobante debe corresponder al monto y al pedido; un pago incompleto deja el pedido en espera.",
+            "[POR DEFINIR: plazo máximo para reportar el pago antes de que el pedido se anule]",
+            "[POR DEFINIR: cómo se manejan las diferencias por comisión bancaria o por redondeo de la tasa]",
+            "[POR DEFINIR: si se acepta pago en efectivo al retirar en la tienda; la tienda en línea hoy no ofrece esa opción]"
+          ]
+        },
+        "entrega": {
+          "title": "Entrega: retiro en tienda y despacho",
+          "body": [
+            "Puedes retirar el pedido en la tienda o pedir que lo despachemos a la dirección que indiques al comprar.",
+            "Para el retiro, la dirección y el horario de atención son los que aparecen al final de este documento."
+          ],
+          "list": [
+            "[POR DEFINIR: zonas de despacho que se cubren]",
+            "[POR DEFINIR: costo del despacho y quién lo asume]",
+            "[POR DEFINIR: plazos de preparación y de entrega]",
+            "[POR DEFINIR: cuántos días se guarda un pedido listo antes de anularlo]",
+            "[POR DEFINIR: quién asume el riesgo de la mercancía durante el traslado]",
+            "[POR DEFINIR: qué se exige para que otra persona retire el pedido: cédula, autorización escrita]"
+          ]
+        },
+        "devoluciones": {
+          "title": "Devoluciones y cambios",
+          "body": [
+            "Revisa la mercancía al recibirla o al retirarla. Si algo llegó equivocado, incompleto o dañado, avísanos enseguida por los medios de contacto de este documento.",
+            "Las condiciones concretas de devolución las decide la tienda y todavía no están fijadas:"
+          ],
+          "list": [
+            "[POR DEFINIR: plazo para pedir una devolución o un cambio]",
+            "[POR DEFINIR: en qué estado debe estar el producto: empaque original, sin uso, con factura]",
+            "[POR DEFINIR: productos que no admiten devolución, por ejemplo material cortado a medida o vendido a granel]",
+            "[POR DEFINIR: quién paga el traslado de la devolución]",
+            "[POR DEFINIR: si se devuelve el dinero, se da una nota de crédito o se cambia por otro producto; en qué moneda y a qué tasa]",
+            "[POR DEFINIR: plazo para hacer efectivo el reintegro]"
+          ]
+        },
+        "garantias": {
+          "title": "Garantías",
+          "body": [
+            "Los productos que traen garantía del fabricante se atienden según lo que ese fabricante establezca.",
+            "Las condiciones de garantía propias de la tienda están pendientes de definir:"
+          ],
+          "list": [
+            "[POR DEFINIR: plazo de garantía según el tipo de producto: herramientas, equipos, materiales]",
+            "[POR DEFINIR: qué cubre y qué no cubre la garantía]",
+            "[POR DEFINIR: recaudos y procedimiento para un reclamo de garantía]",
+            "[POR DEFINIR: en qué casos se pierde la garantía por instalación o uso inadecuado, y quién lo determina]"
+          ]
+        },
+        "cancelacion": {
+          "title": "Cancelación y anulación de pedidos",
+          "body": [
+            "Para cancelar un pedido tienes que escribirnos: la tienda en línea no permite hoy que el cliente lo cancele por su cuenta.",
+            "[POR DEFINIR: hasta qué momento se puede cancelar sin penalidad]",
+            "[POR DEFINIR: condiciones, moneda, tasa y plazo del reintegro cuando se cancela un pedido ya pagado]"
+          ]
+        },
+        "promociones": {
+          "title": "Cupones, descuentos y promociones",
+          "body": [
+            "Los cupones se aplican en el checkout sobre el total con IVA y se reparten proporcionalmente entre las líneas del pedido.",
+            "[POR DEFINIR: si los cupones se pueden acumular entre sí y con otras promociones]",
+            "[POR DEFINIR: vigencia de las promociones y si aplican a productos ya rebajados]"
+          ]
+        },
+        "responsabilidad": {
+          "title": "Límites de responsabilidad",
+          "body": [
+            "Respondemos por entregar lo que vendemos en las condiciones ofrecidas. No respondemos por el uso que se le dé a los materiales ni por el resultado de la obra en la que se instalen.",
+            "La tienda en línea puede quedar fuera de servicio por mantenimiento o por fallas técnicas.",
+            "[POR DEFINIR: redacción de la cláusula de limitación de responsabilidad, que tiene que revisar un abogado para que no choque con la ley venezolana de protección al consumidor]"
+          ]
+        },
+        "propiedad": {
+          "title": "Contenido del sitio",
+          "body": [
+            "Los textos, las fotos, los logos y el diseño de esta tienda son de la empresa o de sus proveedores, y no se pueden reproducir con fines comerciales sin permiso.",
+            "Las marcas de los productos pertenecen a sus fabricantes.",
+            "[POR DEFINIR: si se autoriza a revendedores o instaladores a reutilizar el catálogo]"
+          ]
+        },
+        "cambios": {
+          "title": "Cambios en estas condiciones",
+          "body": [
+            "Podemos modificar estas condiciones. La versión que aplica a tu compra es la que estaba publicada el día que hiciste el pedido.",
+            "[POR DEFINIR: si se avisará de los cambios y por qué medio]"
+          ]
+        },
+        "ley": {
+          "title": "Ley aplicable y reclamos",
+          "body": [
+            "Estas condiciones se rigen por las leyes de la República Bolivariana de Venezuela.",
+            "Antes de cualquier otra vía, escríbenos: la mayoría de los problemas se resuelven hablando con la tienda."
+          ],
+          "list": [
+            "[POR DEFINIR: tribunales o domicilio especial que se elige para resolver disputas]",
+            "[POR DEFINIR: si se somete a arbitraje o a los organismos de protección al consumidor]",
+            "[POR DEFINIR: normativa de protección al consumidor que se cita expresamente; que la confirme un abogado, no se inventa aquí]"
+          ]
+        }
+      }
+    },
+    "privacy": {
+      "title": "Política de Privacidad",
+      "intro": "Aquí te explicamos qué datos tuyos recoge esta tienda, para qué se usan y con quién se comparten. Está escrita a partir de lo que el sistema hace de verdad, no de un texto general.",
+      "contactIntro": "Para preguntar por tus datos, corregirlos o pedir que los eliminemos, escríbenos:",
+      "sections": {
+        "responsable": {
+          "title": "Quién trata tus datos",
+          "body": [
+            "Los datos que entregas en esta tienda los trata el establecimiento cuyos datos de contacto aparecen al final de este documento.",
+            "[POR DEFINIR: razón social, RIF y domicilio fiscal del responsable del tratamiento]",
+            "[POR DEFINIR: correo o persona concreta a quien dirigir las solicitudes sobre datos personales]"
+          ]
+        },
+        "alcance": {
+          "title": "De qué habla esta política",
+          "body": [
+            "Esta política describe lo que el sistema de la tienda hace hoy con tus datos: se escribió revisando el propio programa, campo por campo.",
+            "No cubre lo que hagan otros sitios a los que enlazamos —redes sociales, WhatsApp, mapas— ni lo que ocurra en la tienda física por vías ajenas a esta web."
+          ]
+        },
+        "datosCuenta": {
+          "title": "Datos que pedimos al abrir una cuenta",
+          "body": [
+            "Puedes ver el catálogo sin identificarte. Si te registras, guardamos:"
+          ],
+          "list": [
+            "Nombre y apellido.",
+            "Correo electrónico, que hay que verificar con un enlace que te enviamos.",
+            "Teléfono.",
+            "Tipo y número de documento de identidad (V, E, J, G o P): cédula, RIF o pasaporte.",
+            "Contraseña, guardada cifrada con bcrypt: nadie de la tienda la puede leer.",
+            "Junto a eso, la fecha en que creaste la cuenta, si está activa y si el correo quedó verificado."
+          ]
+        },
+        "datosPedido": {
+          "title": "Datos de cada pedido",
+          "body": [
+            "Al comprar guardamos, junto al pedido, los datos que hacen falta para prepararlo y entregarlo:"
+          ],
+          "list": [
+            "Nombre, apellido, correo y teléfono de quien recibe.",
+            "Tipo y número de documento de identidad.",
+            "Dirección de entrega: calle, ciudad, estado, código postal, país e indicaciones adicionales.",
+            "Si marcas tu ubicación en el mapa, las coordenadas exactas —latitud y longitud— del punto que señalas.",
+            "Las notas que escribas en el pedido.",
+            "Los productos, las cantidades y los importes, que con el tiempo forman tu historial de compras.",
+            "Notas internas que el personal de la tienda pueda escribir sobre el pedido.",
+            "Si tienes la sesión iniciada, lo que dejes en el carrito queda guardado en tu cuenta aunque no termines la compra.",
+            "Si compras sin cuenta, esos mismos datos quedan guardados en una ficha asociada a tu número de documento, junto con cuántos pedidos has hecho y la fecha del último. Sirve para que en tu siguiente compra el checkout te llene solo el nombre, el correo, el teléfono y la dirección al escribir tu documento."
+          ]
+        },
+        "datosPago": {
+          "title": "Datos del pago",
+          "body": [
+            "Los pagos se verifican a mano: no hay pasarela de pago, así que la tienda nunca recibe ni guarda números de tarjeta. Según la forma de pago que uses, guardamos:"
+          ],
+          "list": [
+            "Zelle: nombre de quien envía y banco.",
+            "Pago móvil: teléfono, cédula, banco y número de referencia.",
+            "Transferencia: nombre del titular de la cuenta, banco y número de referencia.",
+            "El comprobante que subes —imagen o PDF—, que se guarda en Amazon S3, y el resultado de su revisión.",
+            "El comprobante se guarda con un nombre imposible de adivinar, pero la tienda no usa enlaces temporales para servirlo. [POR DEFINIR: confirmar con quien administra el almacenamiento de Amazon que la carpeta de comprobantes no permite lectura pública, y dejarlo dicho aquí]"
+          ]
+        },
+        "datosTecnicos": {
+          "title": "Datos que se recogen solos al navegar",
+          "body": [
+            "Aunque no llenes ningún formulario, por el solo hecho de navegar se registra:"
+          ],
+          "list": [
+            "Cada página que visitas, con su título, la página desde la que llegaste, tu dirección IP y el identificador de tu navegador. Eso se guarda en nuestra propia base de datos, una fila por visita.",
+            "Si la integración está activa, Google Analytics registra además las páginas que ves, con lo que Google recoja por su cuenta.",
+            "Las peticiones de la integración con el sistema administrativo de la tienda quedan registradas con la ruta, el contenido de la petición —que en un pedido incluye tus datos de contacto y de entrega—, la IP y el navegador. Las contraseñas y las claves se sustituyen por asteriscos antes de guardarlas.",
+            "Hoy nada de esto te pide permiso antes: la tienda no tiene aviso de cookies. [POR DEFINIR: si se añadirá un aviso de cookies con consentimiento previo; conviene consultarlo con un abogado]"
+          ]
+        },
+        "cookies": {
+          "title": "Cookies y datos guardados en tu navegador",
+          "body": [
+            "En tu propio navegador, y no en nuestros servidores, se guardan:"
+          ],
+          "list": [
+            "token: tu sesión iniciada, en una cookie que dura siete días. Se guarda además una copia en el almacenamiento local del navegador.",
+            "user: tus datos básicos —nombre, apellido, correo y rol— en el almacenamiento local, para no tener que pedirlos en cada pantalla.",
+            "cart: tu carrito, cuando compras sin cuenta.",
+            "checkout_draft: el borrador del checkout mientras lo llenas, para que no se pierda si recargas la página. Se borra al confirmar el pedido y al cerrar la pestaña. Incluye la contraseña si marcaste crear una cuenta.",
+            "NEXT_LOCALE: el idioma que elegiste, durante un año.",
+            "Las cookies de Google Analytics, si esa integración está activa.",
+            "Al cerrar sesión se borran la sesión y tus datos básicos; el resto desaparece al limpiar los datos del sitio en tu navegador."
+          ]
+        },
+        "finalidades": {
+          "title": "Para qué usamos tus datos",
+          "body": [
+            "Cada dato que pedimos tiene un uso concreto:"
+          ],
+          "list": [
+            "Preparar tu pedido, verificar tu pago y entregártelo o tenerlo listo para que lo retires.",
+            "Enviarte los correos de tu compra: pedido recibido, pago verificado o rechazado, pedido despachado o listo para retirar.",
+            "Enviarte los correos de tu cuenta: verificación del correo, restablecimiento de contraseña y bienvenida.",
+            "Avisar al personal de la tienda de que entró un pedido nuevo.",
+            "Atender tus consultas y tus reclamos.",
+            "Saber qué páginas se visitan, para ir mejorando la tienda.",
+            "Cumplir con las obligaciones fiscales y contables de una venta.",
+            "No usamos tus datos para publicidad ni se los vendemos a nadie. El formulario de suscripción del pie de página todavía no está conectado a ningún servicio: hoy no envía tu correo a ninguna parte ni te suscribe a ninguna lista."
+          ]
+        },
+        "terceros": {
+          "title": "Con quién se comparten",
+          "body": [
+            "No vendemos tus datos. Se comparten sólo con quien hace falta para que la compra funcione:"
+          ],
+          "list": [
+            "Amazon Web Services: guarda el comprobante de pago que subes.",
+            "El proveedor de correo saliente: recibe tu dirección y el contenido de los mensajes que te enviamos. [POR DEFINIR: nombre del proveedor de correo que se usa en producción]",
+            "El sistema administrativo de la tienda: recibe cada pedido con el nombre, el documento, la dirección, la ciudad, el correo y el teléfono, para facturarlo y despacharlo. [POR DEFINIR: nombre de la empresa que opera ese sistema y bajo qué acuerdo trata los datos]",
+            "Google Analytics, si esa integración está activa, con lo que Google recoja por su cuenta.",
+            "OpenStreetMap: si usas el mapa para marcar tu dirección, tu navegador le pide los mapas directamente y ese servicio ve tu IP y la zona que estás mirando.",
+            "Otros sistemas conectados por avisos automáticos, que reciben los pedidos y los clientes según se crean o cambian. [POR DEFINIR: qué sistemas están conectados hoy y para qué]",
+            "Las autoridades, cuando la ley lo exija.",
+            "Varios de estos servicios están fuera de Venezuela, así que tus datos se procesan y se guardan en el exterior."
+          ]
+        },
+        "conservacion": {
+          "title": "Cuánto tiempo se guardan",
+          "body": [
+            "Con franqueza: hoy el sistema no borra nada por su cuenta. No hay ningún proceso automático de depuración, así que tu cuenta, tus pedidos, tus direcciones, tus comprobantes y los registros de navegación se conservan de forma indefinida.",
+            "Cuando se elimina una cuenta desde la administración, queda marcada como eliminada pero la información permanece en la base de datos.",
+            "[POR DEFINIR: plazo de conservación de cada tipo de dato —cuenta, pedidos y comprobantes, registros de navegación y de peticiones— y cómo se van a depurar. No está implementado: cualquier plazo que se escriba aquí antes de programarlo sería una promesa sin respaldo]"
+          ]
+        },
+        "seguridad": {
+          "title": "Cómo se protegen",
+          "body": [
+            "Éstas son las medidas que el sistema tiene hoy, dichas sin adornos:"
+          ],
+          "list": [
+            "Las contraseñas se guardan cifradas con bcrypt; nadie de la tienda puede leerlas.",
+            "Entrar a la administración exige iniciar sesión y cada usuario interno tiene permisos según su rol.",
+            "Las contraseñas y las claves se ocultan antes de guardarse en los registros de peticiones.",
+            "La consulta de datos de compradores por número de documento está limitada a unas pocas veces por minuto.",
+            "Ningún sistema es infalible. [POR DEFINIR: cómo y en qué plazo se avisará a los afectados si se detecta un acceso indebido a sus datos]"
+          ]
+        },
+        "derechos": {
+          "title": "Tus derechos y cómo ejercerlos",
+          "body": [
+            "Puedes pedirnos acceder a tus datos, corregirlos, actualizarlos o que los eliminemos.",
+            "Es importante que sepas qué puedes hacer hoy por tu cuenta y qué hay que pedirnos, porque la tienda todavía no tiene pantallas para todo:"
+          ],
+          "list": [
+            "Puedes ver tus pedidos y el detalle de cada uno desde Mi cuenta.",
+            "Puedes seguir un pedido con su número, sin iniciar sesión.",
+            "Puedes restablecer tu contraseña si la olvidaste, y cerrar sesión cuando quieras.",
+            "Todavía no hay pantalla para editar tu nombre o tu correo, ni para cambiar la contraseña estando dentro: hay que pedírnoslo.",
+            "El teléfono y el número de documento no se pueden cambiar desde la tienda; los corrige el personal.",
+            "Todavía no hay forma de borrar tu cuenta ni de descargar tus datos desde la tienda: se hace a mano cuando lo pides.",
+            "Cancelar un pedido también hay que pedirlo; la tienda en línea no lo permite por tu cuenta.",
+            "[POR DEFINIR: plazo en el que la tienda se compromete a responder una solicitud sobre datos personales]"
+          ]
+        },
+        "menores": {
+          "title": "Menores de edad",
+          "body": [
+            "Esta tienda está pensada para mayores de edad. Hoy el sistema no pregunta ni comprueba la edad de quien compra.",
+            "[POR DEFINIR: edad mínima que se exige para comprar y qué se hace si se detecta la cuenta de un menor]"
+          ]
+        },
+        "cambios": {
+          "title": "Cambios en esta política",
+          "body": [
+            "Si cambia lo que el sistema hace con tus datos, esta página tiene que cambiar con él: describe el programa, no un ideal.",
+            "[POR DEFINIR: si se avisará de los cambios y por qué medio]"
+          ]
+        }
+      }
+    }
   }
 }
