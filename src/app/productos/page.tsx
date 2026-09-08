@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, PackageSearch } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  PackageSearch,
+} from "lucide-react";
 import { productsService } from "@/services/products";
 import type { Product } from "@/types";
 import { CategoryMenu } from "@/components/CategoryMenu";
@@ -11,114 +17,86 @@ import SearchBar from "@/components/SearchBar";
 import ProductCard from "@/components/product/ProductCard";
 import ProductCardSkeleton from "@/components/product/ProductCardSkeleton";
 import CartSummaryBar from "@/components/cart/CartSummaryBar";
+import {
+  SORT_OPTIONS,
+  applyProductListChange,
+  buildPageWindow,
+  buildProductListHref,
+  parseProductListParams,
+  toApiParams,
+  type ProductListState,
+} from "@/lib/product-list-params";
 
-const SORT_OPTIONS = [
-  { key: "relevance", label: "Relevancia", sortBy: "createdAt", sortOrder: "DESC" as const },
-  { key: "price-asc", label: "Menor precio", sortBy: "price", sortOrder: "ASC" as const },
-  { key: "price-desc", label: "Mayor precio", sortBy: "price", sortOrder: "DESC" as const },
-  { key: "name", label: "Nombre A–Z", sortBy: "name", sortOrder: "ASC" as const },
-];
-
-export default function ProductsPage() {
+function ProductsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const categoryParam = searchParams.get('categoria');
-  const searchParam = searchParams.get('search');
+
+  // Todo el estado del listado se lee de la URL, no de `useState`. Así el botón
+  // "atrás", recargar y compartir el enlace llevan siempre a la misma pantalla.
+  const estado = parseProductListParams(searchParams);
+  const { search, categoria, sortKey, page } = estado;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
-  const [search, setSearch] = useState(searchParam || "");
-  const [sortKey, setSortKey] = useState(SORT_OPTIONS[0].key);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const hasMore = page < lastPage;
-  const sort = SORT_OPTIONS.find((option) => option.key === sortKey) ?? SORT_OPTIONS[0];
+  /** Navega al listado con `cambio` aplicado, dejando entrada en el historial. */
+  const irA = useCallback(
+    (cambio: Partial<ProductListState>) => {
+      router.push(buildProductListHref(applyProductListChange(estado, cambio)));
+    },
+    [router, estado],
+  );
 
-  // Sincronizar con el parámetro de URL (navegación desde navbar)
-  const prevSearchParam = useRef(searchParam);
   useEffect(() => {
-    if (searchParam !== prevSearchParam.current) {
-      prevSearchParam.current = searchParam;
-      setSearch(searchParam || '');
-      setPage(1);
-      setProducts([]);
-    }
-  }, [searchParam]);
+    let cancelado = false;
 
-  // Reset al cambiar categoría
-  const prevCategoryParam = useRef(categoryParam);
-  useEffect(() => {
-    if (categoryParam !== prevCategoryParam.current) {
-      prevCategoryParam.current = categoryParam;
-      setPage(1);
-      setProducts([]);
-    }
-  }, [categoryParam]);
-
-  // Reset al cambiar el orden
-  const prevSortKey = useRef(sortKey);
-  useEffect(() => {
-    if (sortKey !== prevSortKey.current) {
-      prevSortKey.current = sortKey;
-      setPage(1);
-      setProducts([]);
-    }
-  }, [sortKey]);
-
-  const loadProducts = useCallback(async (currentPage: number) => {
-    try {
-      if (currentPage === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
+    const cargar = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await productsService.getPublicPaginated(
+          toApiParams({ search, categoria, sortKey, page }),
+        );
+        // La respuesta de una búsqueda anterior no debe pisar a la actual
+        // cuando el usuario cambia de página rápido.
+        if (cancelado) return;
+        setProducts(response.data);
+        setTotal(response.total);
+        setLastPage(Math.max(1, response.lastPage));
+      } catch (err: unknown) {
+        if (cancelado) return;
+        setError(
+          err instanceof Error ? err.message : "Error al cargar productos",
+        );
+      } finally {
+        if (!cancelado) setLoading(false);
       }
-      const response = await productsService.getPublicPaginated({
-        page: currentPage,
-        limit: 12,
-        categoryUuid: categoryParam || undefined,
-        search: search || undefined,
-        sortBy: sort.sortBy,
-        sortOrder: sort.sortOrder,
-      });
-      setProducts(prev => currentPage === 1 ? response.data : [...prev, ...response.data]);
-      setLastPage(response.lastPage);
-      setTotal(response.total);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al cargar productos");
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [categoryParam, search, sort.sortBy, sort.sortOrder]);
+    };
 
+    cargar();
+    return () => {
+      cancelado = true;
+    };
+  }, [search, categoria, sortKey, page]);
+
+  // Al cambiar de página la lista se reemplaza entera: si no se sube, el
+  // usuario aterriza a mitad de la página nueva sin ver que cambió.
   useEffect(() => {
-    loadProducts(page);
-  }, [page, loadProducts]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
 
-  // IntersectionObserver para infinite scroll
-  useEffect(() => {
-    if (!hasMore || loadingMore || loading) return;
+  // Cuando la página pedida se sale del listado (un enlace viejo con
+  // `pagina=999`), el paginador se dibuja alrededor de la última que sí existe:
+  // si no, "anterior" llevaría a la 998 y tampoco existiría.
+  const paginaEnPaginador = Math.min(Math.max(page, 1), lastPage);
+  const ventana = buildPageWindow(paginaEnPaginador, lastPage);
 
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setPage(prev => prev + 1);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading]);
+  // Hay resultados, pero no en ESTA página: se llegó con un enlace compartido
+  // o un marcador viejo a una página que ya no existe.
+  const fueraDeRango = !loading && !error && products.length === 0 && total > 0;
 
   return (
     <div className="min-h-screen bg-sand-50 pb-28 md:pb-0">
@@ -153,13 +131,15 @@ export default function ProductsPage() {
             {/* Recuento y orden */}
             <div className="mb-3 flex items-baseline justify-between gap-3">
               <span className="text-[13px] font-bold text-sand-700">
-                {loading ? 'Buscando…' : `${total} ${total === 1 ? 'producto' : 'productos'}`}
+                {loading
+                  ? "Buscando…"
+                  : `${total} ${total === 1 ? "producto" : "productos"}`}
               </span>
               <label className="flex items-center gap-1 text-[12.5px] font-bold text-brand-600">
                 <span className="sr-only">Ordenar por</span>
                 <select
                   value={sortKey}
-                  onChange={(e) => setSortKey(e.target.value)}
+                  onChange={(e) => irA({ sortKey: e.target.value })}
                   className="cursor-pointer appearance-none bg-transparent pr-1 text-right font-bold text-brand-600 focus:outline-none"
                 >
                   {SORT_OPTIONS.map((option) => (
@@ -186,13 +166,16 @@ export default function ProductsPage() {
               </div>
             )}
 
-            {!loading && !error && products.length === 0 && (
+            {!loading && !error && products.length === 0 && !fueraDeRango && (
               <div className="rounded-2xl border border-sand-300 bg-white py-14 text-center">
-                <PackageSearch className="mx-auto mb-4 h-11 w-11 text-sand-500" strokeWidth={1.6} />
+                <PackageSearch
+                  className="mx-auto mb-4 h-11 w-11 text-sand-500"
+                  strokeWidth={1.6}
+                />
                 <p className="font-display text-lg font-bold text-ink">
                   No hay productos disponibles
                 </p>
-                {(categoryParam || search) && (
+                {(categoria || search) && (
                   <p className="mt-2 text-sm text-sand-600">
                     Intenta ajustar tus filtros de búsqueda
                   </p>
@@ -200,38 +183,107 @@ export default function ProductsPage() {
               </div>
             )}
 
-            {products.length > 0 && (
-              <>
-                <div className="mb-8 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3">
-                  {products.map((product, index) => (
-                    <ProductCard
-                      key={product.uuid}
-                      product={product}
-                      variant="default"
-                      showAddToCart={true}
-                      showBadges={true}
-                      showDescription={false}
-                      showStock={true}
-                      priority={index < 6}
-                    />
-                  ))}
-                </div>
+            {fueraDeRango && (
+              <div className="rounded-2xl border border-sand-300 bg-white py-14 text-center">
+                <PackageSearch
+                  className="mx-auto mb-4 h-11 w-11 text-sand-500"
+                  strokeWidth={1.6}
+                />
+                <p className="font-display text-lg font-bold text-ink">
+                  Esta página ya no existe
+                </p>
+                <p className="mt-2 text-sm text-sand-600">
+                  Hay {total} {total === 1 ? "producto" : "productos"}, pero la
+                  página {page} se sale del listado.
+                </p>
+                <Link
+                  href={buildProductListHref({ ...estado, page: 1 })}
+                  className="mt-4 inline-flex h-11 items-center rounded-xl bg-brand-600 px-4 text-sm font-bold text-white hover:bg-brand-700"
+                >
+                  Volver al principio
+                </Link>
+              </div>
+            )}
 
-                {/* Sentinel para infinite scroll */}
-                <div ref={sentinelRef} className="h-4" />
+            {!loading && products.length > 0 && (
+              <div className="mb-6 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3">
+                {products.map((product, index) => (
+                  <ProductCard
+                    key={product.uuid}
+                    product={product}
+                    variant="default"
+                    showAddToCart={true}
+                    showBadges={true}
+                    showDescription={false}
+                    showStock={true}
+                    priority={index < 6}
+                  />
+                ))}
+              </div>
+            )}
 
-                {loadingMore && (
-                  <div className="flex justify-center py-6">
-                    <span className="h-7 w-7 animate-spin rounded-full border-[2.5px] border-sand-300 border-t-brand-600" />
-                  </div>
+            {/*
+              Paginado en vez de scroll infinito: el listado tenía un
+              IntersectionObserver que cargaba otra página cada vez que el final
+              de la lista entraba en pantalla, así que el pie de página se
+              alejaba justo cuando uno intentaba llegar a él y con 1089
+              productos publicados no había forma de alcanzarlo.
+
+              El <nav> se pinta aunque la página pedida no tenga productos: si
+              no, `?pagina=999` dejaba la pantalla sin NINGÚN control y sólo se
+              salía con el "atrás" del navegador o editando la URL a mano.
+            */}
+            {!loading && !error && lastPage > 1 && (
+              <nav
+                aria-label="Paginación de productos"
+                className="flex flex-wrap items-center justify-center gap-1.5 py-2"
+              >
+                <PaginaLink
+                  estado={estado}
+                  pagina={paginaEnPaginador - 1}
+                  deshabilitado={paginaEnPaginador <= 1}
+                  etiqueta="Página anterior"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </PaginaLink>
+
+                {ventana.map((numero, indice) =>
+                  numero === null ? (
+                    <span
+                      key={`hueco-${indice}`}
+                      aria-hidden="true"
+                      className="px-1 text-sm text-sand-600"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <PaginaLink
+                      key={numero}
+                      estado={estado}
+                      pagina={numero}
+                      etiqueta={`Página ${numero}`}
+                      activo={numero === page}
+                    >
+                      {numero}
+                    </PaginaLink>
+                  ),
                 )}
 
-                {!hasMore && !loadingMore && (
-                  <p className="py-6 text-center text-sm text-sand-600">
-                    No hay más productos
-                  </p>
-                )}
-              </>
+                <PaginaLink
+                  estado={estado}
+                  pagina={paginaEnPaginador + 1}
+                  deshabilitado={paginaEnPaginador >= lastPage}
+                  etiqueta="Página siguiente"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </PaginaLink>
+              </nav>
+            )}
+
+            {!loading && !error && total > 0 && (
+              <p className="pb-2 pt-1 text-center text-xs text-sand-600">
+                Página {page} de {lastPage}
+              </p>
             )}
           </div>
         </div>
@@ -239,5 +291,65 @@ export default function ProductsPage() {
 
       <CartSummaryBar />
     </div>
+  );
+}
+
+/**
+ * Un botón del paginador. Es un `<Link>` de verdad y no un `onClick` para que
+ * se pueda abrir en otra pestaña, copiar el enlace, y ver a dónde lleva en la
+ * barra de estado del navegador.
+ */
+function PaginaLink({
+  estado,
+  pagina,
+  etiqueta,
+  activo = false,
+  deshabilitado = false,
+  children,
+}: {
+  estado: ProductListState;
+  pagina: number;
+  etiqueta: string;
+  activo?: boolean;
+  deshabilitado?: boolean;
+  children: React.ReactNode;
+}) {
+  const clases =
+    "flex h-10 min-w-10 items-center justify-center rounded-xl border px-2.5 text-sm font-bold transition-colors";
+
+  if (deshabilitado) {
+    return (
+      <span
+        aria-hidden="true"
+        className={`${clases} cursor-not-allowed border-sand-200 text-sand-400`}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={buildProductListHref({ ...estado, page: pagina })}
+      aria-label={etiqueta}
+      aria-current={activo ? "page" : undefined}
+      className={`${clases} ${
+        activo
+          ? "border-brand-600 bg-brand-600 text-white"
+          : "border-sand-300 bg-white text-sand-700 hover:bg-sand-100"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+export default function ProductsPage() {
+  // `useSearchParams` obliga a un límite de Suspense para que la ruta se pueda
+  // prerenderizar; sin él `next build` falla.
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-sand-50" />}>
+      <ProductsPageContent />
+    </Suspense>
   );
 }
