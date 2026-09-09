@@ -5,10 +5,49 @@ import { productsService } from '@/services/products';
 import { authService } from '@/services/auth';
 import { dashboardService, type DashboardStats } from '@/services/dashboard';
 import type { ProductStats, Product, User } from '@/types';
-import { DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
+import { DollarSign, ShoppingCart, TrendingUp, AlertTriangle } from 'lucide-react';
 import MetricCard from '@/components/admin/MetricCard';
 import { formatUSD, formatVES } from '@/lib/currency';
 import Link from 'next/link';
+
+/**
+ * Lo que se pinta cuando un bloque no pudo cargar.
+ *
+ * Tiene que decir explícitamente que NO se pudieron cargar los datos. Un cero
+ * en su lugar es peor que la pantalla en blanco que había antes: el blanco al
+ * menos se ve roto, mientras que "Total Productos 0" se lee como un dato.
+ */
+function AvisoBloqueCaido({
+  nombre,
+  onReintentar,
+}: {
+  nombre: string;
+  onReintentar: () => void;
+}) {
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+        <div>
+          <h3 className="text-sm font-medium text-amber-800">
+            No se pudieron cargar {nombre}
+          </h3>
+          <p className="text-sm text-amber-700 mt-1">
+            Los datos de esta sección no están disponibles ahora mismo. Lo que
+            ves en el resto del panel sí es correcto.
+          </p>
+          <button
+            type="button"
+            onClick={onReintentar}
+            className="mt-2 text-sm font-medium text-amber-800 underline hover:text-amber-900"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<ProductStats | null>(null);
@@ -16,6 +55,13 @@ export default function AdminDashboard() {
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  // Un bloque que no pudo cargar NO es un bloque en cero. Sin esta distinción,
+  // un 500 en `/products/admin/stats` pintaba "Total Productos 0" a una
+  // ferretería con 1267 productos, y "Bajo Stock 0" justo encima de una tabla
+  // con cinco productos de bajo stock: la pantalla se contradecía a sí misma y
+  // el dato falso era perfectamente creíble.
+  const [errorProductos, setErrorProductos] = useState(false);
+  const [errorVentas, setErrorVentas] = useState(false);
 
   useEffect(() => {
     // El rol tiene que venir del servidor. Mientras se leyó de
@@ -49,8 +95,13 @@ export default function AdminDashboard() {
 
       if (role === 'order_admin') {
         // ORDER_ADMIN only sees order stats (no product stats or low stock)
-        const dashStats = await dashboardService.getDashboardStats();
-        setDashboardStats(dashStats);
+        try {
+          setDashboardStats(await dashboardService.getDashboardStats());
+          setErrorVentas(false);
+        } catch (error) {
+          console.error('Error cargando las métricas de ventas:', error);
+          setErrorVentas(true);
+        }
         return;
       }
 
@@ -67,6 +118,11 @@ export default function AdminDashboard() {
       if (lowStock.status === 'fulfilled') setLowStockProducts(lowStock.value);
       if (dashStats.status === 'fulfilled') setDashboardStats(dashStats.value);
 
+      // Cada bloque recuerda si SU llamada falló, para poder decirlo en
+      // pantalla en vez de enseñar ceros que parecen datos.
+      setErrorProductos(statsData.status === 'rejected');
+      setErrorVentas(dashStats.status === 'rejected');
+
       for (const r of [statsData, lowStock, dashStats]) {
         if (r.status === 'rejected') console.error('Error cargando un bloque del panel:', r.reason);
       }
@@ -75,6 +131,10 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const recargar = () => {
+    if (user) loadData(user.role);
   };
 
   const isOrderAdmin = user?.role === 'order_admin';
@@ -88,6 +148,8 @@ export default function AdminDashboard() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">Ventas e Ingresos del Mes</h2>
         {loading ? (
           <div className="text-gray-500">Cargando métricas...</div>
+        ) : errorVentas ? (
+          <AvisoBloqueCaido nombre="las métricas de ventas" onReintentar={recargar} />
         ) : dashboardStats && dashboardStats.currentMonth && dashboardStats.previousMonth ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <MetricCard
@@ -136,6 +198,8 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold text-gray-900 mb-4">Productos</h2>
             {loading ? (
               <div className="text-gray-500">Cargando estadísticas...</div>
+            ) : errorProductos ? (
+              <AvisoBloqueCaido nombre="las estadísticas de productos" onReintentar={recargar} />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="bg-white rounded-lg shadow p-6">
