@@ -8,6 +8,7 @@ import type { ProductStats, Product, User } from '@/types';
 import { DollarSign, ShoppingCart, TrendingUp, AlertTriangle } from 'lucide-react';
 import MetricCard from '@/components/admin/MetricCard';
 import { formatUSD, formatVES } from '@/lib/currency';
+import { formatMonthLabel } from '@/lib/month-label';
 import Link from 'next/link';
 
 /**
@@ -145,41 +146,48 @@ export default function AdminDashboard() {
 
       {/* Métricas de Ventas e Ingresos */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Ventas e Ingresos del Mes</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
+          Ventas e Ingresos del Mes
+          {dashboardStats?.currentMonth && (
+            <span className="ml-2 text-base font-normal text-gray-500">
+              {formatMonthLabel(dashboardStats.currentMonth.month)}
+            </span>
+          )}
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Sólo pedidos con el pago verificado; no se cuentan los cancelados ni
+          los que están a la espera de revisar el comprobante.
+        </p>
         {loading ? (
           <div className="text-gray-500">Cargando métricas...</div>
         ) : errorVentas ? (
           <AvisoBloqueCaido nombre="las métricas de ventas" onReintentar={recargar} />
-        ) : dashboardStats && dashboardStats.currentMonth && dashboardStats.previousMonth ? (
+        ) : dashboardStats?.currentMonth ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <MetricCard
-              title="Ingresos del Mes (VES)"
-              value={formatVES(dashboardStats.currentMonth.totalVes || 0)}
-              secondaryValue={formatUSD(dashboardStats.currentMonth.total || 0)}
-              percentageChange={dashboardStats.currentMonth.percentageChangeVes || 0}
+              title="Ingresos verificados del Mes"
+              value={formatVES(dashboardStats.currentMonth.verifiedRevenueVes ?? 0)}
+              secondaryValue={formatUSD(dashboardStats.currentMonth.verifiedRevenue)}
+              percentageChange={dashboardStats.currentMonth.percentageChangeRevenue}
+              comparisonLabel="vs mes anterior (en USD)"
               icon={DollarSign}
               iconColor="text-green-600"
               iconBgColor="bg-green-50"
             />
             <MetricCard
-              title="Ventas del Mes"
-              value={(dashboardStats.currentMonth.count || 0).toString()}
-              percentageChange={dashboardStats.currentMonth.percentageChangeCount || 0}
+              title="Pedidos pagados del Mes"
+              value={dashboardStats.currentMonth.verifiedOrders.toString()}
+              percentageChange={dashboardStats.currentMonth.percentageChangeOrders}
               icon={ShoppingCart}
               iconColor="text-blue-600"
               iconBgColor="bg-blue-50"
             />
             <MetricCard
-              title="Promedio por Orden"
-              value={formatVES(dashboardStats.averageOrderValueVes || 0)}
-              secondaryValue={formatUSD(dashboardStats.averageOrderValue || 0)}
-              percentageChange={
-                dashboardStats.currentMonth.count && dashboardStats.currentMonth.count > 0
-                  ? ((dashboardStats.currentMonth.totalVes / dashboardStats.currentMonth.count -
-                      dashboardStats.previousMonth.totalVes / (dashboardStats.previousMonth.count || 1)) /
-                      (dashboardStats.previousMonth.totalVes / (dashboardStats.previousMonth.count || 1)) * 100)
-                  : 0
-              }
+              title="Promedio por Pedido"
+              value={formatVES(dashboardStats.currentMonth.averageTicketVes ?? 0)}
+              secondaryValue={formatUSD(dashboardStats.currentMonth.averageTicket)}
+              percentageChange={dashboardStats.currentMonth.percentageChangeAverageTicket}
+              comparisonLabel="vs mes anterior (en USD)"
               icon={TrendingUp}
               iconColor="text-purple-600"
               iconBgColor="bg-purple-50"

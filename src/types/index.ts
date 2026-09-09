@@ -747,6 +747,38 @@ export interface AdminOrderRow {
   isGuest: boolean;
 }
 
+/**
+ * Ventas verificadas de un mes calendario.
+ *
+ * Sólo pedidos con el pago revisado y no cancelados: la tienda cobra por
+ * adelantado, así que un comprobante sin verificar todavía no es dinero. El
+ * mes lo decide la fecha del pedido, no la de la revisión del comprobante.
+ */
+export interface MonthlySalesStats {
+  /** Mes en formato YYYY-MM. */
+  month: string;
+  verifiedOrders: number;
+  verifiedRevenue: number;
+  /** Nulo si ninguna orden verificada del mes tiene monto en Bs. fijado. */
+  verifiedRevenueVes: number | null;
+  averageTicket: number;
+  averageTicketVes: number | null;
+}
+
+/**
+ * El mes en curso con su variación contra el anterior.
+ *
+ * Las variaciones vienen en USD y en número de pedidos, no en bolívares: en
+ * Bs. un "+40%" puede ser sólo la tasa BCV subiendo, no una venta más.
+ * `null` significa que el mes anterior fue cero y no hay porcentaje que
+ * calcular — que no es lo mismo que "0% de cambio".
+ */
+export interface CurrentMonthSalesStats extends MonthlySalesStats {
+  percentageChangeRevenue: number | null;
+  percentageChangeOrders: number | null;
+  percentageChangeAverageTicket: number | null;
+}
+
 /** Cabecera del listado de órdenes: KPIs y conteos de los chips por estado. */
 export interface AdminOrderStats {
   totalOrders: number;
@@ -763,6 +795,9 @@ export interface AdminOrderStats {
   averageTicketVes: number | null;
   /** Tasa BCV vigente hoy, no la fijada en ninguna orden. */
   exchangeRate: number | null;
+  /** Bloque "Ventas e Ingresos del Mes" del panel. */
+  currentMonth: CurrentMonthSalesStats;
+  previousMonth: MonthlySalesStats;
 }
 
 // Discount types
