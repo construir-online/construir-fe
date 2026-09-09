@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { categoriesService } from '@/services/categories';
 import type { Category } from '@/types';
+import { buildCategoryHref } from '@/lib/product-list-params';
 
 interface CategoryChipsProps {
   className?: string;
@@ -18,7 +19,18 @@ interface CategoryChipsProps {
 export default function CategoryChips({ className = '' }: CategoryChipsProps) {
   const t = useTranslations('products');
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const activeUuid = searchParams.get('categoria');
+
+  /*
+   * Cambiar de categoría conservaba sólo la categoría: la búsqueda y el orden
+   * se perdían porque el enlace era `/productos?categoria=X` a pelo. Los
+   * filtros del listado sólo se arrastran cuando ya se está EN el listado; en
+   * las demás pantallas donde se pintan los chips, los query params son de esa
+   * otra pantalla y no tienen nada que ver con el catálogo.
+   */
+  const hrefDeCategoria = (uuid: string | null) =>
+    buildCategoryHref(uuid, pathname === '/productos' ? searchParams : undefined);
   const [categories, setCategories] = useState<Category[]>([]);
   const filaRef = useRef<HTMLDivElement>(null);
   const activoRef = useRef<HTMLAnchorElement>(null);
@@ -57,7 +69,7 @@ export default function CategoryChips({ className = '' }: CategoryChipsProps) {
   return (
     <div ref={filaRef} className={`chip-row ${className}`}>
       <Link
-        href="/productos"
+        href={hrefDeCategoria(null)}
         aria-current={!activeUuid ? 'page' : undefined}
         className={chipCls(!activeUuid)}
       >
@@ -69,7 +81,7 @@ export default function CategoryChips({ className = '' }: CategoryChipsProps) {
           <Link
             key={category.uuid}
             ref={activo ? activoRef : undefined}
-            href={`/productos?categoria=${category.uuid}`}
+            href={hrefDeCategoria(category.uuid)}
             aria-current={activo ? 'page' : undefined}
             className={chipCls(activo)}
           >

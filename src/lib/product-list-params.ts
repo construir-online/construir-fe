@@ -167,6 +167,43 @@ export function buildSearchHref(
   );
 }
 
+/**
+ * Href para filtrar por `categoriaUuid` CONSERVANDO la búsqueda y el orden.
+ *
+ * Hermana de `buildSearchHref`, y la otra mitad del mismo requisito. El menú
+ * lateral y los chips enlazaban a `/productos?categoria=X` a pelo, o sea que
+ * reescribían la URL entera: estando en `?categoria=PINTURA&search=azul&
+ * orden=price-asc` con 23 productos, un clic en "ABRASIVOS" dejaba la URL en
+ * `/productos?categoria=…` a secas — 54 productos, el orden vuelto a
+ * "Relevancia" y la búsqueda desaparecida. Y como el menú y los chips son *el*
+ * camino para cambiar de categoría en esa pantalla, el cliente que filtraba y
+ * luego cambiaba de categoría seguía viendo el síntoma original.
+ *
+ * `null` como categoría es el enlace de "Todos los productos": quita el filtro
+ * de categoría y sólo ése. Quien busca "azul" y pulsa "Todos los productos"
+ * está ampliando la categoría, no cancelando su búsqueda.
+ *
+ * Se vuelve a la página 1 porque el listado cambia de contenido, igual que al
+ * buscar o al cambiar el orden.
+ *
+ * Sin `paramsActuales` devuelve el enlace de siempre (`/productos?categoria=X`).
+ * Eso es lo que se quiere fuera del listado: los chips y el menú se pintan
+ * también en otras pantallas, y allí los query params son de esa otra pantalla
+ * — arrastrarlos al catálogo metería basura en la URL.
+ */
+export function buildCategoryHref(
+  categoriaUuid: string | null,
+  paramsActuales?: ReadableParams,
+): string {
+  const base = paramsActuales
+    ? parseProductListParams(paramsActuales)
+    : ESTADO_INICIAL;
+
+  return buildProductListHref(
+    applyProductListChange(base, { categoria: categoriaUuid }),
+  );
+}
+
 /** Los parámetros que espera el backend para este estado. */
 export function toApiParams(estado: ProductListState) {
   const sort =

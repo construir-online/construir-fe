@@ -15,8 +15,11 @@ vi.mock('next/image', () => ({
 }));
 
 const mockSearchParams = new URLSearchParams();
+// `usePathname` lo usan los chips para decidir si arrastrar los filtros del
+// listado: fuera de /productos los query params son de otra pantalla.
 vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
+  usePathname: () => '/',
 }));
 
 const mockGetFeatured = vi.fn();
