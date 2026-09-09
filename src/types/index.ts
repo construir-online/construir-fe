@@ -786,6 +786,21 @@ export interface CurrentMonthSalesStats extends MonthlySalesStats {
   percentageChangeAverageTicket: number | null;
 }
 
+/**
+ * El tramo del mes anterior contra el que se compara el mes en curso.
+ *
+ * `daysCompared` NO es siempre el número de días que lleva el mes actual. El
+ * 31 de marzo se comparan 31 días contra los 28 que tiene febrero, y el
+ * rótulo tiene que decir 28: deducirlo de `daysElapsed` escribiría "los
+ * primeros 31 días de febrero", un periodo que no existe. Lo calcula el
+ * backend, que es quien recorta el tramo; repetir aquí esa regla es como
+ * nació el desajuste de contrato que este bloque vino a arreglar.
+ */
+export interface PreviousMonthToDateStats extends MonthlySalesStats {
+  /** Días del mes anterior efectivamente comparados. */
+  daysCompared: number;
+}
+
 /** Cabecera del listado de órdenes: KPIs y conteos de los chips por estado. */
 export interface AdminOrderStats {
   totalOrders: number;
@@ -807,7 +822,7 @@ export interface AdminOrderStats {
   /** El mes anterior COMPLETO: con lo que cerró. */
   previousMonth: MonthlySalesStats;
   /** El mismo tramo del mes anterior, contra el que se comparan las tarjetas. */
-  previousMonthToDate: MonthlySalesStats;
+  previousMonthToDate: PreviousMonthToDateStats;
 }
 
 // Discount types

@@ -43,6 +43,19 @@ describe('formatComparisonLabel', () => {
   it('el día 1 se dice en singular, no "los primeros 1 días"', () => {
     expect(formatComparisonLabel(1, '2026-08')).toBe('vs el primer día de agosto');
   });
+
+  it('rotula un tramo recortado, que es más corto que el mes en curso', () => {
+    // El 31 de marzo el backend recorta el tramo a los 28 días de febrero y es
+    // ESE número el que llega aquí. La función no tiene que saber recortar —lo
+    // hace quien calcula—, pero sí tiene que pintar lo que le dan sin
+    // redondear hacia el mes en curso.
+    expect(formatComparisonLabel(28, '2026-02')).toBe(
+      'vs los primeros 28 días de febrero',
+    );
+    expect(formatComparisonLabel(29, '2028-02')).toBe(
+      'vs los primeros 29 días de febrero',
+    );
+  });
 });
 
 describe('formatMonthName', () => {

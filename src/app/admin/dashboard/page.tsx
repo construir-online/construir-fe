@@ -144,10 +144,15 @@ export default function AdminDashboard() {
   // backend contra los mismos días del mes anterior, y el rótulo tiene que
   // decirlo: "vs mes anterior" a secas invitaba a leer nueve días contra un
   // mes cerrado.
-  const tramoComparado = dashboardStats?.currentMonth
+  //
+  // Los días salen de `previousMonthToDate.daysCompared` y NO de los que lleva
+  // el mes en curso: el 31 de marzo se comparan 31 días contra los 28 de
+  // febrero, y usar los del mes actual pintaría "los primeros 31 días de
+  // febrero".
+  const tramoComparado = dashboardStats?.previousMonthToDate
     ? formatComparisonLabel(
-        dashboardStats.currentMonth.daysElapsed,
-        dashboardStats.previousMonth.month,
+        dashboardStats.previousMonthToDate.daysCompared,
+        dashboardStats.previousMonthToDate.month,
       )
     : 'vs mes anterior';
 
@@ -158,7 +163,7 @@ export default function AdminDashboard() {
       {/* Métricas de Ventas e Ingresos */}
       <div className="mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Ventas e Ingresos del Mes
+          Ventas e Ingresos{' '}
           {dashboardStats?.currentMonth && (
             /* "lo que va de" y no sólo el mes: el día 9 estas cifras son de
                nueve días, y sin decirlo el dueño las compara mentalmente con

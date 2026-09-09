@@ -18,6 +18,7 @@ export type DashboardStats = AdminOrderStats;
 export type {
   MonthlySalesStats,
   CurrentMonthSalesStats,
+  PreviousMonthToDateStats,
 } from '@/types';
 
 /**

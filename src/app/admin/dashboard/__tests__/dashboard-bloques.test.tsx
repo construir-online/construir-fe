@@ -93,6 +93,7 @@ describe('Dashboard del panel — bloques que fallan por separado', () => {
     },
     previousMonthToDate: {
       month: '2026-08',
+      daysCompared: 9,
       verifiedOrders: 3,
       verifiedRevenue: 90,
       verifiedRevenueVes: 3600,

@@ -94,6 +94,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
     // el backend calcula los porcentajes.
     previousMonthToDate: {
       month: '2026-08',
+      daysCompared: 9,
       verifiedOrders: 1,
       verifiedRevenue: 80,
       verifiedRevenueVes: 38000,
@@ -166,6 +167,12 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
     expect(
       await screen.findByText('lo que va de septiembre 2026'),
     ).toBeInTheDocument();
+    // Y sin "del Mes" en el encabezado: sobra al lado de "lo que va de
+    // septiembre" y, peor, contradice que la cifra sea de nueve días.
+    expect(screen.queryByText(/Ventas e Ingresos del Mes/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText('lo que va de septiembre 2026').closest('h2'),
+    ).toHaveTextContent('Ventas e Ingresos lo que va de septiembre 2026');
   });
 
   it('dice contra qué tramo compara, no un "vs mes anterior" a secas', async () => {
@@ -187,6 +194,48 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
       tarjeta('Pedidos pagados').getByText('vs los primeros 9 días de agosto'),
     ).toBeInTheDocument();
     expect(screen.queryByText('vs mes anterior')).not.toBeInTheDocument();
+  });
+
+  it('rotula los días del TRAMO, no los del mes en curso', async () => {
+    // 31 de marzo contra un febrero de 28. Si el rótulo saliera de los días
+    // que lleva el mes actual diría "los primeros 31 días de febrero": un
+    // periodo que no existe, y encima escondería que la comparación es
+    // asimétrica. El backend ya recortó el tramo y manda 28.
+    getDashboardStats.mockResolvedValue(
+      respuestaDelBackend({
+        currentMonth: {
+          month: '2026-03',
+          daysElapsed: 31,
+          verifiedOrders: 2,
+          verifiedRevenue: 150,
+          verifiedRevenueVes: 72000,
+          averageTicket: 75,
+          averageTicketVes: 36000,
+          percentageChangeRevenue: 87.5,
+          percentageChangeOrders: 100,
+          percentageChangeAverageTicket: -6.25,
+        },
+        previousMonthToDate: {
+          month: '2026-02',
+          daysCompared: 28,
+          verifiedOrders: 1,
+          verifiedRevenue: 80,
+          verifiedRevenueVes: 38000,
+          averageTicket: 80,
+          averageTicketVes: 38000,
+        },
+      }),
+    );
+
+    render(<AdminDashboard />);
+
+    await screen.findByText('Ingresos verificados');
+
+    expect(
+      tarjeta('Pedidos pagados').getByText('vs los primeros 28 días de febrero'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/31 días de febrero/)).not.toBeInTheDocument();
+    expect(screen.getByText('lo que va de marzo 2026')).toBeInTheDocument();
   });
 
   it('enseña los comprobantes por revisar junto a la cifra', async () => {
@@ -261,6 +310,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
         },
         previousMonthToDate: {
           month: '2026-08',
+          daysCompared: 9,
           verifiedOrders: 0,
           verifiedRevenue: 0,
           verifiedRevenueVes: null,
