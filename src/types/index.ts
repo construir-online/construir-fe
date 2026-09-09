@@ -747,6 +747,60 @@ export interface AdminOrderRow {
   isGuest: boolean;
 }
 
+/**
+ * Ventas verificadas de un mes calendario.
+ *
+ * Sólo pedidos con el pago revisado y no cancelados: la tienda cobra por
+ * adelantado, así que un comprobante sin verificar todavía no es dinero. El
+ * mes lo decide la fecha del pedido, no la de la revisión del comprobante.
+ */
+export interface MonthlySalesStats {
+  /** Mes en formato YYYY-MM. */
+  month: string;
+  verifiedOrders: number;
+  verifiedRevenue: number;
+  /** Nulo si ninguna orden verificada del mes tiene monto en Bs. fijado. */
+  verifiedRevenueVes: number | null;
+  averageTicket: number;
+  averageTicketVes: number | null;
+}
+
+/**
+ * Lo que va del mes en curso, con su variación contra el anterior.
+ *
+ * Los importes son los del mes HASTA HOY. La variación no se calcula contra
+ * el mes anterior entero sino contra su mismo tramo, porque comparar nueve
+ * días contra treinta y uno hundiría el porcentaje los primeros días del mes
+ * y lo dispararía el último sin que la venta hubiera cambiado.
+ *
+ * Las variaciones vienen en USD y en número de pedidos, no en bolívares: en
+ * Bs. un "+40%" puede ser sólo la tasa BCV subiendo, no una venta más.
+ * `null` significa que el tramo anterior fue cero y no hay porcentaje que
+ * calcular — que no es lo mismo que "0% de cambio".
+ */
+export interface CurrentMonthSalesStats extends MonthlySalesStats {
+  /** Días del mes ya transcurridos, hoy incluido. El día 9 vale 9. */
+  daysElapsed: number;
+  percentageChangeRevenue: number | null;
+  percentageChangeOrders: number | null;
+  percentageChangeAverageTicket: number | null;
+}
+
+/**
+ * El tramo del mes anterior contra el que se compara el mes en curso.
+ *
+ * `daysCompared` NO es siempre el número de días que lleva el mes actual. El
+ * 31 de marzo se comparan 31 días contra los 28 que tiene febrero, y el
+ * rótulo tiene que decir 28: deducirlo de `daysElapsed` escribiría "los
+ * primeros 31 días de febrero", un periodo que no existe. Lo calcula el
+ * backend, que es quien recorta el tramo; repetir aquí esa regla es como
+ * nació el desajuste de contrato que este bloque vino a arreglar.
+ */
+export interface PreviousMonthToDateStats extends MonthlySalesStats {
+  /** Días del mes anterior efectivamente comparados. */
+  daysCompared: number;
+}
+
 /** Cabecera del listado de órdenes: KPIs y conteos de los chips por estado. */
 export interface AdminOrderStats {
   totalOrders: number;
@@ -763,6 +817,12 @@ export interface AdminOrderStats {
   averageTicketVes: number | null;
   /** Tasa BCV vigente hoy, no la fijada en ninguna orden. */
   exchangeRate: number | null;
+  /** Bloque "Ventas e Ingresos del Mes" del panel. */
+  currentMonth: CurrentMonthSalesStats;
+  /** El mes anterior COMPLETO: con lo que cerró. */
+  previousMonth: MonthlySalesStats;
+  /** El mismo tramo del mes anterior, contra el que se comparan las tarjetas. */
+  previousMonthToDate: PreviousMonthToDateStats;
 }
 
 // Discount types

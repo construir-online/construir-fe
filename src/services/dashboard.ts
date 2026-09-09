@@ -1,24 +1,25 @@
 import { apiClient } from '@/lib/api';
+import type { AdminOrderStats } from '@/types';
 
-export interface MonthlyMetric {
-  month: string;
-  total: number;
-  totalVes: number;
-  count: number;
-  percentageChange: number;
-  percentageChangeVes: number;
-  percentageChangeCount: number;
-}
+/**
+ * Es la MISMA respuesta que `ordersService.getAdminStats()`, porque es la
+ * misma URL.
+ *
+ * Antes se declaraba aquí un tipo aparte, con campos que el backend nunca
+ * envió (`currentMonth.total`, `.count`, `.percentageChangeVes`). Como
+ * `apiClient.get` no valida nada, el panel se creía el tipo, la comprobación
+ * `dashboardStats.currentMonth && dashboardStats.previousMonth` no se cumplía
+ * jamás y el bloque "Ventas e Ingresos del Mes" decía siempre "No hay datos
+ * disponibles". Con el alias al tipo compartido, un cambio de contrato rompe
+ * la compilación en vez de vaciar una tarjeta en silencio.
+ */
+export type DashboardStats = AdminOrderStats;
 
-export interface DashboardStats {
-  currentMonth: MonthlyMetric;
-  previousMonth: MonthlyMetric;
-  totalRevenue: number;
-  totalRevenueVes: number;
-  totalOrders: number;
-  averageOrderValue: number;
-  averageOrderValueVes: number;
-}
+export type {
+  MonthlySalesStats,
+  CurrentMonthSalesStats,
+  PreviousMonthToDateStats,
+} from '@/types';
 
 /**
  * Dashboard service for admin metrics and statistics

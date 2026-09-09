@@ -6,7 +6,20 @@ export interface MetricCardProps {
   title: string;
   value: string;
   secondaryValue?: string;
-  percentageChange: number;
+  /**
+   * `null` cuando no hay con qué comparar (el tramo del mes anterior fue
+   * cero). Se pinta "sin comparación" y no una flecha en 0%, que leería
+   * "vendiste lo mismo que el mes pasado" cuando en realidad no hubo nada
+   * que comparar.
+   *
+   * El aviso dice "no hubo INGRESOS VERIFICADOS", no "no hubo ventas": son
+   * cosas distintas y confundirlas es justo lo que este bloque vino a
+   * arreglar. En agosto de 2026 hubo pedidos por unos 430 USD y ni un solo
+   * comprobante revisado; decir ahí "no hubo ventas" sería mentir.
+   */
+  percentageChange: number | null;
+  /** Contra qué se compara. Por defecto, el mes anterior. */
+  comparisonLabel?: string;
   icon?: LucideIcon;
   iconColor?: string;
   iconBgColor?: string;
@@ -17,12 +30,13 @@ export default function MetricCard({
   value,
   secondaryValue,
   percentageChange,
+  comparisonLabel = 'vs mes anterior',
   icon: Icon,
   iconColor = 'text-blue-600',
   iconBgColor = 'bg-blue-50',
 }: MetricCardProps) {
-  const isPositive = percentageChange > 0;
-  const isNegative = percentageChange < 0;
+  const isPositive = percentageChange !== null && percentageChange > 0;
+  const isNegative = percentageChange !== null && percentageChange < 0;
   const isNeutral = percentageChange === 0;
 
   return (
@@ -44,7 +58,12 @@ export default function MetricCard({
       </div>
 
       <div className="mt-4 flex items-center gap-1">
-        {isPositive && (
+        {percentageChange === null && (
+          <span className="text-sm text-gray-500">
+            Sin comparación: no hubo ingresos verificados el mes anterior
+          </span>
+        )}
+        {isPositive && percentageChange !== null && (
           <>
             <ArrowUp className="w-4 h-4 text-green-600" />
             <span className="text-sm font-medium text-green-600">
@@ -52,7 +71,7 @@ export default function MetricCard({
             </span>
           </>
         )}
-        {isNegative && (
+        {isNegative && percentageChange !== null && (
           <>
             <ArrowDown className="w-4 h-4 text-red-600" />
             <span className="text-sm font-medium text-red-600">
@@ -66,7 +85,9 @@ export default function MetricCard({
             <span className="text-sm font-medium text-gray-600">0%</span>
           </>
         )}
-        <span className="text-sm text-gray-500 ml-1">vs mes anterior</span>
+        {percentageChange !== null && (
+          <span className="text-sm text-gray-500 ml-1">{comparisonLabel}</span>
+        )}
       </div>
     </div>
   );
