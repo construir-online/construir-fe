@@ -62,7 +62,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
       completed: 7,
       cancelled: 4,
     },
-    paymentReviewCount: 5,
+    paymentReviewCount: 17,
     oldestPaymentReviewAt: '2026-08-01T02:51:54.439Z',
     verifiedOrders: 3,
     verifiedRevenue: 230,
@@ -72,6 +72,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
     exchangeRate: 481.22,
     currentMonth: {
       month: '2026-09',
+      daysElapsed: 9,
       verifiedOrders: 2,
       verifiedRevenue: 150,
       verifiedRevenueVes: 72000,
@@ -82,6 +83,16 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
       percentageChangeAverageTicket: -6.25,
     },
     previousMonth: {
+      month: '2026-08',
+      verifiedOrders: 3,
+      verifiedRevenue: 430,
+      verifiedRevenueVes: 206000,
+      averageTicket: 143.33,
+      averageTicketVes: 68666.67,
+    },
+    // El tramo comparable: los mismos 9 días de agosto, que es contra lo que
+    // el backend calcula los porcentajes.
+    previousMonthToDate: {
       month: '2026-08',
       verifiedOrders: 1,
       verifiedRevenue: 80,
@@ -126,16 +137,16 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
     // Esperar a la tarjeta y no sólo a que desaparezca el aviso: mientras
     // carga tampoco está el aviso, así que un `waitFor` sobre su ausencia se
     // daría por satisfecho antes de que llegara ningún dato.
-    await screen.findByText('Ingresos verificados del Mes');
+    await screen.findByText('Ingresos verificados');
     expect(
       screen.queryByText('No hay datos disponibles'),
     ).not.toBeInTheDocument();
 
-    const ingresos = tarjeta('Ingresos verificados del Mes');
+    const ingresos = tarjeta('Ingresos verificados');
     expect(ingresos.getByText('Bs. 72.000,00')).toBeInTheDocument();
     expect(ingresos.getByText('$150.00')).toBeInTheDocument();
 
-    const pedidos = tarjeta('Pedidos pagados del Mes');
+    const pedidos = tarjeta('Pedidos pagados');
     expect(pedidos.getByText('2')).toBeInTheDocument();
 
     const promedio = tarjeta('Promedio por Pedido');
@@ -150,7 +161,74 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
 
     // "2026-09" leído como fecha UTC caería en agosto en Venezuela; la
     // cabecera tiene que decir septiembre, igual que las tarjetas de abajo.
-    expect(await screen.findByText('septiembre 2026')).toBeInTheDocument();
+    // Y "lo que va de", porque el día 9 estas cifras son de nueve días: sin
+    // decirlo, el dueño las compara con un mes cerrado.
+    expect(
+      await screen.findByText('lo que va de septiembre 2026'),
+    ).toBeInTheDocument();
+  });
+
+  it('dice contra qué tramo compara, no un "vs mes anterior" a secas', async () => {
+    getDashboardStats.mockResolvedValue(respuestaDelBackend());
+
+    render(<AdminDashboard />);
+
+    await screen.findByText('Ingresos verificados');
+
+    // El backend compara los 9 días de septiembre contra los 9 primeros de
+    // agosto (80 USD), no contra el agosto entero (430 USD). El rótulo tiene
+    // que decirlo o el porcentaje se lee mal.
+    expect(
+      tarjeta('Ingresos verificados').getByText(
+        'vs los primeros 9 días de agosto, en USD',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      tarjeta('Pedidos pagados').getByText('vs los primeros 9 días de agosto'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('vs mes anterior')).not.toBeInTheDocument();
+  });
+
+  it('enseña los comprobantes por revisar junto a la cifra', async () => {
+    getDashboardStats.mockResolvedValue(
+      respuestaDelBackend({
+        currentMonth: {
+          month: '2026-09',
+          daysElapsed: 9,
+          verifiedOrders: 0,
+          verifiedRevenue: 0,
+          verifiedRevenueVes: null,
+          averageTicket: 0,
+          averageTicketVes: null,
+          percentageChangeRevenue: null,
+          percentageChangeOrders: null,
+          percentageChangeAverageTicket: null,
+        },
+      }),
+    );
+
+    render(<AdminDashboard />);
+
+    // Un cero solo se lee como "no vendiste nada". Con los 17 comprobantes al
+    // lado se lee como lo que es: trabajo pendiente del propio admin.
+    const enlace = await screen.findByRole('link', {
+      name: '17 comprobantes por revisar',
+    });
+    expect(enlace).toHaveAttribute('href', '/admin/dashboard/ordenes');
+    expect(
+      screen.getByText(/esos pedidos no suman aquí/i),
+    ).toBeInTheDocument();
+  });
+
+  it('no habla de comprobantes cuando no queda ninguno por revisar', async () => {
+    getDashboardStats.mockResolvedValue(
+      respuestaDelBackend({ paymentReviewCount: 0 }),
+    );
+
+    render(<AdminDashboard />);
+
+    await screen.findByText('Ingresos verificados');
+    expect(screen.queryByText(/comprobantes? por revisar/i)).not.toBeInTheDocument();
   });
 
   it('muestra las variaciones que manda el backend, no un 0% inventado', async () => {
@@ -158,10 +236,10 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
 
     render(<AdminDashboard />);
 
-    await screen.findByText('Ingresos verificados del Mes');
+    await screen.findByText('Ingresos verificados');
 
-    expect(tarjeta('Ingresos verificados del Mes').getByText('87.5%')).toBeInTheDocument();
-    expect(tarjeta('Pedidos pagados del Mes').getByText('100.0%')).toBeInTheDocument();
+    expect(tarjeta('Ingresos verificados').getByText('87.5%')).toBeInTheDocument();
+    expect(tarjeta('Pedidos pagados').getByText('100.0%')).toBeInTheDocument();
     // -6.25 se pinta como una bajada del 6.3%, con su flecha hacia abajo.
     expect(tarjeta('Promedio por Pedido').getByText('6.3%')).toBeInTheDocument();
   });
@@ -171,6 +249,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
       respuestaDelBackend({
         currentMonth: {
           month: '2026-09',
+          daysElapsed: 9,
           verifiedOrders: 2,
           verifiedRevenue: 150,
           verifiedRevenueVes: 72000,
@@ -180,7 +259,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
           percentageChangeOrders: null,
           percentageChangeAverageTicket: null,
         },
-        previousMonth: {
+        previousMonthToDate: {
           month: '2026-08',
           verifiedOrders: 0,
           verifiedRevenue: 0,
@@ -194,7 +273,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
     render(<AdminDashboard />);
 
     const avisos = await screen.findAllByText(
-      'Sin comparación: no hubo ventas el mes anterior',
+      'Sin comparación: no hubo ingresos verificados el mes anterior',
     );
     expect(avisos).toHaveLength(3);
     expect(screen.queryByText('0%')).not.toBeInTheDocument();
@@ -205,6 +284,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
       respuestaDelBackend({
         currentMonth: {
           month: '2026-09',
+          daysElapsed: 9,
           verifiedOrders: 0,
           verifiedRevenue: 0,
           verifiedRevenueVes: null,
@@ -222,13 +302,13 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
     // Esperar a la tarjeta y no sólo a que desaparezca el aviso: mientras
     // carga tampoco está el aviso, así que un `waitFor` sobre su ausencia se
     // daría por satisfecho antes de que llegara ningún dato.
-    await screen.findByText('Ingresos verificados del Mes');
+    await screen.findByText('Ingresos verificados');
     expect(
       screen.queryByText('No hay datos disponibles'),
     ).not.toBeInTheDocument();
-    expect(tarjeta('Pedidos pagados del Mes').getByText('0')).toBeInTheDocument();
-    expect(tarjeta('Ingresos verificados del Mes').getByText('$0.00')).toBeInTheDocument();
-    expect(tarjeta('Ingresos verificados del Mes').getByText('Bs. 0,00')).toBeInTheDocument();
+    expect(tarjeta('Pedidos pagados').getByText('0')).toBeInTheDocument();
+    expect(tarjeta('Ingresos verificados').getByText('$0.00')).toBeInTheDocument();
+    expect(tarjeta('Ingresos verificados').getByText('Bs. 0,00')).toBeInTheDocument();
   });
 
   it('deja claro que sólo cuenta lo cobrado y verificado', async () => {

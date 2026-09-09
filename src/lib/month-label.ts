@@ -33,3 +33,32 @@ export function formatMonthLabel(month: string): string {
 
   return `${MESES[indice]} ${match[1]}`;
 }
+
+/** Sólo el nombre del mes, sin el año: "2026-08" → "agosto". */
+export function formatMonthName(month: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!match) return month;
+
+  const indice = Number(match[2]) - 1;
+  if (indice < 0 || indice > 11) return month;
+
+  return MESES[indice];
+}
+
+/**
+ * Contra qué se compara la tarjeta, dicho entero: "vs los primeros 9 días de
+ * agosto".
+ *
+ * El bloque enseña lo que va del mes y el porcentaje se calcula contra el
+ * mismo tramo del mes anterior. Con un rótulo genérico —"vs mes anterior"— el
+ * dueño leería nueve días contra un mes cerrado y creería que se le hundió el
+ * negocio cada primero de mes.
+ */
+export function formatComparisonLabel(
+  daysElapsed: number,
+  previousMonth: string,
+): string {
+  const mes = formatMonthName(previousMonth);
+  if (daysElapsed <= 1) return `vs el primer día de ${mes}`;
+  return `vs los primeros ${daysElapsed} días de ${mes}`;
+}

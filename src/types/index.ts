@@ -766,14 +766,21 @@ export interface MonthlySalesStats {
 }
 
 /**
- * El mes en curso con su variación contra el anterior.
+ * Lo que va del mes en curso, con su variación contra el anterior.
+ *
+ * Los importes son los del mes HASTA HOY. La variación no se calcula contra
+ * el mes anterior entero sino contra su mismo tramo, porque comparar nueve
+ * días contra treinta y uno hundiría el porcentaje los primeros días del mes
+ * y lo dispararía el último sin que la venta hubiera cambiado.
  *
  * Las variaciones vienen en USD y en número de pedidos, no en bolívares: en
  * Bs. un "+40%" puede ser sólo la tasa BCV subiendo, no una venta más.
- * `null` significa que el mes anterior fue cero y no hay porcentaje que
+ * `null` significa que el tramo anterior fue cero y no hay porcentaje que
  * calcular — que no es lo mismo que "0% de cambio".
  */
 export interface CurrentMonthSalesStats extends MonthlySalesStats {
+  /** Días del mes ya transcurridos, hoy incluido. El día 9 vale 9. */
+  daysElapsed: number;
   percentageChangeRevenue: number | null;
   percentageChangeOrders: number | null;
   percentageChangeAverageTicket: number | null;
@@ -797,7 +804,10 @@ export interface AdminOrderStats {
   exchangeRate: number | null;
   /** Bloque "Ventas e Ingresos del Mes" del panel. */
   currentMonth: CurrentMonthSalesStats;
+  /** El mes anterior COMPLETO: con lo que cerró. */
   previousMonth: MonthlySalesStats;
+  /** El mismo tramo del mes anterior, contra el que se comparan las tarjetas. */
+  previousMonthToDate: MonthlySalesStats;
 }
 
 // Discount types

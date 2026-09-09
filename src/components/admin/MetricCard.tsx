@@ -7,9 +7,15 @@ export interface MetricCardProps {
   value: string;
   secondaryValue?: string;
   /**
-   * `null` cuando no hay con qué comparar (el mes anterior fue cero). Se
-   * pinta "sin comparación" y no una flecha en 0%, que leería "vendiste lo
-   * mismo que el mes pasado" cuando en realidad el mes pasado no hubo nada.
+   * `null` cuando no hay con qué comparar (el tramo del mes anterior fue
+   * cero). Se pinta "sin comparación" y no una flecha en 0%, que leería
+   * "vendiste lo mismo que el mes pasado" cuando en realidad no hubo nada
+   * que comparar.
+   *
+   * El aviso dice "no hubo INGRESOS VERIFICADOS", no "no hubo ventas": son
+   * cosas distintas y confundirlas es justo lo que este bloque vino a
+   * arreglar. En agosto de 2026 hubo pedidos por unos 430 USD y ni un solo
+   * comprobante revisado; decir ahí "no hubo ventas" sería mentir.
    */
   percentageChange: number | null;
   /** Contra qué se compara. Por defecto, el mes anterior. */
@@ -54,7 +60,7 @@ export default function MetricCard({
       <div className="mt-4 flex items-center gap-1">
         {percentageChange === null && (
           <span className="text-sm text-gray-500">
-            Sin comparación: no hubo ventas el mes anterior
+            Sin comparación: no hubo ingresos verificados el mes anterior
           </span>
         )}
         {isPositive && percentageChange !== null && (

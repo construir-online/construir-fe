@@ -8,7 +8,7 @@ import type { ProductStats, Product, User } from '@/types';
 import { DollarSign, ShoppingCart, TrendingUp, AlertTriangle } from 'lucide-react';
 import MetricCard from '@/components/admin/MetricCard';
 import { formatUSD, formatVES } from '@/lib/currency';
-import { formatMonthLabel } from '@/lib/month-label';
+import { formatComparisonLabel, formatMonthLabel } from '@/lib/month-label';
 import Link from 'next/link';
 
 /**
@@ -140,6 +140,17 @@ export default function AdminDashboard() {
 
   const isOrderAdmin = user?.role === 'order_admin';
 
+  // Contra qué tramo se comparan las tarjetas. El porcentaje se calcula en el
+  // backend contra los mismos días del mes anterior, y el rótulo tiene que
+  // decirlo: "vs mes anterior" a secas invitaba a leer nueve días contra un
+  // mes cerrado.
+  const tramoComparado = dashboardStats?.currentMonth
+    ? formatComparisonLabel(
+        dashboardStats.currentMonth.daysElapsed,
+        dashboardStats.previousMonth.month,
+      )
+    : 'vs mes anterior';
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
@@ -149,8 +160,11 @@ export default function AdminDashboard() {
         <h2 className="text-xl font-bold text-gray-900 mb-2">
           Ventas e Ingresos del Mes
           {dashboardStats?.currentMonth && (
+            /* "lo que va de" y no sólo el mes: el día 9 estas cifras son de
+               nueve días, y sin decirlo el dueño las compara mentalmente con
+               un mes cerrado. */
             <span className="ml-2 text-base font-normal text-gray-500">
-              {formatMonthLabel(dashboardStats.currentMonth.month)}
+              lo que va de {formatMonthLabel(dashboardStats.currentMonth.month)}
             </span>
           )}
         </h2>
@@ -165,19 +179,20 @@ export default function AdminDashboard() {
         ) : dashboardStats?.currentMonth ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <MetricCard
-              title="Ingresos verificados del Mes"
+              title="Ingresos verificados"
               value={formatVES(dashboardStats.currentMonth.verifiedRevenueVes ?? 0)}
               secondaryValue={formatUSD(dashboardStats.currentMonth.verifiedRevenue)}
               percentageChange={dashboardStats.currentMonth.percentageChangeRevenue}
-              comparisonLabel="vs mes anterior (en USD)"
+              comparisonLabel={`${tramoComparado}, en USD`}
               icon={DollarSign}
               iconColor="text-green-600"
               iconBgColor="bg-green-50"
             />
             <MetricCard
-              title="Pedidos pagados del Mes"
+              title="Pedidos pagados"
               value={dashboardStats.currentMonth.verifiedOrders.toString()}
               percentageChange={dashboardStats.currentMonth.percentageChangeOrders}
+              comparisonLabel={tramoComparado}
               icon={ShoppingCart}
               iconColor="text-blue-600"
               iconBgColor="bg-blue-50"
@@ -187,7 +202,7 @@ export default function AdminDashboard() {
               value={formatVES(dashboardStats.currentMonth.averageTicketVes ?? 0)}
               secondaryValue={formatUSD(dashboardStats.currentMonth.averageTicket)}
               percentageChange={dashboardStats.currentMonth.percentageChangeAverageTicket}
-              comparisonLabel="vs mes anterior (en USD)"
+              comparisonLabel={`${tramoComparado}, en USD`}
               icon={TrendingUp}
               iconColor="text-purple-600"
               iconBgColor="bg-purple-50"
@@ -195,6 +210,26 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div className="text-gray-500">No hay datos disponibles</div>
+        )}
+
+        {/* El cero de arriba casi nunca significa "no vendiste": significa que
+            nadie ha revisado los comprobantes. Sin este renglón, el dueño ve
+            una cifra en cero junto a una explicación abstracta y no sabe que
+            la pelota está en su tejado. */}
+        {!errorVentas && dashboardStats && dashboardStats.paymentReviewCount > 0 && (
+          <p className="mt-4 text-sm text-gray-600">
+            Hay{' '}
+            <Link
+              href="/admin/dashboard/ordenes"
+              className="font-medium text-blue-600 hover:text-blue-800 underline"
+            >
+              {dashboardStats.paymentReviewCount}{' '}
+              {dashboardStats.paymentReviewCount === 1
+                ? 'comprobante por revisar'
+                : 'comprobantes por revisar'}
+            </Link>
+            . Hasta que se verifiquen, esos pedidos no suman aquí.
+          </p>
         )}
       </div>
 

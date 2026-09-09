@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { formatMonthLabel } from '../month-label';
+import {
+  formatComparisonLabel,
+  formatMonthLabel,
+  formatMonthName,
+} from '../month-label';
 
 /**
  * La cabecera del bloque de ventas dice de qué mes habla. El backend manda
@@ -18,5 +22,37 @@ describe('formatMonthLabel', () => {
     expect(formatMonthLabel('')).toBe('');
     expect(formatMonthLabel('2026-13')).toBe('2026-13');
     expect(formatMonthLabel('septiembre')).toBe('septiembre');
+  });
+});
+
+/**
+ * El bloque enseña lo que va del mes y el backend calcula el porcentaje contra
+ * los mismos días del mes anterior. Si el rótulo dijera "vs mes anterior" a
+ * secas, el dueño leería nueve días contra un mes cerrado.
+ */
+describe('formatComparisonLabel', () => {
+  it('nombra los días del tramo y el mes con el que compara', () => {
+    expect(formatComparisonLabel(9, '2026-08')).toBe(
+      'vs los primeros 9 días de agosto',
+    );
+    expect(formatComparisonLabel(5, '2026-12')).toBe(
+      'vs los primeros 5 días de diciembre',
+    );
+  });
+
+  it('el día 1 se dice en singular, no "los primeros 1 días"', () => {
+    expect(formatComparisonLabel(1, '2026-08')).toBe('vs el primer día de agosto');
+  });
+});
+
+describe('formatMonthName', () => {
+  it('da el mes sin el año, para meterlo en una frase', () => {
+    expect(formatMonthName('2026-08')).toBe('agosto');
+    expect(formatMonthName('2026-01')).toBe('enero');
+  });
+
+  it('devuelve la cadena original si no la reconoce', () => {
+    expect(formatMonthName('agosto')).toBe('agosto');
+    expect(formatMonthName('2026-00')).toBe('2026-00');
   });
 });
