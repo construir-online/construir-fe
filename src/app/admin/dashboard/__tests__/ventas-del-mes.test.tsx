@@ -11,6 +11,13 @@ vi.mock('next/link', () => ({
 const getDashboardStats = vi.fn();
 const getProductStats = vi.fn();
 const getLowStock = vi.fn();
+const getProfile = vi.fn();
+
+vi.mock('@/services/auth', () => ({
+  authService: {
+    getProfile: () => getProfile(),
+  },
+}));
 
 vi.mock('@/services/dashboard', () => ({
   dashboardService: {
@@ -100,7 +107,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    getProfile.mockResolvedValue({ role: 'admin' });
     getProductStats.mockResolvedValue({
       total: 0,
       published: 0,

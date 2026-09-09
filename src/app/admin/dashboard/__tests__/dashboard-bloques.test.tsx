@@ -35,10 +35,30 @@ describe('Dashboard del panel — bloques que fallan por separado', () => {
   const ESTADISTICAS = {
     total: 1267, published: 1200, unpublished: 67, featured: 5, lowStock: 32,
   };
+  // La forma REAL de `GET /orders/admin/stats`. Antes este doble llevaba
+  // campos inventados (`total`, `count`) que el backend nunca envió: las
+  // pruebas pasaban igual porque sólo miraban el título de la tarjeta, y el
+  // bloque llevaba meses pintando "No hay datos disponibles" en producción.
   const VENTAS = {
-    currentMonth: { total: 100, totalVes: 4000, count: 4, percentageChangeVes: 1, percentageChangeCount: 1 },
-    previousMonth: { total: 90, totalVes: 3600, count: 3 },
-    averageOrderValue: 25, averageOrderValueVes: 1000,
+    currentMonth: {
+      month: '2026-09',
+      verifiedOrders: 4,
+      verifiedRevenue: 100,
+      verifiedRevenueVes: 4000,
+      averageTicket: 25,
+      averageTicketVes: 1000,
+      percentageChangeRevenue: 11.11,
+      percentageChangeOrders: 33.33,
+      percentageChangeAverageTicket: -16.67,
+    },
+    previousMonth: {
+      month: '2026-08',
+      verifiedOrders: 3,
+      verifiedRevenue: 90,
+      verifiedRevenueVes: 3600,
+      averageTicket: 30,
+      averageTicketVes: 1200,
+    },
   };
 
   beforeEach(() => {
@@ -76,7 +96,7 @@ describe('Dashboard del panel — bloques que fallan por separado', () => {
 
     render(<AdminDashboard />);
 
-    await waitFor(() => expect(screen.getByText('Ventas del Mes')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Pedidos pagados del Mes')).toBeInTheDocument());
     expect(screen.getByText(/No se pudieron cargar las estadísticas de productos/i))
       .toBeInTheDocument();
   });
@@ -118,7 +138,7 @@ describe('Dashboard del panel — bloques que fallan por separado', () => {
 
     render(<AdminDashboard />);
 
-    await waitFor(() => expect(screen.getByText('Ventas del Mes')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Pedidos pagados del Mes')).toBeInTheDocument());
     expect(productsService.getStats).not.toHaveBeenCalled();
     expect(productsService.getLowStock).not.toHaveBeenCalled();
   });
