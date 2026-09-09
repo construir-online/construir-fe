@@ -22,6 +22,12 @@ export const guestCustomersService = {
    * Sigue limitado a 5 consultas por minuto, así que conviene no dispararlo en
    * cada pulsación: el checkout sólo consulta al salir de un campo y no repite
    * la misma combinación dos veces.
+   *
+   * Ojo con el tipo: aunque `GuestCustomer` declare `latitude` y `longitude`,
+   * esta ruta NO las devuelve. Son el punto exacto de la casa de alguien y la
+   * ruta no tiene sesión; el checkout pide la dirección a mano, así que no
+   * hacían falta. Si algún día vuelve el mapa, reabrir eso es una decisión a
+   * tomar a conciencia, no algo que se dé por hecho porque el tipo lo diga.
    */
   async searchByIdentification(
     identificationType: IdentificationType,
