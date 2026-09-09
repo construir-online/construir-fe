@@ -9,10 +9,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
  *    validaba y el varchar(500) reventaba contra la base). `document.referrer`
  *    es una URL ajena que pasa de 500 caracteres sin esfuerzo, así que si no se
  *    recorta aquí la visita se pierde entera con un 400.
- * 2. El cuerpo no lleva —ni debe llevar— nada que identifique al visitante: la
- *    IP y el `userAgent` los dejó de recoger el backend, y como valida con
- *    `forbidNonWhitelisted`, mandar `userAgent` ahora devuelve un 400 y la
- *    visita se perdería en silencio.
+ * 2. El cuerpo no lleva —ni debe llevar— nada que identifique al visitante.
+ *
+ * Aquí había además una prueba de que no se manda el `userAgent` que llamaba a
+ * `trackPageView` sin pasarlo: no podía fallar, porque nunca metía el campo. Y
+ * miraba al sitio equivocado — quien arma el cuerpo es `ClientLayout`, no este
+ * servicio. Esa comprobación se hace ahora donde está el riesgo, en
+ * `src/app/__tests__/ClientLayout.analitica.test.tsx`.
  */
 
 const post = vi.fn().mockResolvedValue(undefined);
@@ -57,18 +60,6 @@ describe('analyticsService.trackPageView', () => {
     const cuerpo = post.mock.calls[0][1];
     expect(cuerpo.path).toHaveLength(500);
     expect(cuerpo.title).toHaveLength(500);
-  });
-
-  it('no manda el navegador: el backend lo rechazaría con un 400', async () => {
-    // El DTO del backend ya no declara `userAgent` y la validación global corre
-    // con forbidNonWhitelisted, así que colarlo aquí costaría la visita entera.
-    await analyticsService.trackPageView({
-      path: '/',
-      title: 'Inicio',
-      referrer: 'https://google.com',
-    });
-
-    expect(post.mock.calls[0][1]).not.toHaveProperty('userAgent');
   });
 
   it('no manda ningún campo de IP: ese dato ya no se recoge', async () => {
