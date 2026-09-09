@@ -113,10 +113,10 @@ async function main() {
   // ── Carrito ──
   titulo('3. El carrito con sesión iniciada');
   const carrito = await page.evaluate(async (be) => {
-    const prods = await (await fetch(`${be}/products?limit=1`, { credentials: 'include' })).json();
+    const prods = await (await fetch(`${be}/products?limit=60`, { credentials: 'include' })).json();
     const lista = Array.isArray(prods) ? prods : (prods.data ?? prods.products ?? []);
-    const uuid = lista[0]?.uuid;
-    if (!uuid) return { error: 'sin productos' };
+    const uuid = lista.find((p) => (p.inventory ?? 0) >= 1)?.uuid;
+    if (!uuid) return { error: 'sin productos con existencias' };
     const r = await fetch(`${be}/cart/items`, {
       method: 'POST',
       credentials: 'include',
@@ -179,16 +179,21 @@ async function main() {
   }, BE);
   console.log(`carrito del servidor vaciado: ${JSON.stringify(limpieza)}`);
 
+  // Hay que elegir un producto CON EXISTENCIAS suficientes: si se siembra una
+  // cantidad mayor que el inventario, la sincronización la rechaza con razón y
+  // la prueba culpa a la sesión de algo que no es suyo.
   const semilla = await page.evaluate(async (be) => {
-    const prods = await (await fetch(`${be}/products?limit=1`)).json();
+    const prods = await (await fetch(`${be}/products?limit=60`)).json();
     const lista = Array.isArray(prods) ? prods : (prods.data ?? prods.products ?? []);
-    return lista[0]?.uuid ?? null;
+    const apto = lista.find((p) => (p.inventory ?? 0) >= 2);
+    return apto ? { uuid: apto.uuid, inventario: apto.inventory } : null;
   }, BE);
-  console.log(`producto de prueba: ${semilla}`);
+  console.log(`producto de prueba: ${JSON.stringify(semilla)}`);
+  if (!semilla) { mal('no hay ningún producto con inventario >= 2 para la prueba'); }
 
   // `localCartService` guarda bajo la clave `cart`.
-  await page.evaluate((uuid) => {
-    localStorage.setItem('cart', JSON.stringify({ items: [{ productUuid: uuid, quantity: 2 }] }));
+  await page.evaluate((sem) => {
+    localStorage.setItem('cart', JSON.stringify({ items: [{ productUuid: sem.uuid, quantity: 2 }] }));
   }, semilla);
   console.log(`carrito de INVITADO sembrado: ${await page.evaluate(() => localStorage.getItem('cart'))}`);
 
@@ -207,7 +212,7 @@ async function main() {
   console.log(`carrito local tras entrar: ${trasSync.carritoLocal}`);
   comprobar(trasSync.status === 200, 'el carrito del servidor carga tras entrar');
   comprobar(
-    trasSync.items.some((i) => i.uuid === semilla && i.cantidad === 2),
+    trasSync.items.some((i) => i.uuid === semilla.uuid && i.cantidad === 2),
     'el carrito de INVITADO se sincronizó al servidor tras entrar (cantidad 2)',
   );
   comprobar(!trasSync.carritoLocal || JSON.parse(trasSync.carritoLocal).items.length === 0,
@@ -324,6 +329,37 @@ async function main() {
 
   const dOrderAdmin = await volcado(page, 'panel, sesión order_admin');
   comprobar(!hayJwt(dOrderAdmin), 'tampoco hay JWT al alcance del JS con order_admin');
+
+  // ── El dashboard del gestor de pedidos ──
+  // Se rompió al quitar `localStorage['user']`: sin rol, caía en la rama de
+  // administrador, pedía estadísticas de productos, recibía 403 y el
+  // `Promise.all` se llevaba por delante las de pedidos que sí habían llegado.
+  titulo('8b. El dashboard del order_admin carga SUS datos y no pide los ajenos');
+  const llamadas = [];
+  const oyente = (res) => {
+    const u = res.url();
+    if (u.startsWith(BE)) llamadas.push({ url: u.slice(BE.length), status: res.status() });
+  };
+  page.on('response', oyente);
+  await page.goto(`${FE}/admin/dashboard`, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(6000);
+  page.off('response', oyente);
+
+  console.log(`  url final: ${page.url()}`);
+  console.log(`  llamadas: ${JSON.stringify(llamadas.map((r) => `${r.status} ${r.url}`))}`);
+
+  const deProductos = llamadas.filter((r) => r.url.startsWith('/products/admin'));
+  const deOrdenes = llamadas.filter((r) => r.url.startsWith('/orders/admin/stats'));
+  const texto = await page.locator('body').innerText();
+
+  comprobar(deProductos.length === 0,
+    `no pide endpoints de productos, que le darían 403 (pidió ${deProductos.length})`);
+  comprobar(deOrdenes.length > 0 && deOrdenes.every((r) => r.status === 200),
+    'carga las estadísticas de pedidos, que son las suyas');
+  comprobar(!/Cargando métricas/.test(texto), 'el panel deja de estar "Cargando" y pinta');
+  comprobar(!llamadas.some((r) => r.status === 403), 'ninguna llamada devuelve 403');
+  console.log(`  extracto del panel: ${texto.slice(0, 220).replace(/\s+/g, ' ')}`);
+
   await ctx.close();
 
   // ───────────────────── 9. CORS ─────────────────────
