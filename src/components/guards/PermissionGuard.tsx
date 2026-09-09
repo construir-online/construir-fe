@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import type { User } from '@/types';
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { canAccessRoute, getDefaultAdminPath } from '@/lib/permissions';
 import { ShieldAlert } from 'lucide-react';
 
@@ -25,34 +25,22 @@ export function PermissionGuard({
   redirect = false
 }: PermissionGuardProps) {
   const router = useRouter();
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const pathname = usePathname();
+  // El rol sale del contexto, que lo trae de `/auth/profile`. Antes salía de
+  // `localStorage['user']`: como ya nadie escribe esa clave, este guard le
+  // habría denegado el acceso a TODO el mundo en cuanto alguien lo montara.
+  const { user, loading } = useAuth();
+
+  const hasPermission = user ? canAccessRoute(user.role, pathname) : false;
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user');
+    if (loading || !user || hasPermission || !redirect) return;
+    router.push(getDefaultAdminPath(user.role));
+  }, [loading, user, hasPermission, redirect, router]);
 
-      if (!userData) {
-        setHasPermission(false);
-        return;
-      }
-
-      try {
-        const user: User = JSON.parse(userData);
-        const canAccess = canAccessRoute(user.role, window.location.pathname);
-        setHasPermission(canAccess);
-
-        if (!canAccess && redirect) {
-          const defaultPath = getDefaultAdminPath(user.role);
-          router.push(defaultPath);
-        }
-      } catch {
-        setHasPermission(false);
-      }
-    }
-  }, [router, redirect]);
-
-  // Loading state
-  if (hasPermission === null) {
+  // Mientras no se sepa si hay sesión no se decide nada: dar por denegado el
+  // rato de carga hacía parpadear "Acceso Denegado" a quien sí tiene permiso.
+  if (loading) {
     return null;
   }
 

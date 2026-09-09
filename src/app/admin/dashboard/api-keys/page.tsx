@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Key, Copy, Check, Trash2, Power, PowerOff } from 'lucide-react';
@@ -14,7 +13,6 @@ import type { ApiKey, ApiKeyPermission } from '@/types';
 export default function ApiKeysPage() {
   const t = useTranslations('apiKeys');
   const tCommon = useTranslations('common');
-  const router = useRouter();
   const toast = useToast();
 
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -26,15 +24,12 @@ export default function ApiKeysPage() {
   }>({ isOpen: false, key: null });
 
   useEffect(() => {
-    // Verificar autenticación
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-
+    // Ya no se comprueba `localStorage.getItem('token')`: el token está en una
+    // cookie `httpOnly` invisible para este código. Quien atajaba de verdad al
+    // no autenticado era el `middleware.ts`, que lee la cookie en el servidor;
+    // esto sólo duplicaba la comprobación con el dato equivocado.
     loadApiKeys();
-  }, [router]);
+  }, []);
 
   const loadApiKeys = async () => {
     try {

@@ -14,6 +14,17 @@ export const authService = {
     return apiClient.get<User>("/auth/profile");
   },
 
+  /**
+   * Cierra la sesión en el servidor.
+   *
+   * Hace falta este viaje porque la cookie de sesión es `httpOnly` y el
+   * JavaScript del navegador no puede borrarla: sólo el backend, respondiendo
+   * con un `Set-Cookie` vencido, la mata de verdad.
+   */
+  async logout(): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>("/auth/logout");
+  },
+
   async verifyEmail(token: string): Promise<{ message: string }> {
     return apiClient.get<{ message: string }>(`/users/verify-email?token=${encodeURIComponent(token)}`);
   },

@@ -37,7 +37,12 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { token, user } = useAuth();
+  // Antes esto era `token`, el JWT leído de `localStorage`. Ya no existe: la
+  // sesión vive en una cookie `httpOnly`. `authLoading` es nuevo y es
+  // importante — mientras el perfil no llegue no se sabe si hay sesión, y
+  // tratar ese rato como "invitado" hacía que el carrito del servidor se
+  // pisara con el local en cada recarga.
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
   const [cart, setCart] = useState<Cart | null>(null);
   const [localCart, setLocalCart] = useState<LocalCart>({ items: [] });
   const [loading, setLoading] = useState(false);
@@ -58,16 +63,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Cargar carrito del servidor cuando el usuario esté autenticado
   useEffect(() => {
-    if (token && user) {
+    if (authLoading) return;
+
+    if (isAuthenticated && user) {
       loadServerCart();
     } else {
       setCart(null);
     }
-  }, [token, user]);
+  }, [isAuthenticated, user, authLoading]);
 
   // Sincronizar carrito local con el servidor después del login
   const syncCartAfterLogin = useCallback(async () => {
-    if (!token || !localCartService.hasItems()) return;
+    if (!isAuthenticated || !localCartService.hasItems()) return;
 
     try {
       setLoading(true);
@@ -79,20 +86,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   // Ejecutar sincronización cuando el usuario se loguee
   useEffect(() => {
-    if (token && user && localCartService.hasItems()) {
+    // La sincronización del carrito de invitado tras entrar sigue colgando de
+    // esto; sólo cambió de qué se entera. `authLoading` la retiene hasta saber
+    // si hay sesión: dispararla antes la mandaba sin cookie válida.
+    if (!authLoading && isAuthenticated && user && localCartService.hasItems()) {
       syncCartAfterLogin();
     }
-  }, [token, user, syncCartAfterLogin]);
+  }, [isAuthenticated, user, authLoading, syncCartAfterLogin]);
 
   /**
    * Carga el carrito desde el servidor
    */
   const loadServerCart = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     try {
       setLoading(true);
@@ -113,7 +123,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
    */
   const addToCart = async (productUuid: string, quantity: number) => {
     try {
-      if (token) {
+      if (isAuthenticated) {
         const updatedCart = await cartService.addItem({ productUuid, quantity });
         setCart(updatedCart);
       } else {
@@ -132,7 +142,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
    */
   const updateQuantity = async (productUuid: string, quantity: number) => {
     try {
-      if (token) {
+      if (isAuthenticated) {
         const itemUuid = cart?.items.find(i => i.product?.uuid === productUuid)?.uuid;
         if (!itemUuid) throw new Error("Item not found in cart");
         const updatedCart = await cartService.updateItem(itemUuid, { quantity });
@@ -153,7 +163,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
    */
   const removeFromCart = async (productUuid: string) => {
     try {
-      if (token) {
+      if (isAuthenticated) {
         const itemUuid = cart?.items.find(i => i.product?.uuid === productUuid)?.uuid;
         if (!itemUuid) throw new Error("Item not found in cart");
         const updatedCart = await cartService.removeItem(itemUuid);
@@ -177,7 +187,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
 
-      if (token) {
+      if (isAuthenticated) {
         // Usuario autenticado
         const updatedCart = await cartService.clearCart();
         setCart(updatedCart);
@@ -199,7 +209,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
    * Recarga el carrito desde el servidor
    */
   const refreshCart = async () => {
-    if (token) {
+    if (isAuthenticated) {
       await loadServerCart();
     } else {
       const stored = localCartService.getCart();
@@ -211,17 +221,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
    * Obtiene el número total de items en el carrito
    */
   const getTotalItems = useCallback(() => {
-    if (token && cart) {
+    if (isAuthenticated && cart) {
       return (cart.items ?? []).reduce((total, item) => total + item.quantity, 0);
     }
     return (localCart.items ?? []).reduce((total, item) => total + item.quantity, 0);
-  }, [token, cart, localCart]);
+  }, [isAuthenticated, cart, localCart]);
 
   /**
    * Obtiene la cantidad de un producto específico en el carrito
    */
   const getItemQuantity = useCallback((productUuid: string): number => {
-    if (token && cart) {
+    if (isAuthenticated && cart) {
       // `item.product?.uuid`: defensa en profundidad. El backend ya no manda
       // renglones sin producto (ver `CartService.getCart`), pero backend y
       // frontend se despliegan por separado: contra uno viejo, un solo `null`
@@ -234,7 +244,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const item = localCart.items.find((item) => item.productUuid === productUuid);
     return item?.quantity || 0;
-  }, [token, cart, localCart]);
+  }, [isAuthenticated, cart, localCart]);
 
   return (
     <CartContext.Provider

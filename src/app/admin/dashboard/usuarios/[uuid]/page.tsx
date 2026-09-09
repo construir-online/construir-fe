@@ -1,5 +1,6 @@
 'use client';
 
+import { authService } from '@/services/auth';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -57,12 +58,16 @@ export default function EditUserPage() {
   });
 
   useEffect(() => {
-    // Load current logged-in user
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setCurrentUser(JSON.parse(userData));
-    }
+    // Del servidor, por lo mismo que en el listado: leerlo de
+    // `localStorage['user']` daba siempre `null`, así que la pantalla nunca
+    // reconocía que el administrador se estaba editando a sí mismo.
+    let vigente = true;
+    authService
+      .getProfile()
+      .then((perfil) => { if (vigente) setCurrentUser(perfil); })
+      .catch(() => { /* el layout ya manda a login si no hay sesión */ });
     loadUser();
+    return () => { vigente = false; };
   }, [uuid]);
 
   const loadUser = async () => {

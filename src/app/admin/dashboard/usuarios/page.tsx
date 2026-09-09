@@ -1,5 +1,6 @@
 'use client';
 
+import { authService } from '@/services/auth';
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -37,11 +38,17 @@ export default function UsersPage() {
   });
 
   useEffect(() => {
-    // Load current user from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setCurrentUser(JSON.parse(userData));
-    }
+    // Del servidor: `localStorage['user']` ya no lo escribe nadie, así que
+    // `currentUser` era siempre `null` y `isCurrentUser` siempre `false`. Al
+    // administrador le salían sobre su propia fila los botones de desactivar,
+    // cambiar rol y eliminar; el backend los rechaza con 403, pero el 403 le
+    // llegaba a la cara en inglés.
+    let vigente = true;
+    authService
+      .getProfile()
+      .then((perfil) => { if (vigente) setCurrentUser(perfil); })
+      .catch(() => { /* el layout ya manda a login si no hay sesión */ });
+    return () => { vigente = false; };
   }, []);
 
   useEffect(() => {

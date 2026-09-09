@@ -27,32 +27,10 @@ export const ordersService = {
     const formData = new FormData();
     formData.append('receipt', receipt);
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    const headers: HeadersInit = {};
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/orders/${orderUuid}/receipt`,
-      {
-        method: 'POST',
-        body: formData,
-        headers,
-      }
-    );
-
-    if (!response.ok) {
-      try {
-        const error = await response.json();
-        throw new Error(Array.isArray(error.message) ? error.message.join(', ') : error.message);
-      } catch {
-        throw new Error('Error uploading receipt');
-      }
-    }
-
-    return response.json();
+    // Pasa por `apiClient` como todo lo demás: este `fetch` suelto se armaba
+    // el `Authorization` leyendo el token de `localStorage`, y sin token ahí
+    // la subida del comprobante se quedaba sin sesión.
+    return apiClient.post<Order>(`/orders/${orderUuid}/receipt`, formData);
   },
 
   /**
@@ -174,24 +152,6 @@ export const ordersService = {
     if (filters?.startDate) params.append('startDate', filters.startDate);
     if (filters?.endDate) params.append('endDate', filters.endDate);
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    const headers: HeadersInit = {};
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/orders/admin/export/csv?${params.toString()}`,
-      {
-        headers,
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Error exporting orders');
-    }
-
-    return response.blob();
+    return apiClient.getBlob(`/orders/admin/export/csv?${params.toString()}`);
   },
 };

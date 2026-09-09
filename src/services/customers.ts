@@ -47,19 +47,6 @@ export const customersService = {
    * Export customers to CSV
    */
   async exportCustomersCSV(): Promise<Blob> {
-    const token = localStorage.getItem('token');
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-    const response = await fetch(`${apiUrl}/customers/export/csv`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Error downloading CSV');
-    }
-
-    return response.blob();
+    return apiClient.getBlob('/customers/export/csv');
   },
 };

@@ -38,7 +38,7 @@ function makeProduct(uuid: string): Product {
 const refreshCart = vi.fn();
 
 function mockCart(items: { productUuid: string; quantity: number }[]) {
-  vi.mocked(useAuth).mockReturnValue({ token: null } as ReturnType<typeof useAuth>);
+  vi.mocked(useAuth).mockReturnValue({ isAuthenticated: false } as ReturnType<typeof useAuth>);
   vi.mocked(useCart).mockReturnValue({
     cart: null,
     localCart: { items },

@@ -22,23 +22,12 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      // El backend contesta con `Set-Cookie: token=…; HttpOnly`. Acá no se
+      // guarda nada: antes este mismo bloque escribía el JWT en `localStorage`
+      // y en una cookie hecha con `document.cookie` —que por definición no
+      // puede ser `httpOnly`—, así que cualquier script de la página se
+      // llevaba la sesión del administrador.
       const response = await authService.login({ email, password });
-
-      // Store token in localStorage and cookie
-      localStorage.setItem('token', response.access_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-
-      // Set cookie for middleware with proper attributes for production
-      const isProduction = window.location.protocol === 'https:';
-      const cookieAttributes = [
-        `token=${response.access_token}`,
-        'path=/',
-        `max-age=${60 * 60 * 24 * 7}`, // 7 days
-        'SameSite=Lax',
-        isProduction ? 'Secure' : ''
-      ].filter(Boolean).join('; ');
-
-      document.cookie = cookieAttributes;
 
       // Smart redirect based on user role
       // ADMIN → /admin/dashboard
