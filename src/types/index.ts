@@ -581,7 +581,13 @@ export interface PaymentMethodEntity {
 export interface PaymentInfo {
   method: PaymentMethodEnum | PaymentMethodEntity;
   status: PaymentStatus;
-  receiptUrl?: string;
+  /**
+   * El backend ya no manda la URL del comprobante dentro de la orden: era una
+   * dirección pública y permanente del bucket, con la captura del pago -nombre,
+   * cédula, banco y número de cuenta del cliente- detrás. Ahora sólo dice si lo
+   * hay, y el enlace se pide aparte a `GET /orders/:uuid/receipt`, que caduca.
+   */
+  hasReceipt?: boolean;
   senderName?: string;
   senderBank?: string;
   verifiedAt?: string;

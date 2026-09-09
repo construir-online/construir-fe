@@ -129,9 +129,9 @@ export function PaymentCard({ order }: { order: Order }) {
           <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-sand-600">
             {t("paymentReceipt")}
           </span>
-          {paymentInfo.receiptUrl ? (
+          {paymentInfo.hasReceipt ? (
             <PaymentReceiptViewer
-              receiptUrl={paymentInfo.receiptUrl}
+              orderUuid={order.uuid}
               orderNumber={order.orderNumber}
               variant="thumbnail"
             />

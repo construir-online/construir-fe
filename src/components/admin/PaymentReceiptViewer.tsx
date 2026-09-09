@@ -1,10 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { X, Download, ExternalLink, FileText, ZoomIn, ZoomOut, Image as ImageIcon } from 'lucide-react';
+import { ordersService } from '@/services/orders';
 
 interface PaymentReceiptViewerProps {
-  receiptUrl: string;
+  /**
+   * Ya no se recibe la URL del comprobante, sino el uuid de la orden.
+   *
+   * La URL venía dentro de la orden, apuntaba directo al bucket y era pública y
+   * permanente: cualquiera que la tuviera veía la captura del pago con el
+   * nombre, la cédula, el banco y el número de cuenta del cliente. Ahora el
+   * enlace se pide a `GET /orders/:uuid/receipt`, que comprueba quién pregunta
+   * y devuelve algo que caduca en minutos — por eso se pide aquí y no se
+   * guarda en ningún sitio.
+   */
+  orderUuid: string;
   orderNumber: string;
   /**
    * `full` es la vista previa grande con sus botones (detalle público).
@@ -15,42 +26,109 @@ interface PaymentReceiptViewerProps {
   variant?: 'full' | 'thumbnail';
 }
 
-function getProxiedUrl(url: string): string {
-  if (url.startsWith('http')) {
-    return `/api/image-proxy?url=${encodeURIComponent(url)}`;
-  }
-  return url;
-}
-
 export function PaymentReceiptViewer({
-  receiptUrl,
+  orderUuid,
   orderNumber,
   variant = 'full',
 }: PaymentReceiptViewerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
-  const [imageError, setImageError] = useState(false);
+  const [receipt, setReceipt] = useState<{ url: string; expiresIn: number } | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
 
-  const isPDF = receiptUrl.toLowerCase().endsWith('.pdf');
-  const proxiedUrl = getProxiedUrl(receiptUrl);
+  const receiptUrl = receipt?.url ?? null;
+
+  // El enlace firmado caduca, así que se vuelve a pedir al abrir el modal: si
+  // el admin dejó el detalle abierto media hora, el que ya tenía no sirve.
+  const loadReceiptUrl = useCallback(async () => {
+    try {
+      const firmado = await ordersService.getReceiptUrl(orderUuid);
+      setReceipt(firmado);
+      setError(null);
+      return firmado;
+    } catch {
+      setReceipt(null);
+      setError('No se pudo cargar el comprobante');
+      return null;
+    }
+  }, [orderUuid]);
+
+  useEffect(() => {
+    void loadReceiptUrl();
+  }, [loadReceiptUrl]);
+
+  // Renovar el enlace ANTES de que caduque.
+  //
+  // Sin esto, un admin que deja el detalle o el modal abierto más de los
+  // minutos que dura la firma se encontraba con el icono de imagen rota en
+  // cuanto el navegador volvía a pedir el fichero y S3 respondía AccessDenied.
+  // `expiresIn` lo manda el backend justamente para no tener que adivinarlo
+  // aquí; se renueva con medio minuto de margen.
+  useEffect(() => {
+    if (!receipt) return;
+
+    const margen = 30;
+    const ms = Math.max(receipt.expiresIn - margen, margen) * 1000;
+    const temporizador = setTimeout(() => void loadReceiptUrl(), ms);
+
+    return () => clearTimeout(temporizador);
+  }, [receipt, loadReceiptUrl]);
+
+  // Que la imagen falle deja el enlace por inservible: hay que soltarlo, o el
+  // componente sigue creyendo que tiene uno bueno y el aviso de error no se
+  // pinta nunca — que es lo que pasaba.
+  const onImageError = () => {
+    setReceipt(null);
+    setError('No se pudo cargar el comprobante');
+  };
+
+  const openModal = async () => {
+    await loadReceiptUrl();
+    setIsModalOpen(true);
+  };
+
+  // El nombre del objeto sigue en la ruta de la URL firmada, antes de la firma.
+  const isPDF = (receiptUrl?.split('?')[0] ?? '').toLowerCase().endsWith('.pdf');
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(receiptUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `comprobante-${orderNumber}.${isPDF ? 'pdf' : 'jpg'}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading receipt:', error);
-      alert('Error al descargar el comprobante');
+      // Se pide un enlace aparte con `Content-Disposition: attachment`: la
+      // descarga la resuelve S3 con el nombre correcto, sin proxear el fichero
+      // por el frontend ni pelear con CORS.
+      const { url } = await ordersService.getReceiptUrl(orderUuid, {
+        download: true,
+      });
+      window.location.href = url;
+    } catch {
+      setError('No se pudo descargar el comprobante');
     }
   };
+
+  const previewFallback = (className: string) => (
+    <div className={className}>
+      {error ? (
+        <>
+          <ImageIcon className="mb-2 h-7 w-7 text-sand-500" strokeWidth={1.8} />
+          <span className="text-[11px] font-semibold">{error}</span>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              void loadReceiptUrl();
+            }}
+            className="mt-1 cursor-pointer text-[11px] font-bold text-brand-600 underline"
+          >
+            Reintentar
+          </span>
+        </>
+      ) : (
+        <span className="text-[11px] font-semibold">Cargando…</span>
+      )}
+    </div>
+  );
 
   return (
     <div>
@@ -58,19 +136,23 @@ export function PaymentReceiptViewer({
       {variant === 'thumbnail' ? (
         <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={openModal}
           title={`Comprobante de pago — orden ${orderNumber}`}
           className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl border border-sand-300 bg-sand-100 transition-colors hover:border-brand-300"
         >
-          {isPDF || imageError ? (
+          {!receiptUrl ? (
+            previewFallback(
+              'flex h-full w-full flex-col items-center justify-center px-2 text-center text-sand-600',
+            )
+          ) : isPDF ? (
             <FileText className="h-7 w-7 text-sand-500" strokeWidth={1.8} />
           ) : (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={proxiedUrl}
+              src={receiptUrl}
               alt="Comprobante de pago"
               className="h-full w-full object-cover"
-              onError={() => setImageError(true)}
+              onError={onImageError}
             />
           )}
           <span className="absolute inset-x-0 bottom-0 bg-white/90 py-1.5 text-[11px] font-bold text-brand-600">
@@ -80,40 +162,31 @@ export function PaymentReceiptViewer({
       ) : (
       <div className="space-y-3">
         <div className="relative group border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-          {isPDF ? (
+          {!receiptUrl ? (
+            previewFallback(
+              'flex min-h-[300px] flex-col items-center justify-center p-12 text-center text-gray-600',
+            )
+          ) : isPDF ? (
             <div
               className="p-12 text-center cursor-pointer hover:bg-gray-100 transition-colors"
-              onClick={() => setIsModalOpen(true)}
+              onClick={openModal}
             >
               <div className="text-6xl mb-3">📄</div>
               <p className="text-sm font-medium text-gray-700 mb-1">Comprobante PDF</p>
               <p className="text-xs text-gray-500">Click para ver en pantalla completa</p>
             </div>
-          ) : imageError ? (
-            <div className="p-12 text-center">
-              <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-sm text-gray-600 mb-2">No se pudo cargar la imagen</p>
-              <a
-                href={receiptUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
-              >
-                Abrir en nueva pestaña
-              </a>
-            </div>
           ) : (
             <div
               className="relative cursor-pointer p-4 flex items-center justify-center min-h-[300px]"
-              onClick={() => setIsModalOpen(true)}
+              onClick={openModal}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={proxiedUrl}
+                src={receiptUrl}
                 alt="Comprobante de pago"
                 className="max-w-full h-auto object-contain"
                 style={{ maxHeight: '300px' }}
-                onError={() => setImageError(true)}
+                onError={onImageError}
               />
 
               {/* Overlay on hover */}
@@ -128,7 +201,7 @@ export function PaymentReceiptViewer({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModal}
             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
           >
             <ExternalLink className="w-4 h-4" />
@@ -196,7 +269,20 @@ export function PaymentReceiptViewer({
 
             {/* Content */}
             <div className="flex-1 overflow-auto flex items-center justify-center">
-              {isPDF ? (
+              {!receiptUrl ? (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-white text-sm">{error ?? 'Cargando…'}</p>
+                  {error && (
+                    <button
+                      type="button"
+                      onClick={() => void loadReceiptUrl()}
+                      className="rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30"
+                    >
+                      Reintentar
+                    </button>
+                  )}
+                </div>
+              ) : isPDF ? (
                 <iframe
                   src={receiptUrl}
                   className="w-full h-full bg-white rounded-lg"
@@ -206,7 +292,7 @@ export function PaymentReceiptViewer({
                 <div style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={proxiedUrl}
+                    src={receiptUrl}
                     alt="Comprobante de pago"
                     className="max-w-full max-h-full object-contain"
                   />

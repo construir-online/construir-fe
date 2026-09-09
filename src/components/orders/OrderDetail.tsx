@@ -196,11 +196,11 @@ export function OrderDetail({
                         }}
                       />
                     )}
-                    {paymentInfo.receiptUrl && (
+                    {paymentInfo.hasReceipt && (
                       <div>
                         <p className="text-sm text-sand-600 mb-2">{t("paymentReceipt")}</p>
                         <PaymentReceiptViewer
-                          receiptUrl={paymentInfo.receiptUrl}
+                          orderUuid={order.uuid}
                           orderNumber={order.orderNumber}
                         />
                       </div>
