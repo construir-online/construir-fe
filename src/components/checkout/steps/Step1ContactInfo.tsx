@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import type { CheckoutData } from '@/types';
 import { IdentificationType } from '@/types';
+import { esTelefonoMovilVE } from '@/lib/venezuela';
 
 /** El paso de contacto son dos pantallas: primero la cédula, luego el resto de datos. */
 export type ContactSubStep = 'identification' | 'details';
@@ -189,11 +190,32 @@ export default function Step1ContactInfo({
 
         <div>
           <label className={LABEL_CLASS}>{t('phone')} *</label>
-          <input type="tel" {...register('phone', { required: true })} className={FIELD_CLASS} />
-          {errors.phone && (
+          <input
+            type="tel"
+            inputMode="tel"
+            // Misma regla que el registro (`@/lib/venezuela`), no una copia con
+            // otro criterio: el teléfono es por donde el despachador coordina
+            // la entrega, y hasta ahora se aceptaba cualquier cosa escrita ahí.
+            {...register('phone', { required: true, validate: esTelefonoMovilVE })}
+            placeholder="0412-1234567"
+            className={FIELD_CLASS}
+          />
+          {errors.phone ? (
             <span className="text-danger-500 text-xs mt-1">
-              {t('errors.fieldRequired', { defaultValue: 'Este campo es requerido' })}
+              {errors.phone.type === 'required'
+                ? t('errors.fieldRequired', { defaultValue: 'Este campo es requerido' })
+                : t('errors.phoneInvalid', {
+                    defaultValue:
+                      'Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.',
+                  })}
             </span>
+          ) : (
+            <p className="mt-1.5 text-[11px] font-medium text-sand-600">
+              {t('errors.phoneInvalid', {
+                defaultValue:
+                  'Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.',
+              })}
+            </p>
           )}
         </div>
 

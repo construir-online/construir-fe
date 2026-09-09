@@ -14,6 +14,7 @@ import { discountsService } from "@/services/discounts";
 import { guestCustomersService } from "@/services/guest-customers";
 import { exchangeRateService } from "@/services/exchangeRate";
 import { formatVES, formatUSD } from "@/lib/currency";
+import { esIdentificacionValidaVE, esTelefonoMovilVE } from "@/lib/venezuela";
 
 import CheckoutStepper from "@/components/checkout/CheckoutStepper";
 import Step1ContactInfo, {
@@ -340,10 +341,24 @@ export default function CheckoutPage() {
     // Validar el paso actual antes de avanzar
     if (isOnIdentification) {
       // La cédula solo abre la pantalla de datos; el autocompletado es un extra
-      if (identificationNumber.trim().length < 7) {
+      if (!identificationNumber.trim()) {
         toast.error(
           t("errors.completeIdentification", {
             defaultValue: "Ingresa tu cédula o RIF para continuar",
+          }),
+        );
+        return;
+      }
+
+      // Misma regla que el registro (`@/lib/venezuela`), no una copia con otro
+      // criterio: antes bastaba con siete caracteres cualesquiera, así que una
+      // cédula de tres dígitos o con letras pasaba y el recibo salía con una
+      // identificación que no existe. Un RIF (J, G) o un pasaporte (P) siguen
+      // aceptándose como antes: tienen otras reglas.
+      if (!esIdentificacionValidaVE(identificationType, identificationNumber)) {
+        toast.error(
+          t("errors.identificationInvalid", {
+            defaultValue: "La cédula debe tener 7 u 8 dígitos.",
           }),
         );
         return;
@@ -371,6 +386,18 @@ export default function CheckoutPage() {
         toast.error(
           t("errors.completeContact", {
             defaultValue: "Por favor completa todos los campos de contacto",
+          }),
+        );
+        return;
+      }
+
+      // El teléfono es por donde el despachador coordina la entrega: si no es
+      // un móvil venezolano no sirve, y hasta ahora se aceptaba cualquier cosa.
+      if (!esTelefonoMovilVE(phone)) {
+        toast.error(
+          t("errors.phoneInvalid", {
+            defaultValue:
+              "Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.",
           }),
         );
         return;
