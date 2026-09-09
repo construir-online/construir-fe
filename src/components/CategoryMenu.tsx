@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { categoriesService } from '@/services/categories';
 import type { Category } from '@/types';
+import { buildCategoryHref } from '@/lib/product-list-params';
 import { ChevronDown, ChevronRight, Grid } from 'lucide-react';
 
 export function CategoryMenu() {
@@ -14,7 +15,18 @@ export function CategoryMenu() {
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const currentCategory = searchParams.get('categoria');
+
+  /*
+   * Cambiar de categoría conservaba sólo la categoría: la búsqueda y el orden
+   * se perdían porque el enlace era `/productos?categoria=X` a pelo. Los
+   * filtros del listado sólo se arrastran cuando ya se está EN el listado; en
+   * la barra lateral de otras pantallas los query params son de esa otra
+   * pantalla y no tienen nada que ver con el catálogo.
+   */
+  const hrefDeCategoria = (uuid: string | null) =>
+    buildCategoryHref(uuid, pathname === '/productos' ? searchParams : undefined);
 
   useEffect(() => {
     loadCategories();
@@ -107,7 +119,7 @@ export function CategoryMenu() {
       <nav className={`p-2 ${isMenuOpen ? 'block' : 'hidden'} md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-contain lg:block`}>
         {/* All Products Link */}
         <Link
-          href="/productos"
+          href={hrefDeCategoria(null)}
           onClick={() => setIsMenuOpen(false)}
           className={`flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm transition-colors ${
             !currentCategory
@@ -149,7 +161,7 @@ export function CategoryMenu() {
                     </button>
                   )}
                   <Link
-                    href={`/productos?categoria=${category.uuid}`}
+                    href={hrefDeCategoria(category.uuid)}
                     onClick={() => setIsMenuOpen(false)}
                     /* min-w-0 + break-words: los nombres largos en mayúsculas
                        desbordaban la columna de 256px del escritorio. */
@@ -178,7 +190,7 @@ export function CategoryMenu() {
                       return (
                         <Link
                           key={child.uuid}
-                          href={`/productos?categoria=${child.uuid}`}
+                          href={hrefDeCategoria(child.uuid)}
                           onClick={() => setIsMenuOpen(false)}
                           className={`flex min-h-11 min-w-0 items-center break-words rounded-xl px-3 py-1.5 text-sm transition-colors ${
                             isChildActive
