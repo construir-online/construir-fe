@@ -33,18 +33,23 @@ export function PaymentReceiptViewer({
 }: PaymentReceiptViewerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
-  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<{ url: string; expiresIn: number } | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
+
+  const receiptUrl = receipt?.url ?? null;
 
   // El enlace firmado caduca, así que se vuelve a pedir al abrir el modal: si
   // el admin dejó el detalle abierto media hora, el que ya tenía no sirve.
   const loadReceiptUrl = useCallback(async () => {
     try {
-      const { url } = await ordersService.getReceiptUrl(orderUuid);
-      setReceiptUrl(url);
+      const firmado = await ordersService.getReceiptUrl(orderUuid);
+      setReceipt(firmado);
       setError(null);
-      return url;
+      return firmado;
     } catch {
+      setReceipt(null);
       setError('No se pudo cargar el comprobante');
       return null;
     }
@@ -53,6 +58,31 @@ export function PaymentReceiptViewer({
   useEffect(() => {
     void loadReceiptUrl();
   }, [loadReceiptUrl]);
+
+  // Renovar el enlace ANTES de que caduque.
+  //
+  // Sin esto, un admin que deja el detalle o el modal abierto más de los
+  // minutos que dura la firma se encontraba con el icono de imagen rota en
+  // cuanto el navegador volvía a pedir el fichero y S3 respondía AccessDenied.
+  // `expiresIn` lo manda el backend justamente para no tener que adivinarlo
+  // aquí; se renueva con medio minuto de margen.
+  useEffect(() => {
+    if (!receipt) return;
+
+    const margen = 30;
+    const ms = Math.max(receipt.expiresIn - margen, margen) * 1000;
+    const temporizador = setTimeout(() => void loadReceiptUrl(), ms);
+
+    return () => clearTimeout(temporizador);
+  }, [receipt, loadReceiptUrl]);
+
+  // Que la imagen falle deja el enlace por inservible: hay que soltarlo, o el
+  // componente sigue creyendo que tiene uno bueno y el aviso de error no se
+  // pinta nunca — que es lo que pasaba.
+  const onImageError = () => {
+    setReceipt(null);
+    setError('No se pudo cargar el comprobante');
+  };
 
   const openModal = async () => {
     await loadReceiptUrl();
@@ -82,6 +112,17 @@ export function PaymentReceiptViewer({
         <>
           <ImageIcon className="mb-2 h-7 w-7 text-sand-500" strokeWidth={1.8} />
           <span className="text-[11px] font-semibold">{error}</span>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              void loadReceiptUrl();
+            }}
+            className="mt-1 cursor-pointer text-[11px] font-bold text-brand-600 underline"
+          >
+            Reintentar
+          </span>
         </>
       ) : (
         <span className="text-[11px] font-semibold">Cargando…</span>
@@ -111,7 +152,7 @@ export function PaymentReceiptViewer({
               src={receiptUrl}
               alt="Comprobante de pago"
               className="h-full w-full object-cover"
-              onError={() => setError('No se pudo cargar el comprobante')}
+              onError={onImageError}
             />
           )}
           <span className="absolute inset-x-0 bottom-0 bg-white/90 py-1.5 text-[11px] font-bold text-brand-600">
@@ -145,7 +186,7 @@ export function PaymentReceiptViewer({
                 alt="Comprobante de pago"
                 className="max-w-full h-auto object-contain"
                 style={{ maxHeight: '300px' }}
-                onError={() => setError('No se pudo cargar el comprobante')}
+                onError={onImageError}
               />
 
               {/* Overlay on hover */}
@@ -229,7 +270,18 @@ export function PaymentReceiptViewer({
             {/* Content */}
             <div className="flex-1 overflow-auto flex items-center justify-center">
               {!receiptUrl ? (
-                <p className="text-white text-sm">{error ?? 'Cargando…'}</p>
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-white text-sm">{error ?? 'Cargando…'}</p>
+                  {error && (
+                    <button
+                      type="button"
+                      onClick={() => void loadReceiptUrl()}
+                      className="rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30"
+                    >
+                      Reintentar
+                    </button>
+                  )}
+                </div>
               ) : isPDF ? (
                 <iframe
                   src={receiptUrl}

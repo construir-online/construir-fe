@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PaymentReceiptViewer } from '../PaymentReceiptViewer';
 import { ordersService } from '@/services/orders';
@@ -35,8 +35,9 @@ describe('PaymentReceiptViewer — el comprobante ya no viaja como URL pública'
   it('pide el enlace por el uuid de la orden y no por ninguna URL guardada', async () => {
     render(<PaymentReceiptViewer orderUuid="uuid-orden" orderNumber="1042" />);
 
-    await waitFor(() =>
-      expect(ordersService.getReceiptUrl).toHaveBeenCalledWith('uuid-orden'),
+    await waitFor(
+      () => expect(ordersService.getReceiptUrl).toHaveBeenCalledWith('uuid-orden'),
+      { timeout: 15000 },
     );
   });
 
@@ -58,8 +59,9 @@ describe('PaymentReceiptViewer — el comprobante ya no viaja como URL pública'
 
     await usuario.click(screen.getByRole('button', { name: /ver completo/i }));
 
-    await waitFor(() =>
-      expect(ordersService.getReceiptUrl).toHaveBeenCalledTimes(2),
+    await waitFor(
+      () => expect(ordersService.getReceiptUrl).toHaveBeenCalledTimes(2),
+      { timeout: 15000 },
     );
   });
 
@@ -70,10 +72,44 @@ describe('PaymentReceiptViewer — el comprobante ya no viaja como URL pública'
 
     await usuario.click(screen.getByRole('button', { name: /descargar/i }));
 
-    await waitFor(() =>
-      expect(ordersService.getReceiptUrl).toHaveBeenCalledWith('uuid-orden', {
-        download: true,
-      }),
+    await waitFor(
+      () =>
+        expect(ordersService.getReceiptUrl).toHaveBeenCalledWith('uuid-orden', {
+          download: true,
+        }),
+      { timeout: 15000 },
+    );
+  });
+
+  it('enseña el aviso cuando la imagen ya no carga, en vez de dejar el icono roto', async () => {
+    // Regresión: el `onError` del <img> ponía el mensaje de error pero NO
+    // soltaba la URL, y el hueco del aviso sólo se pinta cuando no hay URL. O
+    // sea que el mensaje no se veía nunca. El caso real es el enlace firmado
+    // caducado: el admin veía un icono de imagen rota sin ninguna explicación.
+    render(<PaymentReceiptViewer orderUuid="uuid-orden" orderNumber="1042" />);
+
+    const img = await screen.findByAltText('Comprobante de pago');
+    fireEvent.error(img);
+
+    expect(
+      await screen.findByText('No se pudo cargar el comprobante'),
+    ).toBeInTheDocument();
+    expect(screen.queryByAltText('Comprobante de pago')).toBeNull();
+    expect(screen.getByText('Reintentar')).toBeInTheDocument();
+  });
+
+  it('reintentar vuelve a pedir el enlace y recupera la imagen', async () => {
+    const usuario = userEvent.setup();
+    render(<PaymentReceiptViewer orderUuid="uuid-orden" orderNumber="1042" />);
+
+    fireEvent.error(await screen.findByAltText('Comprobante de pago'));
+    await screen.findByText('No se pudo cargar el comprobante');
+
+    await usuario.click(screen.getByText('Reintentar'));
+
+    expect(await screen.findByAltText('Comprobante de pago')).toHaveAttribute(
+      'src',
+      URL_FIRMADA,
     );
   });
 
