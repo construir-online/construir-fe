@@ -2,6 +2,47 @@ import type { ApiError } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
+/**
+ * `code` del error que se lanza cuando la API no contesta a tiempo.
+ *
+ * Va por `code` y no por el texto del mensaje por lo mismo que los errores de
+ * `/auth/login`: el texto se reescribe sin avisar, el `code` no.
+ */
+export const TIMEOUT = "TIMEOUT";
+
+/**
+ * Cuánto se espera a la API antes de dar la petición por perdida.
+ *
+ * Sin esto, si el backend acepta la conexión pero no responde nunca —proceso
+ * colgado, pool de conexiones agotado, un `await` que no vuelve— `fetch` no
+ * corta jamás y la pantalla se queda cargando para siempre: el formulario de
+ * contacto con el botón inhabilitado, el checkout sin decir si el pedido entró.
+ * Un error es peor que un acierto, pero muchísimo mejor que un giro infinito.
+ *
+ * 20 segundos es holgado a propósito. La mayoría de las respuestas están muy
+ * por debajo, pero el alta de un pedido escribe en la base y encima manda
+ * correos, y buena parte de los clientes entran desde un móvil con una conexión
+ * mala. Cortar a 5 o 10 segundos convertiría una compra lenta pero buena en un
+ * error, que es justo el fallo caro: el cliente reintenta y se duplica el
+ * pedido. Aquí sólo se quiere atrapar el caso de "esto no va a contestar nunca".
+ */
+const TIEMPO_MAXIMO_MS = 20_000;
+
+/**
+ * Las descargas del panel (las exportaciones a CSV) se miden en otra escala:
+ * el servidor arma el archivo entero antes de mandar nada, y el listado de
+ * pedidos crece. Un minuto es tolerable para un administrador que acaba de
+ * pulsar "exportar" y ve el navegador trabajando.
+ */
+const TIEMPO_MAXIMO_DESCARGA_MS = 60_000;
+
+type ErrorDeApi = Error & { statusCode?: number; code?: string };
+
+/** `true` si el fallo es "la API no contestó a tiempo". */
+export function isTimeout(err: unknown): boolean {
+  return (err as ErrorDeApi | undefined)?.code === TIMEOUT;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -21,10 +62,13 @@ class ApiClient {
    * Va en `include` y no en el `same-origin` por defecto porque la API está en
    * otro puerto (y en producción en otro subdominio), así que para `fetch` es
    * una petición cruzada aunque para la cookie sea el mismo sitio.
+   *
+   * Y corta por tiempo con un `AbortController`: ver `TIEMPO_MAXIMO_MS`.
    */
   private async peticion(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    tiempoMaximoMs: number = TIEMPO_MAXIMO_MS
   ): Promise<Response> {
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>),
@@ -35,11 +79,57 @@ class ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
-    return fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers,
-      credentials: "include",
-    });
+    const controlador = new AbortController();
+    // Hay que anotar quién abortó. Cuando salta el reloj y cuando quien llama
+    // cancela a mano, `fetch` lanza exactamente el mismo `AbortError`, y no son
+    // lo mismo: una cancelación pedida no es un fallo que haya que enseñarle a
+    // nadie.
+    let vencido = false;
+    const reloj = setTimeout(() => {
+      vencido = true;
+      controlador.abort();
+    }, tiempoMaximoMs);
+
+    // Si quien llama trajo su propia señal, se respeta: se encadena a la
+    // nuestra en vez de descartarla.
+    const señalExterna = options.signal;
+    const propagarCancelacion = () => controlador.abort();
+    señalExterna?.addEventListener("abort", propagarCancelacion);
+
+    try {
+      return await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        headers,
+        credentials: "include",
+        signal: controlador.signal,
+      });
+    } catch (err) {
+      if (vencido) {
+        throw this.tiempoAgotado();
+      }
+      throw err;
+    } finally {
+      clearTimeout(reloj);
+      señalExterna?.removeEventListener("abort", propagarCancelacion);
+    }
+  }
+
+  /**
+   * El error de "no contestó a tiempo".
+   *
+   * Deliberadamente SIN `statusCode`, igual que un fallo de red: no hubo
+   * respuesta del servidor, así que no hay estado que poner y fingir uno
+   * (un 408, por ejemplo) haría que el clasificador de `auth-errors` lo tomara
+   * por un rechazo del backend. Lo que lo separa de "no hay conexión" es el
+   * `code`, que es el mecanismo que ya usa el resto de la aplicación; quien
+   * necesite distinguirlo tiene `isTimeout()`.
+   */
+  private tiempoAgotado(): ErrorDeApi {
+    const error = new Error(
+      "La solicitud tardó demasiado y se canceló"
+    ) as ErrorDeApi;
+    error.code = TIMEOUT;
+    return error;
   }
 
   /** Convierte una respuesta con error en el `Error` enriquecido de siempre. */
@@ -103,7 +193,11 @@ class ApiClient {
    * quedaban sin sesión y la descarga devolvía 401.
    */
   async getBlob(endpoint: string): Promise<Blob> {
-    const response = await this.peticion(endpoint, { method: "GET" });
+    const response = await this.peticion(
+      endpoint,
+      { method: "GET" },
+      TIEMPO_MAXIMO_DESCARGA_MS
+    );
 
     if (!response.ok) {
       throw await this.fallo(response);
