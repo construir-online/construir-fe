@@ -31,6 +31,12 @@ interface Step1ContactInfoProps {
   /** Vuelve a la pantalla de identificación desde el aviso de autocompletado. */
   onChangeIdentification?: () => void;
   createAccount: boolean;
+  /**
+   * El borrador restaurado quería crear cuenta pero la contraseña no se
+   * guarda: hay que decir por qué el campo está vacío en vez de dejar que el
+   * cliente descubra el problema al enviar.
+   */
+  pedirContrasenaDeNuevo?: boolean;
 }
 
 export default function Step1ContactInfo({
@@ -47,15 +53,26 @@ export default function Step1ContactInfo({
   autofilledOrdersCount,
   onChangeIdentification,
   createAccount,
+  pedirContrasenaDeNuevo,
 }: Step1ContactInfoProps) {
   const t = useTranslations('checkout');
+
+  const campoTelefono = register('phone', {
+    required: true,
+    // Misma regla que el registro (`@/lib/venezuela`), no una copia con otro
+    // criterio: el teléfono es por donde el despachador coordina la entrega, y
+    // hasta hace poco se aceptaba cualquier cosa escrita ahí.
+    validate: esTelefonoMovilVE,
+  });
 
   // ── Pantalla 1: identificación ──
   if (subStep === 'identification') {
     return (
       <div className="flex flex-col gap-3.5">
         <h2 className="font-display text-[21px] font-bold leading-[1.2] text-ink">
-          {t('identificationHeadline', { defaultValue: 'Empecemos por tu cédula o RIF' })}
+          {t('identificationHeadline', {
+            defaultValue: 'Identifícate: cédula o RIF y teléfono',
+          })}
         </h2>
         <p className="text-[13.5px] font-medium leading-[1.5] text-sand-700">
           {t('identificationDescription', {
@@ -110,6 +127,53 @@ export default function Step1ContactInfo({
               className={FIELD_CLASS}
             />
           </div>
+        </div>
+
+        {/*
+          El teléfono se pide acá, junto a la cédula, porque es el segundo dato
+          con el que el backend decide si entrega la ficha del cliente. Antes
+          bastaba la cédula, y como las venezolanas son secuenciales cualquiera
+          podía recorrerlas y bajarse los datos de todos los compradores.
+
+          No le cuesta nada al cliente que vuelve: se lo sabe de memoria y lo
+          iba a escribir igual en la pantalla siguiente, que es este mismo
+          campo del formulario.
+        */}
+        <div>
+          <label className={LABEL_CLASS}>
+            {t('phone')} *
+          </label>
+          <input
+            type="tel"
+            inputMode="tel"
+            enterKeyHint="next"
+            {...campoTelefono}
+            // Se encadena en vez de reemplazar: el `onBlur` de react-hook-form
+            // es el que marca el campo como tocado y dispara su validación.
+            onBlur={(e) => {
+              void campoTelefono.onBlur(e);
+              onIdentificationBlur?.();
+            }}
+            placeholder="0412-1234567"
+            className={FIELD_CLASS}
+          />
+          {errors.phone ? (
+            <span className="text-danger-500 text-xs mt-1">
+              {errors.phone.type === 'required'
+                ? t('errors.fieldRequired', { defaultValue: 'Este campo es requerido' })
+                : t('errors.phoneInvalid', {
+                    defaultValue:
+                      'Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.',
+                  })}
+            </span>
+          ) : (
+            <p className="mt-1.5 text-[11px] font-medium text-sand-600">
+              {t('identificationPhoneHelp', {
+                defaultValue:
+                  'Con tu cédula y tu teléfono reconocemos tus compras anteriores.',
+              })}
+            </p>
+          )}
         </div>
 
         {isSearching && (
@@ -193,10 +257,7 @@ export default function Step1ContactInfo({
           <input
             type="tel"
             inputMode="tel"
-            // Misma regla que el registro (`@/lib/venezuela`), no una copia con
-            // otro criterio: el teléfono es por donde el despachador coordina
-            // la entrega, y hasta ahora se aceptaba cualquier cosa escrita ahí.
-            {...register('phone', { required: true, validate: esTelefonoMovilVE })}
+            {...campoTelefono}
             placeholder="0412-1234567"
             className={FIELD_CLASS}
           />
@@ -265,10 +326,22 @@ export default function Step1ContactInfo({
                 placeholder={t('passwordPlaceholder')}
                 className={FIELD_CLASS}
               />
-              {errors.password && (
+              {errors.password ? (
                 <span className="text-danger-500 text-xs mt-1">
                   {t('errors.passwordMin', { defaultValue: 'Mínimo 6 caracteres' })}
                 </span>
+              ) : (
+                pedirContrasenaDeNuevo && (
+                  // El borrador no guarda la contraseña: si no se dice, el
+                  // cliente vuelve, ve la casilla marcada y el campo vacío, y
+                  // no entiende por qué falla al enviar.
+                  <p className="mt-1.5 text-[11px] font-medium text-sand-600">
+                    {t('passwordNotSaved', {
+                      defaultValue:
+                        'Por seguridad no guardamos tu contraseña: vuelve a escribirla.',
+                    })}
+                  </p>
+                )
               )}
             </div>
           )}

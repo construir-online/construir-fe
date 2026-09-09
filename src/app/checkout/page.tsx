@@ -15,6 +15,11 @@ import { guestCustomersService } from "@/services/guest-customers";
 import { exchangeRateService } from "@/services/exchangeRate";
 import { formatVES, formatUSD } from "@/lib/currency";
 import { esIdentificacionValidaVE, esTelefonoMovilVE } from "@/lib/venezuela";
+import {
+  CLAVE_BORRADOR_CHECKOUT,
+  restaurarBorradorCheckout,
+  serializarBorradorCheckout,
+} from "@/lib/checkout-draft";
 
 import CheckoutStepper from "@/components/checkout/CheckoutStepper";
 import Step1ContactInfo, {
@@ -83,6 +88,13 @@ export default function CheckoutPage() {
     label: string;
     ordersCount: number;
   } | null>(null);
+  /**
+   * El borrador restaurado venía con "crear cuenta" marcado y la contraseña
+   * ya no se guarda, así que el campo aparece vacío. Sin decirlo, el cliente
+   * se encuentra un formulario que promete crear su cuenta y que falla al
+   * enviarlo sin explicar por qué.
+   */
+  const [pedirContrasenaDeNuevo, setPedirContrasenaDeNuevo] = useState(false);
 
   const toast = useToast();
 
@@ -167,43 +179,49 @@ export default function CheckoutPage() {
     currentStep > 0 ||
     ((!isAuthenticated || perfilIncompleto) && contactSubStep === "details");
 
-  const CHECKOUT_STORAGE_KEY = 'checkout_draft';
-
   // Restaurar datos guardados al montar
   useEffect(() => {
-    const saved = sessionStorage.getItem(CHECKOUT_STORAGE_KEY);
-    if (!saved) return;
-    try {
-      const data = JSON.parse(saved);
-      if (data.form) reset(data.form);
-      // Always start at step 1 so the user can review/modify data, even if it was previously saved
-      // Un borrador viejo puede traer un método que hoy está deshabilitado: se
-      // descarta y queda el manual, que es el valor inicial.
-      if (esMetodoHabilitado(data.locationMethod)) setLocationMethod(data.locationMethod);
-      if (data.identificationType) setIdentificationType(data.identificationType);
-      if (data.identificationNumber !== undefined) setIdentificationNumber(data.identificationNumber);
-      if (data.zellePayment) setZellePayment({ ...data.zellePayment, receipt: null });
-      if (data.pagomovilPayment) setPagomovilPayment({ ...data.pagomovilPayment, receipt: null });
-      if (data.transferenciaPayment) setTransferenciaPayment({ ...data.transferenciaPayment, receipt: null });
-    } catch {
-      sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
+    const restaurado = restaurarBorradorCheckout(
+      sessionStorage.getItem(CLAVE_BORRADOR_CHECKOUT),
+    );
+    if (!restaurado) {
+      sessionStorage.removeItem(CLAVE_BORRADOR_CHECKOUT);
+      return;
     }
+
+    const data = restaurado.estado;
+    // El borrador nunca trae contraseña: `restaurarBorradorCheckout` la vacía
+    // aunque venga escrita por la versión anterior del checkout, que sí la
+    // guardaba.
+    if (data.form) reset(data.form);
+    setPedirContrasenaDeNuevo(restaurado.pedirContrasenaDeNuevo);
+    // Always start at step 1 so the user can review/modify data, even if it was previously saved
+    // Un borrador viejo puede traer un método que hoy está deshabilitado: se
+    // descarta y queda el manual, que es el valor inicial.
+    if (esMetodoHabilitado(data.locationMethod)) setLocationMethod(data.locationMethod);
+    if (data.identificationType) setIdentificationType(data.identificationType);
+    if (data.identificationNumber !== undefined) setIdentificationNumber(data.identificationNumber);
+    if (data.zellePayment) setZellePayment({ ...data.zellePayment, receipt: null });
+    if (data.pagomovilPayment) setPagomovilPayment({ ...data.pagomovilPayment, receipt: null });
+    if (data.transferenciaPayment) setTransferenciaPayment({ ...data.transferenciaPayment, receipt: null });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persistir datos en sessionStorage cuando cambian
   const allFormValues = watch();
   useEffect(() => {
+    // Qué entra al borrador y qué no lo decide `serializarBorradorCheckout`:
+    // la contraseña se queda fuera, por la misma razón que los comprobantes.
     sessionStorage.setItem(
-      CHECKOUT_STORAGE_KEY,
-      JSON.stringify({
+      CLAVE_BORRADOR_CHECKOUT,
+      serializarBorradorCheckout({
         form: allFormValues,
         locationMethod,
         identificationType,
         identificationNumber,
-        zellePayment: { ...zellePayment, receipt: null },
-        pagomovilPayment: { ...pagomovilPayment, receipt: null },
-        transferenciaPayment: { ...transferenciaPayment, receipt: null },
+        zellePayment,
+        pagomovilPayment,
+        transferenciaPayment,
       }),
     );
   }, [allFormValues, currentStep, locationMethod, identificationType, identificationNumber, zellePayment, pagomovilPayment, transferenciaPayment]);
@@ -359,6 +377,31 @@ export default function CheckoutPage() {
         toast.error(
           t("errors.identificationInvalid", {
             defaultValue: "La cédula debe tener 7 u 8 dígitos.",
+          }),
+        );
+        return;
+      }
+
+      // El teléfono es el segundo dato con el que el backend decide si
+      // devuelve la ficha del cliente. Se pide acá, junto a la cédula, porque
+      // es lo que el comprador que vuelve sabe de memoria y porque lo iba a
+      // escribir igual en la pantalla siguiente: el autocompletado no pierde
+      // nada y la cédula deja de bastar para sacarle los datos a nadie.
+      const telefono = watch("phone");
+      if (!telefono?.trim()) {
+        toast.error(
+          t("errors.completePhone", {
+            defaultValue: "Ingresa tu teléfono para continuar",
+          }),
+        );
+        return;
+      }
+
+      if (!esTelefonoMovilVE(telefono)) {
+        toast.error(
+          t("errors.phoneInvalid", {
+            defaultValue:
+              "Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.",
           }),
         );
         return;
@@ -719,7 +762,9 @@ export default function CheckoutPage() {
     restore("firstName", "");
     restore("lastName", "");
     restore("email", "");
-    restore("phone", "");
+    // El teléfono NO se toca: desde que es el segundo dato de la búsqueda lo
+    // escribe el cliente en la primera pantalla, no lo pone el autocompletado.
+    // Revertirlo sería borrarle lo que acaba de teclear.
     restore("address", "");
     restore("city", "");
     restore("state", "");
@@ -735,17 +780,19 @@ export default function CheckoutPage() {
     // Un autocompletado reemplaza al anterior por completo.
     revertGuestData();
 
+    // El teléfono queda fuera a propósito: es lo que el cliente acaba de
+    // escribir para identificarse, así que ya está puesto y es suyo.
+    // Pisárselo con la forma exacta que hay en la base ("0414-1234567" contra
+    // "04141234567") sería cambiarle el campo delante de los ojos sin motivo.
     const applied: Partial<CheckoutData> = {
       firstName: guest.firstName,
       lastName: guest.lastName,
       email: guest.email,
-      phone: guest.phone,
     };
 
     setValue("firstName", guest.firstName);
     setValue("lastName", guest.lastName);
     setValue("email", guest.email);
-    setValue("phone", guest.phone);
 
     if (guest.address) {
       setValue("address", guest.address);
@@ -791,15 +838,26 @@ export default function CheckoutPage() {
   /**
    * Busca los datos del invitado y autocompleta el formulario si hay registro.
    *
-   * Se dispara al salir del campo de identificación, no en cada pulsación: el
-   * endpoint público admite 5 consultas por minuto. El aviso "Datos
-   * autocompletados · Cambiar" del paso siguiente deja revertirlo.
+   * Ya no basta la cédula: el backend exige también el teléfono, porque con la
+   * cédula sola —y son secuenciales— cualquiera podía recorrer números y
+   * bajarse la ficha de todos los clientes de la tienda. Por eso los dos
+   * campos se piden juntos en la primera pantalla y por eso no se consulta
+   * hasta tener ambos.
+   *
+   * Se dispara al salir de un campo, no en cada pulsación: el endpoint público
+   * admite 5 consultas por minuto. El aviso "Datos autocompletados · Cambiar"
+   * del paso siguiente deja revertirlo.
    */
   const handleIdentificationSearch = async () => {
     if (isAuthenticated) return;
     if (identificationNumber.length < 7) return;
 
-    const lookupKey = `${identificationType}|${identificationNumber}`;
+    // Sin teléfono la consulta no puede devolver nada: se ahorra la petición
+    // en vez de gastar una de las cinco del minuto.
+    const telefono = getValues("phone") || "";
+    if (!esTelefonoMovilVE(telefono)) return;
+
+    const lookupKey = `${identificationType}|${identificationNumber}|${telefono}`;
 
     // Ya consultada: se resuelve con lo cacheado, sin gastar otra petición.
     if (lookupCache.current.has(lookupKey)) {
@@ -813,6 +871,7 @@ export default function CheckoutPage() {
       const guestData = await guestCustomersService.searchByIdentification(
         identificationType,
         identificationNumber,
+        telefono,
       );
       lookupCache.current.set(lookupKey, guestData);
 
@@ -1036,7 +1095,7 @@ export default function CheckoutPage() {
       // quedar en el historial. Con push, el botón atrás del teléfono devolvía
       // al formulario con el carrito ya vacío.
       orderPlaced.current = true;
-      sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
+      sessionStorage.removeItem(CLAVE_BORRADOR_CHECKOUT);
       router.replace(`/checkout/confirmacion?method=${formData.paymentMethod}`);
     } catch (error) {
       console.error("Error processing checkout:", error);
@@ -1148,6 +1207,10 @@ export default function CheckoutPage() {
                     setContactSubStep("identification")
                   }
                   createAccount={createAccount || false}
+                  // El aviso deja de mostrarse en cuanto la escribe.
+                  pedirContrasenaDeNuevo={
+                    pedirContrasenaDeNuevo && !allFormValues.password
+                  }
                 />
               )}
 
