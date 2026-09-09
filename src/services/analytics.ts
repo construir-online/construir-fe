@@ -41,16 +41,16 @@ export interface PageViewDto {
   referrer?: string;
 }
 
-export interface PageViewStats {
-  path: string;
-  views: number;
-  uniqueVisitors: number;
-  averageTimeOnPage: number;
-  bounceRate: number;
-}
-
 /**
- * Analytics service for custom backend tracking
+ * Registro de visitas contra el backend propio.
+ *
+ * Sólo escribe. Aquí vivían además un `getPageViews` y un `PageViewStats` que
+ * no llamaba nadie: ninguna pantalla del panel consulta la analítica. Y no eran
+ * código muerto inofensivo, porque además mentían — `PageViewStats` describía
+ * `uniqueVisitors`, `averageTimeOnPage` y `bounceRate`, que el backend no
+ * calcula ni ha calculado nunca: sus dos lecturas devuelven totales por fecha y
+ * un ranking por `path`. Se borraron para que nadie construya encima de una
+ * forma inventada.
  */
 export const analyticsService = {
   /**
@@ -63,24 +63,5 @@ export const analyticsService = {
       console.error('Error tracking page view:', error);
       // Silently fail - analytics shouldn't block user experience
     }
-  },
-
-  /**
-   * Get page view statistics
-   */
-  async getPageViews(
-    startDate?: string,
-    endDate?: string,
-    limit?: number
-  ): Promise<PageViewStats[]> {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    if (limit) params.append('limit', limit.toString());
-
-    const query = params.toString();
-    return apiClient.get<PageViewStats[]>(
-      `/analytics/page-views${query ? `?${query}` : ''}`
-    );
-  },
+  }
 };
