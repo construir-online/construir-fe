@@ -20,6 +20,10 @@ async function verifyToken(token: string): Promise<string | null> {
 // Helper function to check if role can access route
 function canRoleAccessRoute(role: string, pathname: string): boolean {
   // Define protected routes for ADMIN only
+  // Tiene que estar acá TODA ruta de sólo-admin. Lo que falte de esta lista se
+  // atajaba únicamente desde el cliente —el layout mira el rol y redirige—, y
+  // eso no es una defensa: basta con desactivar el JavaScript, o llegar a la
+  // ruta antes de que el layout resuelva, para verla.
   const adminOnlyRoutes = [
     '/admin/dashboard/productos',
     '/admin/dashboard/categories',
@@ -27,6 +31,10 @@ function canRoleAccessRoute(role: string, pathname: string): boolean {
     '/admin/dashboard/clientes',
     '/admin/dashboard/cupones',
     '/admin/dashboard/api-keys',
+    '/admin/dashboard/usuarios',
+    '/admin/dashboard/api-logs',
+    '/admin/dashboard/audit-logs',
+    '/admin/dashboard/invitaciones',
   ];
 
   // ORDER_ADMIN can access orders and dashboard

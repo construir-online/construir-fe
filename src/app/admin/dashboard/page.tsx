@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { productsService } from '@/services/products';
+import { authService } from '@/services/auth';
 import { dashboardService, type DashboardStats } from '@/services/dashboard';
 import type { ProductStats, Product, User } from '@/types';
 import { DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
@@ -17,36 +18,57 @@ export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Load user from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-    loadData();
+    // El rol tiene que venir del servidor. Mientras se leyó de
+    // `localStorage['user']`, que ya nadie escribe, `currentUser` era SIEMPRE
+    // `null` y el gestor de pedidos caía en la rama de administrador: pedía las
+    // estadísticas de productos, recibía 403, y como iban en un `Promise.all`
+    // el rechazo se llevaba por delante también las de pedidos, que sí habían
+    // llegado con 200. Veía el panel vacío.
+    let vigente = true;
+
+    authService
+      .getProfile()
+      .then((perfil) => {
+        if (!vigente) return;
+        setUser(perfil);
+        return loadData(perfil.role);
+      })
+      .catch((error) => {
+        console.error('Error cargando el perfil del panel:', error);
+        if (vigente) setLoading(false);
+      });
+
+    return () => {
+      vigente = false;
+    };
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (role: User['role']) => {
     try {
       setLoading(true);
 
-      // Load user from localStorage to check role
-      const userData = localStorage.getItem('user');
-      const currentUser: User | null = userData ? JSON.parse(userData) : null;
-
-      if (currentUser?.role === 'order_admin') {
+      if (role === 'order_admin') {
         // ORDER_ADMIN only sees order stats (no product stats or low stock)
         const dashStats = await dashboardService.getDashboardStats();
         setDashboardStats(dashStats);
-      } else {
-        // ADMIN sees everything
-        const [statsData, lowStock, dashStats] = await Promise.all([
-          productsService.getStats(),
-          productsService.getLowStock(10),
-          dashboardService.getDashboardStats(),
-        ]);
-        setStats(statsData);
-        setLowStockProducts(lowStock);
-        setDashboardStats(dashStats);
+        return;
+      }
+
+      // `allSettled` y no `all`: con `all`, un solo 403 —o un endpoint caído—
+      // dejaba el panel entero en blanco y escondía los bloques que sí habían
+      // respondido. Cada bloque se pinta si su llamada llegó.
+      const [statsData, lowStock, dashStats] = await Promise.allSettled([
+        productsService.getStats(),
+        productsService.getLowStock(10),
+        dashboardService.getDashboardStats(),
+      ]);
+
+      if (statsData.status === 'fulfilled') setStats(statsData.value);
+      if (lowStock.status === 'fulfilled') setLowStockProducts(lowStock.value);
+      if (dashStats.status === 'fulfilled') setDashboardStats(dashStats.value);
+
+      for (const r of [statsData, lowStock, dashStats]) {
+        if (r.status === 'rejected') console.error('Error cargando un bloque del panel:', r.reason);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
