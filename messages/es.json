@@ -158,9 +158,7 @@
     "termsNotice": "Al registrarte aceptas nuestros",
     "termsLink": "términos y condiciones",
     "checkEmailTitle": "Revisa tu correo",
-    "checkEmailBody": "Te enviamos un enlace de verificación a {email}. Haz clic en el enlace para activar tu cuenta.",
-    "checkEmailSpam": "¿No lo ves? Revisa la carpeta de spam o {link} para reenviar el correo.",
-    "checkEmailSpamLink": "intenta iniciar sesión",
+    "checkEmailBody": "Enviamos un enlace de verificación a <email></email>. Ábrelo para activar tu cuenta.",
     "registerErrors": {
       "emailAlreadyRegistered": "Ya existe una cuenta con ese correo. Inicia sesión o usa otro correo.",
       "invalidEmail": "Escribe un correo electrónico válido.",
@@ -198,7 +196,51 @@
       "step3": "Ya puedes pedir con retiro en tienda o delivery"
     },
     "loginSubmit": "Entrar",
-    "passwordHelp": "Mínimo 6 caracteres."
+    "passwordHelp": "Mínimo 6 caracteres.",
+    "sending": "Enviando...",
+    "loading": "Cargando...",
+    "backToLogin": "Volver a ingresar",
+    "requestNewLink": "Solicitar un nuevo enlace",
+    "resendAvailableIn": "Reenviar enlace · disponible en {tiempo}",
+    "checkEmailHintsTitle": "Si no lo ves",
+    "checkEmailHint": {
+      "spam": "Revisa spam o correo no deseado.",
+      "expiry": "El enlace vence en 24 horas.",
+      "guest": "Mientras tanto puedes comprar como invitado."
+    },
+    "forgotTitle": "Recuperar contraseña",
+    "forgotIntro": "Escribe el correo de tu cuenta y te enviamos un enlace para crear una contraseña nueva.",
+    "forgotSubmit": "Enviar enlace",
+    "forgotSentBody": "Si existe una cuenta con ese correo, recibirás el enlace en unos minutos. Vence en 1 hora.",
+    "rememberedPassword": "¿Recordaste tu contraseña?",
+    "resetTitle": "Nueva contraseña",
+    "resetIntro": "Elige una contraseña segura para tu cuenta.",
+    "resetSubmit": "Guardar y entrar",
+    "resetting": "Guardando...",
+    "newPassword": "Contraseña nueva",
+    "resetInvalidTitle": "Enlace no válido o vencido",
+    "resetErrors": {
+      "tokenInvalid": "Este enlace ya no sirve: o venció, o ya se usó. Los enlaces sirven una sola vez — pide uno nuevo.",
+      "weakPassword": "La contraseña debe tener al menos 6 caracteres.",
+      "network": "No pudimos conectarnos con la tienda. Revisa tu conexión e inténtalo de nuevo.",
+      "unexpected": "No pudimos cambiar tu contraseña en este momento. Vuelve a intentarlo en unos minutos."
+    },
+    "verifyEmail": {
+      "loadingTitle": "Verificando tu cuenta...",
+      "loadingBody": "Espera un momento, por favor.",
+      "successTitle": "¡Cuenta activada!",
+      "successBody": "Verificamos tu correo. Ya puedes iniciar sesión.",
+      "alreadyTitle": "Tu correo ya está verificado",
+      "alreadyBody": "Este enlace ya se había usado, así que tu cuenta lleva rato activa. Puedes entrar cuando quieras.",
+      "expiredTitle": "El enlace venció",
+      "expiredBody": "Los enlaces de verificación duran 24 horas. Escribe tu correo y te mandamos uno nuevo.",
+      "invalidTitle": "Enlace no válido",
+      "invalidBody": "Este enlace no lo reconocemos. Revisa que lo hayas copiado completo, o pide uno nuevo con tu correo.",
+      "networkTitle": "No pudimos conectarnos",
+      "networkBody": "Revisa tu conexión y vuelve a abrir el enlace del correo.",
+      "unexpectedTitle": "No pudimos verificar tu cuenta",
+      "unexpectedBody": "Algo falló de nuestro lado. Vuelve a intentarlo en unos minutos."
+    }
   },
   "errors": {
     "generic": "Ocurrió un error. Intenta nuevamente.",

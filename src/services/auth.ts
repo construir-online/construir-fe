@@ -25,8 +25,17 @@ export const authService = {
     return apiClient.post<{ message: string }>("/auth/logout");
   },
 
-  async verifyEmail(token: string): Promise<{ message: string }> {
-    return apiClient.get<{ message: string }>(`/users/verify-email?token=${encodeURIComponent(token)}`);
+  /**
+   * `alreadyVerified` viene en true cuando el enlace ya se había usado. No es
+   * un error: la cuenta quedó activa igual, sólo cambia el texto. Opcional
+   * porque un backend anterior a ese cambio no lo manda.
+   */
+  async verifyEmail(
+    token: string,
+  ): Promise<{ message: string; alreadyVerified?: boolean }> {
+    return apiClient.get<{ message: string; alreadyVerified?: boolean }>(
+      `/users/verify-email?token=${encodeURIComponent(token)}`,
+    );
   },
 
   async resendVerification(email: string): Promise<{ message: string }> {

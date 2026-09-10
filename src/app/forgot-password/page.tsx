@@ -2,9 +2,12 @@
 
 import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { authService } from "@/services/auth";
+import { resetErrorKey } from "@/lib/password-reset-errors";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -18,8 +21,8 @@ export default function ForgotPasswordPage() {
     try {
       await authService.forgotPassword(email);
       setSubmitted(true);
-    } catch {
-      setError("Ocurrió un error. Intenta de nuevo.");
+    } catch (err: unknown) {
+      setError(t(`resetErrors.${resetErrorKey(err)}`));
     } finally {
       setLoading(false);
     }
@@ -29,11 +32,11 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-sand-50 flex items-start justify-center px-4 pt-10 pb-12 sm:items-center sm:py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="font-display text-[26px] font-bold tracking-tight text-ink">Recuperar contraseña</h1>
+          <h1 className="font-display text-[26px] font-bold tracking-tight text-ink">{t("forgotTitle")}</h1>
           <p className="mt-2 text-sm text-sand-600">
-            ¿Recordaste tu contraseña?{" "}
+            {t("rememberedPassword")}{" "}
             <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-500 transition-colors">
-              Inicia sesión
+              {t("loginHere")}
             </Link>
           </p>
         </div>
@@ -47,16 +50,16 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <div>
-                <p className="font-display text-base font-bold text-ink">Revisa tu correo</p>
+                <p className="font-display text-base font-bold text-ink">{t("checkEmailTitle")}</p>
                 <p className="mt-1 text-sm text-sand-600">
-                  Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.
+                  {t("forgotSentBody")}
                 </p>
               </div>
               <Link
                 href="/login"
                 className="inline-block mt-2 text-sm font-medium text-brand-600 hover:text-brand-500 transition-colors"
               >
-                Volver al inicio de sesión
+                {t("backToLogin")}
               </Link>
             </div>
           ) : (
@@ -71,13 +74,13 @@ export default function ForgotPasswordPage() {
               )}
 
               <p className="text-sm text-sand-700 mb-5">
-                Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                {t("forgotIntro")}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label htmlFor="email" className="mb-1.5 block text-[11.5px] font-bold text-sand-700">
-                    Correo electrónico
+                    {t("email")}
                   </label>
                   <input
                     id="email"
@@ -86,7 +89,7 @@ export default function ForgotPasswordPage() {
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="juan@ejemplo.com"
+                    placeholder={t("emailPlaceholder")}
                     className="block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
                   />
                 </div>
@@ -102,10 +105,10 @@ export default function ForgotPasswordPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      Enviando...
+                      {t("sending")}
                     </>
                   ) : (
-                    "Enviar instrucciones"
+                    t("forgotSubmit")
                   )}
                 </button>
               </form>
