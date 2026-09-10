@@ -158,9 +158,7 @@
     "termsNotice": "By signing up you accept our",
     "termsLink": "terms and conditions",
     "checkEmailTitle": "Check your email",
-    "checkEmailBody": "We sent a verification link to {email}. Click the link to activate your account.",
-    "checkEmailSpam": "Don't see it? Check your spam folder or {link} to resend the email.",
-    "checkEmailSpamLink": "try logging in",
+    "checkEmailBody": "We sent a verification link to <email></email>. Open it to activate your account.",
     "registerErrors": {
       "emailAlreadyRegistered": "An account with that email already exists. Log in or use a different email.",
       "invalidEmail": "Enter a valid email address.",
@@ -198,7 +196,51 @@
       "step3": "Start ordering with store pickup or delivery"
     },
     "loginSubmit": "Sign in",
-    "passwordHelp": "At least 6 characters."
+    "passwordHelp": "At least 6 characters.",
+    "sending": "Sending...",
+    "loading": "Loading...",
+    "backToLogin": "Back to sign in",
+    "requestNewLink": "Request a new link",
+    "resendAvailableIn": "Resend link · available in {tiempo}",
+    "checkEmailHintsTitle": "If you can't find it",
+    "checkEmailHint": {
+      "spam": "Check your spam or junk folder.",
+      "expiry": "The link expires in 24 hours.",
+      "guest": "In the meantime you can shop as a guest."
+    },
+    "forgotTitle": "Reset your password",
+    "forgotIntro": "Enter your account email and we'll send you a link to create a new password.",
+    "forgotSubmit": "Send link",
+    "forgotSentBody": "If an account exists with that email, you'll get the link within a few minutes. It expires in 1 hour.",
+    "rememberedPassword": "Remembered your password?",
+    "resetTitle": "New password",
+    "resetIntro": "Choose a secure password for your account.",
+    "resetSubmit": "Save and sign in",
+    "resetting": "Saving...",
+    "newPassword": "New password",
+    "resetInvalidTitle": "Link not valid or expired",
+    "resetErrors": {
+      "tokenInvalid": "This link no longer works: it either expired or was already used. Links work only once — request a new one.",
+      "weakPassword": "The password must be at least 6 characters.",
+      "network": "We couldn't reach the store. Check your connection and try again.",
+      "unexpected": "We couldn't change your password right now. Try again in a few minutes."
+    },
+    "verifyEmail": {
+      "loadingTitle": "Verifying your account...",
+      "loadingBody": "Just a moment, please.",
+      "successTitle": "Account activated!",
+      "successBody": "We verified your email. You can sign in now.",
+      "alreadyTitle": "Your email is already verified",
+      "alreadyBody": "This link had already been used, so your account has been active for a while. Sign in whenever you like.",
+      "expiredTitle": "The link expired",
+      "expiredBody": "Verification links last 24 hours. Enter your email and we'll send you a new one.",
+      "invalidTitle": "Link not valid",
+      "invalidBody": "We don't recognise this link. Check that you copied it in full, or request a new one with your email.",
+      "networkTitle": "We couldn't connect",
+      "networkBody": "Check your connection and open the link from your email again.",
+      "unexpectedTitle": "We couldn't verify your account",
+      "unexpectedBody": "Something failed on our side. Try again in a few minutes."
+    }
   },
   "errors": {
     "generic": "An error occurred. Please try again.",

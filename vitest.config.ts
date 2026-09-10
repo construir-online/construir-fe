@@ -20,7 +20,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       // Mock global de next-intl: evita que los tests necesiten NextIntlClientProvider
-      'next-intl': path.resolve(__dirname, './src/test/mocks/next-intl.ts'),
+      'next-intl': path.resolve(__dirname, './src/test/mocks/next-intl.tsx'),
     },
   },
 });
