@@ -26,10 +26,10 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-sand-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-sand-50 flex items-start justify-center px-4 pt-10 pb-12 sm:items-center sm:py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-ink tracking-tight">Recuperar contraseña</h1>
+          <h1 className="font-display text-[26px] font-bold tracking-tight text-ink">Recuperar contraseña</h1>
           <p className="mt-2 text-sm text-sand-600">
             ¿Recordaste tu contraseña?{" "}
             <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-500 transition-colors">
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-base font-medium text-ink">Revisa tu correo</p>
+                <p className="font-display text-base font-bold text-ink">Revisa tu correo</p>
                 <p className="mt-1 text-sm text-sand-600">
                   Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.
                 </p>
