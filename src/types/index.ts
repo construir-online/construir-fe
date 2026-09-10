@@ -74,8 +74,17 @@ export interface Category {
   slug: string;
   description?: string;
   image?: string;
-  order: number;
+  /**
+   * OJO: `GET /categories` NO devuelve este campo. Se manda al crear/editar
+   * (`CreateCategoryDto`) pero no vuelve en la respuesta, así que se declara
+   * opcional. Hoy no lo lee nadie; el orden del menú se resuelve en el backend.
+   */
+  order?: number;
   visible: boolean;
+  /** Viaja y no se usa todavía: marca la categoría raíz del menú. */
+  isMain?: boolean;
+  /** Clave del objeto en S3 de la imagen. Viaja; sólo la usa el panel. */
+  imageKey?: string | null;
   isFeatured: boolean;
   parent?: Category | null;
   childrens?: Category[];
@@ -137,10 +146,18 @@ export interface Product {
   inventory: number;
   price: string;
   priceVes: string | null;
+  /**
+   * Los cuatro llegan como CADENA de la API (columnas `numeric`), no como
+   * número. `productsService` los normaliza en el borde para que aquí la
+   * promesa sea cierta — ver `normalizarProducto`. `price` y `priceVes`, en
+   * cambio, se declaran `string` a propósito: así llegan y así se usan.
+   */
   iva: number;
   priceWithIva: number;
   ivaVes: number;
   priceWithIvaVes: number;
+  /** Alícuota aplicada (0 = general). Viaja siempre; aún no lo lee nadie. */
+  ivaType?: number;
   categories?: {
     uuid: string;
     name: string;
@@ -588,6 +605,17 @@ export interface PaymentInfo {
    * hay, y el enlace se pide aparte a `GET /orders/:uuid/receipt`, que caduca.
    */
   hasReceipt?: boolean;
+  /**
+   * PENDIENTE (rama aparte): hoy `hasReceipt` NO llega y `receiptKey` SÍ.
+   *
+   * `PaymentInfo` viene ANIDADO dentro de `Order`, y class-transformer sólo
+   * aplica los decoradores de una clase anidada si la propiedad lleva
+   * `@Type(() => PaymentInfo)`. Sin eso la trata como objeto plano, así que en
+   * `GET /orders` el `@Exclude()` de `receiptKey` se ignora —la clave del
+   * comprobante en S3 viaja— y el `@Expose()` de `hasReceipt` tampoco surte
+   * efecto. Es un problema de privacidad con alcance propio (afecta a todas las
+   * relaciones anidadas de la orden), no de este barrido de tipos.
+   */
   senderName?: string;
   senderBank?: string;
   verifiedAt?: string;
@@ -658,6 +686,13 @@ export interface Order {
   total: number;
   totalVes: number | null;
   exchangeRate: number | null;
+  /** Fecha de la tasa aplicada (`YYYY-MM-DD`), no la del pedido. */
+  exchangeRateDate?: string | null;
+  /**
+   * Unidades del pedido. Es un getter del backend: hasta que se le puso
+   * `@Expose()` no viajaba, y `ordersService` lo deriva de los renglones si
+   * falta. Ver `normalizarPedido`.
+   */
   totalItems: number;
   notes?: string;
   trackingNumber?: string;
@@ -679,10 +714,68 @@ export interface Order {
  * suplantarlo: no trae los datos del pago más allá del método y su estado, ni
  * la dirección, ni el perfil del comprador, ni las notas internas. Ver
  * `OrderTrackingDto` en el backend.
+ *
+ * # Por qué ya NO se declara como `Omit<Order, "paymentInfo">`
+ *
+ * Porque esa forma afirmaba tener todo lo que tiene `Order` menos un campo, y
+ * la respuesta real trae bastante menos: no viajan `uuid`, `userId`,
+ * `updatedAt`, `notes`, `trackingNumber`, `shippingAddress`, `shippingVes`,
+ * `discountCode`, `totalItems`, `guestCustomer` ni `user`. Ninguno rompía la
+ * pantalla porque los accesos estaban guardados con `&&`, pero el tipo mentía
+ * y —peor— HEREDABA cada mentira futura de `Order`: al derivarse con `Omit`,
+ * cualquier campo que se agregue allá aparece aquí como prometido sin que
+ * nadie lo haya comprobado contra el DTO público.
+ *
+ * Ahora es una declaración independiente, campo por campo, contra
+ * `OrderTrackingDto`. Es más larga a propósito: obliga a que agregar un campo
+ * al seguimiento sea una decisión consciente en los dos lados.
+ *
+ * Los montos van en `number` porque `ordersService.trackOrder` los normaliza
+ * en el borde; el backend los emite como texto (columnas `numeric`).
  */
-export type TrackedOrder = Omit<Order, "paymentInfo"> & {
-  paymentInfo: PaymentInfo | null;
-};
+export interface TrackedOrder {
+  orderNumber: string;
+  status: OrderStatus;
+  deliveryMethod: DeliveryMethod;
+  createdAt: string;
+  dateCompleted: string | null;
+
+  subtotal: number | null;
+  tax: number | null;
+  shipping: number | null;
+  discountAmount: number | null;
+  total: number | null;
+
+  exchangeRate: number | null;
+  /** Fecha de la tasa publicada, no la del pedido (`YYYY-MM-DD`). */
+  exchangeRateDate: string | null;
+  subtotalVes: number | null;
+  taxVes: number | null;
+  discountAmountVes: number | null;
+  totalVes: number | null;
+
+  paymentInfo: TrackedPaymentInfo | null;
+  items: TrackedOrderItem[];
+}
+
+/** Renglón del seguimiento público. Espejo de `OrderTrackingItemDto`. */
+export interface TrackedOrderItem {
+  uuid: string;
+  productName: string;
+  /** El DTO público lo declara anulable, a diferencia de `OrderItem`. */
+  productSku: string | null;
+  quantity: number;
+  price: number | null;
+  priceVes: number | null;
+  subtotal: number | null;
+  subtotalVes: number | null;
+}
+
+/** Del pago, el seguimiento público sólo expone estos dos campos. */
+export interface TrackedPaymentInfo {
+  method: PaymentMethodEnum;
+  status: PaymentStatus;
+}
 
 export interface CreateOrderDto {
   deliveryMethod: DeliveryMethod;

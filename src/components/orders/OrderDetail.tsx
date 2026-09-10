@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Package, MapPin, CreditCard, Truck } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { Order, TrackedOrder } from "@/types";
+import type { Order, PaymentInfo, TrackedOrder } from "@/types";
 import { PaymentMethod } from "@/lib/enums";
 import { getOrderStatusColor, getPaymentStatusColor } from "@/lib/order-helpers";
 import { resolvePaymentMethod, resolveBankName, resolveBankCode } from "@/lib/payment-helpers";
@@ -21,8 +21,28 @@ import OrderTimeline from "@/components/orders/OrderTimeline";
  * situarse. Si el backend no trajo el equivalente en Bs. (pedidos viejos,
  * anteriores a que se guardara), se cae al dólar en vez de mostrar un hueco.
  */
-function montoPrincipal(usd: number, ves: number | null | undefined): string {
-  return ves != null ? formatVES(ves) : formatUSD(usd);
+function montoPrincipal(
+  usd: number | null | undefined,
+  ves: number | null | undefined,
+): string {
+  return ves != null ? formatVES(ves) : formatUSD(usd ?? 0);
+}
+
+/**
+ * Distingue el pedido completo del recortado del seguimiento público.
+ *
+ * Hasta ahora `TrackedOrder` se declaraba `Omit<Order, "paymentInfo">`, así que
+ * este componente creía tener `uuid`, `shippingAddress`, `trackingNumber`,
+ * `discountCode`, `shippingVes` y los datos del pago también en la pantalla
+ * pública — donde el backend no manda nada de eso. No se veía porque cada
+ * acceso estaba guardado con un `&&` que siempre daba falso; el tipo, en
+ * cambio, autorizaba a escribir el acceso sin guarda.
+ *
+ * Con `TrackedOrder` declarado aparte, TypeScript obliga a preguntar. Se
+ * pregunta una sola vez, acá, y el resto del componente lee `completo`.
+ */
+function esPedidoCompleto(order: Order | TrackedOrder): order is Order {
+  return "uuid" in order;
 }
 
 interface OrderDetailProps {
@@ -59,11 +79,18 @@ export function OrderDetail({
   const t = useTranslations("orders");
   const tTracking = useTranslations("tracking");
 
+  // `completo` es null en el seguimiento público: ahí no hay ni uuid, ni
+  // dirección, ni datos de pago que mostrar.
+  const completo = esPedidoCompleto(order) ? order : null;
   const paymentInfo = order.paymentInfo;
   const paymentMethod = paymentInfo
     ? resolvePaymentMethod(paymentInfo.method)
     : null;
-  const withPaymentDetails = showPaymentDetails && !!paymentInfo;
+  // Los detalles del pago sólo existen en el pedido completo. Antes el guarda
+  // era `!!paymentInfo`, que también da verdadero en el seguimiento —donde
+  // `paymentInfo` sí viaja, pero recortado a método y estado.
+  const pagoCompleto: PaymentInfo | null = completo?.paymentInfo ?? null;
+  const withPaymentDetails = showPaymentDetails && !!pagoCompleto;
 
   return (
     <div className="space-y-6">
@@ -106,7 +133,7 @@ export function OrderDetail({
               status: order.status,
               deliveryMethod: order.deliveryMethod,
               createdAt: order.createdAt,
-              paymentVerifiedAt: order.paymentInfo?.verifiedAt ?? null,
+              paymentVerifiedAt: pagoCompleto?.verifiedAt ?? null,
               dateCompleted: order.dateCompleted ?? null,
               paymentStatus: order.paymentInfo?.status ?? null,
             }}
@@ -123,20 +150,24 @@ export function OrderDetail({
                 <div key={item.uuid} className="flex justify-between items-start border-b pb-4 last:border-0 last:pb-0">
                   <div>
                     <p className="font-medium text-ink">{item.productName}</p>
-                    <p className="text-sm text-sand-600">{t("sku", { sku: item.productSku })}</p>
+                    {/* El DTO público declara el SKU anulable; sin renglón que
+                        mostrar es mejor no pintar "SKU:" a secas. */}
+                    {item.productSku && (
+                      <p className="text-sm text-sand-600">{t("sku", { sku: item.productSku })}</p>
+                    )}
                     <p className="text-sm text-sand-600">{t("quantity", { quantity: item.quantity })}</p>
                   </div>
                   <div className="text-right shrink-0 ml-4">
                     <p className="font-medium text-ink">
-                      {montoPrincipal(parsePrice(item.subtotal.toString()), item.subtotalVes)}
+                      {montoPrincipal(item.subtotal, item.subtotalVes)}
                     </p>
                     {item.subtotalVes != null && (
                       <p className="text-xs text-sand-600">
-                        {formatUSD(parsePrice(item.subtotal.toString()))}
+                        {formatUSD(item.subtotal ?? 0)}
                       </p>
                     )}
                     <p className="text-sm text-sand-600">
-                      {t("each", { price: formatUSD(parsePrice(item.price)) })}
+                      {t("each", { price: formatUSD(parsePrice(item.price ?? 0)) })}
                     </p>
                   </div>
                 </div>
@@ -149,21 +180,21 @@ export function OrderDetail({
                 <span className="text-sand-700">{t("subtotal")}</span>
                 <span className="">{montoPrincipal(order.subtotal, order.subtotalVes)}</span>
               </div>
-              {order.tax > 0 && (
+              {(order.tax ?? 0) > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-sand-700">{t("tax")}</span>
                   <span className="">{montoPrincipal(order.tax, order.taxVes)}</span>
                 </div>
               )}
-              {order.shipping > 0 && (
+              {(order.shipping ?? 0) > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-sand-700">{t("shipping")}</span>
-                  <span className="">{montoPrincipal(order.shipping, order.shippingVes)}</span>
+                  <span className="">{montoPrincipal(order.shipping, completo?.shippingVes ?? null)}</span>
                 </div>
               )}
-              {order.discountAmount && order.discountAmount > 0 ? (
+              {(order.discountAmount ?? 0) > 0 ? (
                 <div className="flex justify-between text-sm text-success-600">
-                  <span>Descuento{order.discountCode ? ` (${order.discountCode})` : ""}:</span>
+                  <span>Descuento{completo?.discountCode ? ` (${completo.discountCode})` : ""}:</span>
                   <span>-{montoPrincipal(order.discountAmount, order.discountAmountVes)}</span>
                 </div>
               ) : null}
@@ -172,7 +203,7 @@ export function OrderDetail({
                 <div className="text-right">
                   <p className="text-brand-600">{montoPrincipal(order.total, order.totalVes)}</p>
                   {order.totalVes != null && (
-                    <p className="text-sm font-normal text-sand-600">{formatUSD(order.total)}</p>
+                    <p className="text-sm font-normal text-sand-600">{formatUSD(order.total ?? 0)}</p>
                   )}
                 </div>
               </div>
@@ -192,13 +223,13 @@ export function OrderDetail({
                   {t(`paymentMethods.${paymentInfo.method}`)}
                 </p>
 
-                {withPaymentDetails && (
+                {withPaymentDetails && pagoCompleto && (
                   <>
                     {paymentMethod === PaymentMethod.ZELLE && (
                       <ZellePaymentDetails
                         details={{
-                          senderName: paymentInfo.senderName || "",
-                          senderBank: paymentInfo.senderBank || "",
+                          senderName: pagoCompleto.senderName || "",
+                          senderBank: pagoCompleto.senderBank || "",
                           receipt: null,
                         }}
                       />
@@ -206,38 +237,38 @@ export function OrderDetail({
                     {paymentMethod === PaymentMethod.PAGO_MOVIL && (
                       <PagoMovilPaymentDetails
                         details={{
-                          bank: resolveBankName(paymentInfo.bank),
-                          bankCode: resolveBankCode(paymentInfo.bank, paymentInfo.bankCode),
-                          phone: paymentInfo.phoneNumber || "",
-                          cedula: paymentInfo.cedula || "",
-                          referenceCode: paymentInfo.referenceCode || "",
+                          bank: resolveBankName(pagoCompleto.bank),
+                          bankCode: resolveBankCode(pagoCompleto.bank, pagoCompleto.bankCode),
+                          phone: pagoCompleto.phoneNumber || "",
+                          cedula: pagoCompleto.cedula || "",
+                          referenceCode: pagoCompleto.referenceCode || "",
                         }}
                       />
                     )}
                     {paymentMethod === PaymentMethod.TRANSFERENCIA && (
                       <TransferenciaPaymentDetails
                         details={{
-                          bank: resolveBankName(paymentInfo.transferBank),
-                          bankCode: paymentInfo.transferBank?.code || "",
-                          beneficiary: paymentInfo.accountName || "",
-                          rif: paymentInfo.rif || "",
-                          accountNumber: paymentInfo.accountNumber || "",
-                          referenceCode: paymentInfo.referenceNumber || "",
+                          bank: resolveBankName(pagoCompleto.transferBank),
+                          bankCode: pagoCompleto.transferBank?.code || "",
+                          beneficiary: pagoCompleto.accountName || "",
+                          rif: pagoCompleto.rif || "",
+                          accountNumber: pagoCompleto.accountNumber || "",
+                          referenceCode: pagoCompleto.referenceNumber || "",
                         }}
                       />
                     )}
-                    {paymentInfo.hasReceipt && (
+                    {pagoCompleto.hasReceipt && (
                       <div>
                         <p className="text-sm text-sand-600 mb-2">{t("paymentReceipt")}</p>
                         <PaymentReceiptViewer
-                          orderUuid={order.uuid}
+                          orderUuid={completo!.uuid}
                           orderNumber={order.orderNumber}
                         />
                       </div>
                     )}
-                    {paymentInfo.verifiedAt && (
+                    {pagoCompleto.verifiedAt && (
                       <p className="text-sm text-success-600">
-                        {t("verifiedOn", { date: formatDate(paymentInfo.verifiedAt) })}
+                        {t("verifiedOn", { date: formatDate(pagoCompleto.verifiedAt) })}
                       </p>
                     )}
                   </>
@@ -260,16 +291,16 @@ export function OrderDetail({
                 ? tTracking("deliveryPickup")
                 : tTracking("deliveryShipping")}
             </span>
-            {order.trackingNumber && (
+            {completo?.trackingNumber && (
               <p className="mt-3 text-sm text-sand-700">
                 <span className="font-medium">{tTracking("trackingNumber")}</span>{" "}
-                <span className="font-mono">{order.trackingNumber}</span>
+                <span className="font-mono">{completo.trackingNumber}</span>
               </p>
             )}
           </div>
 
           {/* Shipping address */}
-          {order.shippingAddress && (
+          {completo?.shippingAddress && (
             <div className="rounded-2xl border border-sand-300 bg-white p-6">
               <h2 className="font-display text-base font-bold text-ink mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
@@ -277,24 +308,24 @@ export function OrderDetail({
               </h2>
               <div className="space-y-1 text-sm text-sand-700">
                 <p className="font-medium text-ink">
-                  {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                  {completo.shippingAddress.firstName} {completo.shippingAddress.lastName}
                 </p>
-                <p>{order.shippingAddress.email}</p>
+                <p>{completo.shippingAddress.email}</p>
                 <p>
                   <PhoneLink
-                    phone={order.shippingAddress.phone}
+                    phone={completo.shippingAddress.phone}
                     className="hover:text-success-700 hover:underline"
                   />
                 </p>
-                <p>{order.shippingAddress.address}</p>
+                <p>{completo.shippingAddress.address}</p>
                 <p>
-                  {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-                  {order.shippingAddress.zipCode}
+                  {completo.shippingAddress.city}, {completo.shippingAddress.state}{" "}
+                  {completo.shippingAddress.zipCode}
                 </p>
-                <p>{order.shippingAddress.country}</p>
-                {order.shippingAddress.additionalInfo && (
+                <p>{completo.shippingAddress.country}</p>
+                {completo.shippingAddress.additionalInfo && (
                   <p className="mt-2 pt-2 border-t text-xs italic">
-                    {order.shippingAddress.additionalInfo}
+                    {completo.shippingAddress.additionalInfo}
                   </p>
                 )}
               </div>

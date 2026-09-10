@@ -1,13 +1,130 @@
 import { apiClient } from '@/lib/api';
+import { aNumero, aNumeroONulo, avisarSiDiverge } from '@/lib/api-normalizacion';
 import type {
   AdminOrderRow,
   AdminOrderStats,
   Order,
+  OrderItem,
   OrderSummary,
   TrackedOrder,
+  TrackedOrderItem,
   CreateOrderDto,
   UpdateOrderStatusDto,
 } from '@/types';
+
+/**
+ * Los montos de un pedido llegan como TEXTO, no como número.
+ *
+ * `subtotal`, `tax`, `shipping`, `total`, sus equivalentes en Bs. y la tasa son
+ * columnas `numeric` de Postgres, y TypeORM las serializa como cadena
+ * (`"37.12"`), aunque `Order` las declare `number`. Casi todo el detalle del
+ * pedido sobrevivía por casualidad —`formatCurrency` hace `parseFloat`, y los
+ * guardas `order.tax > 0` coaccionan— pero eso no es un contrato: `"0.00"` es
+ * una cadena TRUTHY, así que la fila de descuento sólo se salvaba de aparecer
+ * en todos los pedidos gracias al `> 0` que alguien puso al lado.
+ *
+ * Se normaliza acá, en el borde, para que las vistas reciban el `number` que se
+ * les prometió. Ver `lib/api-normalizacion.ts` para el razonamiento completo.
+ */
+function normalizarRenglon(crudo: OrderItem): OrderItem {
+  return {
+    ...crudo,
+    quantity: aNumero(crudo.quantity),
+    subtotal: aNumero(crudo.subtotal),
+    subtotalVes: aNumeroONulo(crudo.subtotalVes),
+  };
+}
+
+/**
+ * Normaliza un pedido completo (`/orders` y `/orders/:uuid`).
+ *
+ * `totalItems` merece explicación aparte: es un getter calculado de la entidad
+ * del backend y NO viaja en la respuesta, porque a los getters del prototipo
+ * hay que ponerles `@Expose()` para que `ClassSerializerInterceptor` los
+ * incluya —justo lo que ya se arregló en su día para el carrito y quedó
+ * pendiente en el pedido—. Sin él, "Mis pedidos" le mostraba al cliente
+ * **"undefined productos"** debajo de cada compra.
+ *
+ * Se arregla en el backend, pero acá se deriva igualmente de los renglones, que
+ * sí viajan: así la pantalla deja de mentir sin esperar a un despliegue, y el
+ * día que el campo llegue se usa el del servidor.
+ */
+function normalizarPedido(crudo: Order): Order {
+  avisarSiDiverge('GET /orders', crudo, {
+    total: 'number',
+    subtotal: 'number',
+    tax: 'number',
+    totalItems: 'number',
+  });
+
+  const items = (crudo.items ?? []).map(normalizarRenglon);
+
+  return {
+    ...crudo,
+    items,
+    subtotal: aNumero(crudo.subtotal),
+    subtotalVes: aNumeroONulo(crudo.subtotalVes),
+    tax: aNumero(crudo.tax),
+    taxVes: aNumeroONulo(crudo.taxVes),
+    shipping: aNumero(crudo.shipping),
+    shippingVes: aNumeroONulo(crudo.shippingVes),
+    discountAmount: aNumero(crudo.discountAmount),
+    discountAmountVes: aNumeroONulo(crudo.discountAmountVes),
+    total: aNumero(crudo.total),
+    totalVes: aNumeroONulo(crudo.totalVes),
+    exchangeRate: aNumeroONulo(crudo.exchangeRate),
+    totalItems:
+      crudo.totalItems ?? items.reduce((suma, item) => suma + item.quantity, 0),
+  };
+}
+
+/** El listado de "Mis pedidos" usa la misma respuesta, recortada al resumen. */
+function normalizarResumen(crudo: Order): OrderSummary {
+  const pedido = normalizarPedido(crudo);
+  return {
+    uuid: pedido.uuid,
+    orderNumber: pedido.orderNumber,
+    status: pedido.status,
+    total: pedido.total,
+    totalVes: pedido.totalVes,
+    totalItems: pedido.totalItems,
+    createdAt: pedido.createdAt,
+  };
+}
+
+/**
+ * Normaliza el seguimiento público, que tiene su propio contrato recortado.
+ *
+ * Aquí TODOS los montos son anulables, incluido `total`: el DTO del backend los
+ * emite con `money()`, que conserva el nulo. Por eso se usa `aNumeroONulo` y no
+ * `aNumero` — convertir un `null` en `0` le diría al cliente que su pedido
+ * costó cero.
+ */
+function normalizarSeguimiento(crudo: TrackedOrder): TrackedOrder {
+  return {
+    ...crudo,
+    subtotal: aNumeroONulo(crudo.subtotal),
+    subtotalVes: aNumeroONulo(crudo.subtotalVes),
+    tax: aNumeroONulo(crudo.tax),
+    taxVes: aNumeroONulo(crudo.taxVes),
+    shipping: aNumeroONulo(crudo.shipping),
+    discountAmount: aNumeroONulo(crudo.discountAmount),
+    discountAmountVes: aNumeroONulo(crudo.discountAmountVes),
+    total: aNumeroONulo(crudo.total),
+    totalVes: aNumeroONulo(crudo.totalVes),
+    exchangeRate: aNumeroONulo(crudo.exchangeRate),
+    items: (crudo.items ?? []).map(
+      (item): TrackedOrderItem => ({
+        ...item,
+        quantity: aNumero(item.quantity),
+        price: aNumeroONulo(item.price),
+        priceVes: aNumeroONulo(item.priceVes),
+        subtotal: aNumeroONulo(item.subtotal),
+        subtotalVes: aNumeroONulo(item.subtotalVes),
+      }),
+    ),
+  };
+}
 
 /**
  * Servicio para gestión de órdenes
@@ -17,7 +134,7 @@ export const ordersService = {
    * Crea una nueva orden desde el carrito del usuario
    */
   async createOrder(data: CreateOrderDto): Promise<Order> {
-    return apiClient.post<Order>('/orders', data);
+    return normalizarPedido(await apiClient.post<Order>('/orders', data));
   },
 
   /**
@@ -30,7 +147,9 @@ export const ordersService = {
     // Pasa por `apiClient` como todo lo demás: este `fetch` suelto se armaba
     // el `Authorization` leyendo el token de `localStorage`, y sin token ahí
     // la subida del comprobante se quedaba sin sesión.
-    return apiClient.post<Order>(`/orders/${orderUuid}/receipt`, formData);
+    return normalizarPedido(
+      await apiClient.post<Order>(`/orders/${orderUuid}/receipt`, formData),
+    );
   },
 
   /**
@@ -56,14 +175,15 @@ export const ordersService = {
    * Obtiene todas las órdenes del usuario autenticado
    */
   async getMyOrders(): Promise<OrderSummary[]> {
-    return apiClient.get<OrderSummary[]>('/orders');
+    const crudo = await apiClient.get<Order[]>('/orders');
+    return crudo.map(normalizarResumen);
   },
 
   /**
    * Obtiene los detalles de una orden específica
    */
   async getOrderByUuid(uuid: string): Promise<Order> {
-    return apiClient.get<Order>(`/orders/${uuid}`);
+    return normalizarPedido(await apiClient.get<Order>(`/orders/${uuid}`));
   },
 
   /**
@@ -82,7 +202,7 @@ export const ordersService = {
       throw new Error(error.message || 'Order not found');
     }
 
-    return response.json();
+    return normalizarSeguimiento(await response.json());
   },
 
   /**
@@ -92,14 +212,16 @@ export const ordersService = {
     uuid: string,
     data: UpdateOrderStatusDto
   ): Promise<Order> {
-    return apiClient.patch<Order>(`/orders/${uuid}/status`, data);
+    return normalizarPedido(
+      await apiClient.patch<Order>(`/orders/${uuid}/status`, data),
+    );
   },
 
   /**
    * Cancela una orden y restaura el inventario
    */
   async cancelOrder(uuid: string): Promise<Order> {
-    return apiClient.delete<Order>(`/orders/${uuid}`);
+    return normalizarPedido(await apiClient.delete<Order>(`/orders/${uuid}`));
   },
 
   // ============================================
