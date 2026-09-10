@@ -79,7 +79,18 @@ export default function ProductDetailPage() {
   const isLowStock = product.inventory > 0 && product.inventory <= 5;
   const images = product.images ?? [];
   const heroPrice = priceVES ? formatVES(priceVES) : formatUSD(priceUSD);
-  const addLabel = `${tCart("addToCart")} · ${heroPrice}`;
+
+  /**
+   * Texto del botón con el total de lo que se va a agregar, no con el precio
+   * de una unidad. En una compra de obra se llevan varias, y ver "5" al lado
+   * del importe de uno solo hace dudar de si el carrito va a cobrar bien.
+   *
+   * El bolívar manda y el dólar acompaña, como en el resto de la app.
+   */
+  const addLabel = (cantidad: number) =>
+    `${tCart("addToCart")} · ${
+      priceVES ? formatVES(priceVES * cantidad) : formatUSD(priceUSD * cantidad)
+    }`;
 
   return (
     <div className="min-h-screen bg-white pb-32 md:pb-10">
@@ -257,6 +268,7 @@ export default function ProductDetailPage() {
                   inventory={product.inventory}
                   className="w-full"
                   addLabel={addLabel}
+                  conSelectorDeCantidad
                 />
               )}
             </div>
@@ -290,6 +302,7 @@ export default function ProductDetailPage() {
             inventory={product.inventory}
             className="w-full"
             addLabel={addLabel}
+            conSelectorDeCantidad
           />
         )}
       </div>
