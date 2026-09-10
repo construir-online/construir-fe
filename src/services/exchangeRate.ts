@@ -1,6 +1,18 @@
 import { apiClient } from '@/lib/api';
 import type { ExchangeRate } from '@/types';
 
+/**
+ * El backend serializa `rate` como string (columna decimal de TypeORM), pero el
+ * tipo `ExchangeRate` la declara `number`. Sin normalizar, la tasa se propaga
+ * como string y rompe dos cosas a la vez: `toLocaleString('es-VE')` sobre un
+ * string devuelve el texto tal cual (`481.22` en vez de `481,22`), y los
+ * guardas `typeof === 'number'` del resumen de compra esconden la tasa BCV, que
+ * el diseño exige tener siempre a la vista junto al monto dual.
+ */
+export function normalizeRate(rate: ExchangeRate): ExchangeRate {
+  return { ...rate, rate: Number(rate.rate) };
+}
+
 class ExchangeRateService {
   private cachedRate: ExchangeRate | null = null;
   private cacheTimestamp: number = 0;
@@ -19,7 +31,9 @@ class ExchangeRateService {
     }
 
     try {
-      const rate = await apiClient.get<ExchangeRate>('/exchange-rates/current');
+      const rate = normalizeRate(
+        await apiClient.get<ExchangeRate>('/exchange-rates/current'),
+      );
       this.cachedRate = rate;
       this.cacheTimestamp = now;
       return rate;
