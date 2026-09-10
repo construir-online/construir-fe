@@ -122,6 +122,14 @@ describe('storeWhatsAppUrl', () => {
     delete process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
     expect(storeWhatsAppUrl()).toBeNull();
   });
+
+  it('rechaza un fijo configurado por error, como hace toWhatsAppUrl', () => {
+    // El fijo de la tienda es el número que se publica en el pie; si acaba acá
+    // por copiar y pegar, todos los botones de WhatsApp abrirían un chat muerto.
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = '0285-6320178';
+    expect(storeWhatsAppNumber()).toBeNull();
+    expect(storeWhatsAppUrl()).toBeNull();
+  });
 });
 
 describe('formatVenezuelanNumber', () => {

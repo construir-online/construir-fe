@@ -59,14 +59,14 @@ describe('OrderDetail · orden del monto dual', () => {
     const bloque = bs.parentElement as HTMLElement;
 
     // El USD acompaña al Bs. dentro del mismo bloque de total.
-    expect(within(bloque).getByText('$37.12')).toBeTruthy();
+    expect(within(bloque).getByText('$37,12')).toBeTruthy();
     expect(totalDe(container)).toContain('Bs. 17.862,89');
   });
 
   it('el bolívar del total va resaltado y el dólar en gris pequeño', () => {
     render(<OrderDetail order={pedido} />);
     const bs = screen.getByText('Bs. 17.862,89');
-    const usd = screen.getByText('$37.12');
+    const usd = screen.getByText('$37,12');
 
     expect(bs.className).toContain('text-brand-600');
     expect(usd.className).toContain('text-sand-600');
@@ -83,7 +83,7 @@ describe('OrderDetail · orden del monto dual', () => {
     const viejo = { ...pedido, totalVes: null } as unknown as Order;
     render(<OrderDetail order={viejo} />);
 
-    expect(screen.getByText('$37.12')).toBeTruthy();
+    expect(screen.getByText('$37,12')).toBeTruthy();
     expect(screen.queryByText('Bs. 17.862,89')).toBeNull();
   });
 });

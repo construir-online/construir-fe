@@ -1201,7 +1201,16 @@
     "trackingNumber": "Tracking number:",
     "deliveryPickup": "Store pickup",
     "deliveryShipping": "Home delivery",
-    "delivery": "Delivery method"
+    "delivery": "Delivery method",
+    "progressTitle": "Where is your order?",
+    "stageReceived": "Order received",
+    "stagePaymentVerified": "Payment verified",
+    "stageOnTheWay": "On the way",
+    "stageReadyForPickup": "Ready for pickup",
+    "stageDelivered": "Delivered",
+    "stagePickedUp": "Picked up",
+    "stageInProgress": "In progress",
+    "writeOnWhatsApp": "Message us on WhatsApp"
   },
   "auditLogs": {
     "title": "Audit Log",
