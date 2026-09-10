@@ -8,6 +8,7 @@ import type {
   Product,
 } from '@/types';
 import { parsePrice } from '@/lib/currency';
+import { normalizarProducto } from '@/services/products';
 
 const CART_STORAGE_KEY = 'cart';
 
@@ -126,47 +127,73 @@ export const localCartService = {
 // API Cart Functions (Con autenticación)
 // ============================================
 
+/**
+ * Los totales del carrito (`subtotal`, `subtotalVes`, `totalItems`) SÍ llegan
+ * como números de verdad: son getters `@Expose()` calculados en Node, no
+ * columnas `numeric`. Ese contrato está sano y no hace falta tocarlo.
+ *
+ * Lo que sí miente es el producto ANIDADO en cada renglón: `priceWithIva` y
+ * compañía vienen del catálogo y llegan como texto. El checkout y el cajón del
+ * carrito hacen aritmética con ellos (`item.product.priceWithIva * cantidad`),
+ * y hoy se salvan sólo porque `*` coacciona — en `CartDrawer` alguien llegó
+ * incluso a escribir a mano un `typeof … === "string" ? parseFloat(…)`, que es
+ * el síntoma de este mismo problema parcheado en la vista.
+ */
+function normalizarCarrito(crudo: Cart): Cart {
+  return {
+    ...crudo,
+    items: (crudo.items ?? []).map((item) => ({
+      ...item,
+      product: item.product ? normalizarProducto(item.product) : item.product,
+    })),
+  };
+}
+
 export const cartService = {
   /**
    * Obtiene el carrito del usuario autenticado desde el backend
    */
   async getCart(): Promise<Cart> {
-    return apiClient.get<Cart>('/cart');
+    return normalizarCarrito(await apiClient.get<Cart>('/cart'));
   },
 
   /**
    * Agrega un producto al carrito del backend
    */
   async addItem(data: AddToCartDto): Promise<Cart> {
-    return apiClient.post<Cart>('/cart/items', data);
+    return normalizarCarrito(await apiClient.post<Cart>('/cart/items', data));
   },
 
   /**
    * Actualiza la cantidad de un item en el carrito
    */
   async updateItem(itemUuid: string, data: UpdateCartItemDto): Promise<Cart> {
-    return apiClient.patch<Cart>(`/cart/items/${itemUuid}`, data);
+    return normalizarCarrito(
+      await apiClient.patch<Cart>(`/cart/items/${itemUuid}`, data),
+    );
   },
 
   /**
    * Elimina un item del carrito
    */
   async removeItem(itemUuid: string): Promise<Cart> {
-    return apiClient.delete<Cart>(`/cart/items/${itemUuid}`);
+    return normalizarCarrito(
+      await apiClient.delete<Cart>(`/cart/items/${itemUuid}`),
+    );
   },
 
   /**
    * Vacía todo el carrito
    */
   async clearCart(): Promise<Cart> {
-    return apiClient.delete<Cart>('/cart');
+    return normalizarCarrito(await apiClient.delete<Cart>('/cart'));
   },
 
   /**
    * Sincroniza los precios del carrito con los precios actuales
    */
   async syncPrices(): Promise<Cart> {
-    return apiClient.post<Cart>('/cart/sync-prices');
+    return normalizarCarrito(await apiClient.post<Cart>('/cart/sync-prices'));
   },
 
   /**

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { OrderDetail } from '@/components/orders/OrderDetail';
 import type { Order, TrackedOrder } from '@/types';
+import { PaymentMethod } from '@/lib/enums';
 
 vi.mock('next/link', () => ({
   default: ({ children }: { children: React.ReactNode }) => children,
@@ -50,11 +51,48 @@ const conSesion = {
   },
 } as unknown as Order;
 
-// Lo que de verdad llega al seguimiento público: sin `verifiedAt`.
-const publico = {
-  ...conSesion,
-  paymentInfo: { method: 'pagomovil', status: 'verified' },
-} as unknown as TrackedOrder;
+/**
+ * Lo que de verdad llega al seguimiento público.
+ *
+ * Antes esto era `{ ...conSesion, paymentInfo: {…} }`, y por tanto NO probaba
+ * el seguimiento: arrastraba `uuid`, `shippingAddress`, `shippingVes` y
+ * `totalItems`, que el DTO público no manda. El `as unknown as` impedía que
+ * TypeScript lo notara. La prueba pasaba, pero contra una forma que no existe.
+ *
+ * Ahora es copia literal de `GET /orders/track/:n`, ya normalizado por
+ * `ordersService.trackOrder` (montos en número). Ver `OrderTrackingDto`.
+ */
+const publico: TrackedOrder = {
+  orderNumber: 'ORD-PRUEBA-0001',
+  status: 'processing',
+  deliveryMethod: 'delivery',
+  createdAt: '2026-08-01T10:24:00.000Z',
+  dateCompleted: null,
+  subtotal: 32,
+  tax: 5.12,
+  shipping: 0,
+  discountAmount: 0,
+  total: 37.12,
+  exchangeRate: 481.22,
+  exchangeRateDate: '2026-04-19',
+  subtotalVes: 15399.04,
+  taxVes: 2463.85,
+  discountAmountVes: 0,
+  totalVes: 17862.89,
+  paymentInfo: { method: PaymentMethod.PAGO_MOVIL, status: 'verified' },
+  items: [
+    {
+      uuid: 'i-1',
+      productName: 'Saco de cemento gris',
+      productSku: 'CEM-425',
+      quantity: 2,
+      price: 12.5,
+      priceVes: 6015.25,
+      subtotal: 25,
+      subtotalVes: 12030.5,
+    },
+  ],
+};
 
 describe('OrderDetail · línea de tiempo', () => {
   it('dibuja las cuatro etapas en la vista con sesión', () => {
