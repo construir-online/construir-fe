@@ -6,6 +6,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
 import CartDrawer from "@/components/cart/CartDrawer";
+import CartSummaryBar from "@/components/cart/CartSummaryBar";
+import {
+  CLASE_HUECO_PIE_NAV_Y_CARRITO,
+  CLASE_HUECO_PIE_SOLO_NAV,
+  esRutaDeCatalogo,
+} from "@/components/cart/barras-fijas";
 import { ToastProvider } from "@/context/ToastContext";
 import { useCart } from "@/context/CartContext";
 import { initGA, trackPageView } from "@/lib/analytics";
@@ -29,7 +35,14 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   // Es una sola condición a propósito; el colchón que separa el contenido de la
   // barra depende de eso (ver más abajo).
   const showMobileChrome = showChrome && !isMobileFullscreenRoute;
-  const { isCartOpen, closeCart } = useCart();
+  const { isCartOpen, closeCart, getTotalItems } = useCart();
+
+  // La barra flotante de carrito acompaña mientras se recorre el catálogo. El
+  // listado la pinta él mismo — allí no hay ni pie ni navegación inferior —; acá
+  // se añade a las pantallas que sí llevan cromo, que son justo las que tienen
+  // riesgo de solape.
+  const conBarraDeCarrito =
+    showMobileChrome && esRutaDeCatalogo(pathname) && getTotalItems() > 0;
 
   // Initialize GA4 on mount
   useEffect(() => {
@@ -80,7 +93,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
              colchón tapaba el copyright y los enlaces legales, justo lo que
              veníamos a rescatar. Va en un envoltorio del color del pie para que
              no se vea una franja clara bajo él. */
-          <div className="bg-brand-900 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+          <div
+            className={`bg-brand-900 ${
+              conBarraDeCarrito
+                ? CLASE_HUECO_PIE_NAV_Y_CARRITO
+                : CLASE_HUECO_PIE_SOLO_NAV
+            }`}
+          >
             <Footer />
           </div>
         ) : (
@@ -89,6 +108,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         ))}
       {showMobileChrome && <BottomNav />}
+      {/* Encima de la navegación inferior, nunca sobre ella: ver `barras-fijas.ts`. */}
+      {conBarraDeCarrito && <CartSummaryBar sobreBarraInferior />}
       <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
     </>
   );
