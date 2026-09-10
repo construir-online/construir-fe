@@ -13,6 +13,7 @@ import { PagoMovilPaymentDetails } from "@/components/admin/payment-details/Pago
 import { TransferenciaPaymentDetails } from "@/components/admin/payment-details/TransferenciaPaymentDetails";
 import { PaymentReceiptViewer } from "@/components/admin/PaymentReceiptViewer";
 import PhoneLink from "@/components/common/PhoneLink";
+import OrderTimeline from "@/components/orders/OrderTimeline";
 
 /**
  * Importe con el bolívar de protagonista y el dólar como referencia, que es el
@@ -96,6 +97,21 @@ export function OrderDetail({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Avance del pedido. Va lo primero: es lo que viene a mirar quien ya
+              pagó. `verifiedAt` sólo existe en la vista con sesión — el DTO
+              público no lo manda — y por eso se pasa con `?.`: la línea se
+              dibuja igual, sin fecha en esa etapa. */}
+          <OrderTimeline
+            pedido={{
+              status: order.status,
+              deliveryMethod: order.deliveryMethod,
+              createdAt: order.createdAt,
+              paymentVerifiedAt: order.paymentInfo?.verifiedAt ?? null,
+              dateCompleted: order.dateCompleted ?? null,
+              paymentStatus: order.paymentInfo?.status ?? null,
+            }}
+          />
+
           {/* Items */}
           <div className="rounded-2xl border border-sand-300 bg-white p-6">
             <h2 className="font-display text-base font-bold text-ink mb-4 flex items-center gap-2">

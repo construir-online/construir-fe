@@ -1201,7 +1201,15 @@
     "trackingNumber": "Número de rastreo:",
     "deliveryPickup": "Retiro en tienda",
     "deliveryShipping": "Envío a domicilio",
-    "delivery": "Método de entrega"
+    "delivery": "Método de entrega",
+    "progressTitle": "¿En qué va tu pedido?",
+    "stageReceived": "Pedido recibido",
+    "stagePaymentVerified": "Pago verificado",
+    "stageOnTheWay": "En camino",
+    "stageReadyForPickup": "Listo para retirar",
+    "stageDelivered": "Entregado",
+    "stagePickedUp": "Retirado",
+    "stageInProgress": "En curso"
   },
   "auditLogs": {
     "title": "Auditoría de Cambios",
