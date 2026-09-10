@@ -58,7 +58,7 @@ export default function Step3Location({
             <input
               type="text"
               {...register('address', { required: locationMethod === 'manual' })}
-              placeholder={t('addressPlaceholder', { defaultValue: 'Calle, número, colonia' })}
+              placeholder={t('addressPlaceholder', { defaultValue: 'Calle, casa o edificio, punto de referencia' })}
               className="min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25"
             />
             {errors.address && (

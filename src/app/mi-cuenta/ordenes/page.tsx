@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { ShoppingBag, ChevronRight, AlertCircle, Package } from "lucide-react";
 import { ordersService } from "@/services/orders";
 import { getOrderStatusColor, getOrderProgress } from "@/lib/order-helpers";
-import { formatUSD } from "@/lib/currency";
+import { formatUSD, formatVES } from "@/lib/currency";
 import { useAuth } from "@/context/AuthContext";
 import type { OrderSummary } from "@/types";
 
@@ -74,8 +74,17 @@ function OrderCard({ order }: { order: OrderSummary }) {
       )}
 
       <div className="flex items-end justify-between gap-3 border-t border-sand-200 pt-2.5">
-        <span className="text-[16px] font-extrabold text-ink">
-          {formatUSD(order.total)}
+        {/* El importe va dual, con el Bs. de protagonista: es lo que el cliente
+            pagó. Los pedidos viejos sin equivalente guardado se quedan en USD. */}
+        <span className="flex flex-col leading-tight">
+          <span className="text-[16px] font-extrabold text-ink">
+            {order.totalVes != null ? formatVES(order.totalVes) : formatUSD(order.total)}
+          </span>
+          {order.totalVes != null && (
+            <span className="text-[12px] font-semibold text-sand-600">
+              {formatUSD(order.total)}
+            </span>
+          )}
         </span>
         <span className="flex items-center gap-1 rounded-xl border-[1.5px] border-ink px-3 py-2 text-[12.5px] font-bold text-ink transition-colors group-hover:bg-ink group-hover:text-white">
           {tAccount("viewDetail")}
