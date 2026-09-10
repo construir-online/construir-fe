@@ -716,6 +716,12 @@ export interface OrderSummary {
   orderNumber: string;
   status: OrderStatus;
   total: number;
+  /**
+   * Total en Bs. `/orders` devuelve la entidad de pedido completa, así que este
+   * campo siempre viaja; sólo faltaba declararlo aquí. Es `null` en los pedidos
+   * anteriores a que se guardara el equivalente en bolívares.
+   */
+  totalVes: number | null;
   totalItems: number;
   createdAt: string;
 }

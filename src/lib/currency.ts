@@ -15,6 +15,11 @@ export function formatCurrency(amount: number | string, currency: Currency): str
   }
 
   if (currency === 'USD') {
+    // PENDIENTE DE DECIDIR: el diseño pide el dólar también en formato
+    // venezolano (`$41,80`), y hoy se lee «Bs. 14.513,52 · $30.16», con dos
+    // convenciones para el mismo número en la misma línea. No se cambia aquí
+    // porque este helper lo comparte el panel de administración, que tiene
+    // pruebas fijando `$150.00`.
     return `$${numAmount.toFixed(2)}`;
   } else {
     // VES con formato venezolano (coma para decimales, punto para miles)

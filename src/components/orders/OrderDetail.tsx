@@ -14,6 +14,16 @@ import { TransferenciaPaymentDetails } from "@/components/admin/payment-details/
 import { PaymentReceiptViewer } from "@/components/admin/PaymentReceiptViewer";
 import PhoneLink from "@/components/common/PhoneLink";
 
+/**
+ * Importe con el bolívar de protagonista y el dólar como referencia, que es el
+ * orden que manda el diseño: el cliente paga en Bs. y el USD sólo le sirve para
+ * situarse. Si el backend no trajo el equivalente en Bs. (pedidos viejos,
+ * anteriores a que se guardara), se cae al dólar en vez de mostrar un hueco.
+ */
+function montoPrincipal(usd: number, ves: number | null | undefined): string {
+  return ves != null ? formatVES(ves) : formatUSD(usd);
+}
+
 interface OrderDetailProps {
   /** Acepta tanto el pedido completo (admin, mi cuenta) como el recortado del seguimiento público. */
   order: Order | TrackedOrder;
@@ -101,9 +111,13 @@ export function OrderDetail({
                     <p className="text-sm text-sand-600">{t("quantity", { quantity: item.quantity })}</p>
                   </div>
                   <div className="text-right shrink-0 ml-4">
-                    <p className="font-medium text-ink">{formatUSD(parsePrice(item.subtotal.toString()))}</p>
-                    {item.subtotalVes && (
-                      <p className="text-xs text-sand-600">{formatVES(parsePrice(item.subtotalVes.toString()))}</p>
+                    <p className="font-medium text-ink">
+                      {montoPrincipal(parsePrice(item.subtotal.toString()), item.subtotalVes)}
+                    </p>
+                    {item.subtotalVes != null && (
+                      <p className="text-xs text-sand-600">
+                        {formatUSD(parsePrice(item.subtotal.toString()))}
+                      </p>
                     )}
                     <p className="text-sm text-sand-600">
                       {t("each", { price: formatUSD(parsePrice(item.price)) })}
@@ -117,32 +131,32 @@ export function OrderDetail({
             <div className="mt-6 space-y-2 border-t pt-4">
               <div className="flex justify-between text-sm">
                 <span className="text-sand-700">{t("subtotal")}</span>
-                <span className="">{formatUSD(order.subtotal)}</span>
+                <span className="">{montoPrincipal(order.subtotal, order.subtotalVes)}</span>
               </div>
               {order.tax > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-sand-700">{t("tax")}</span>
-                  <span className="">{formatUSD(order.tax)}</span>
+                  <span className="">{montoPrincipal(order.tax, order.taxVes)}</span>
                 </div>
               )}
               {order.shipping > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-sand-700">{t("shipping")}</span>
-                  <span className="">{formatUSD(order.shipping)}</span>
+                  <span className="">{montoPrincipal(order.shipping, order.shippingVes)}</span>
                 </div>
               )}
               {order.discountAmount && order.discountAmount > 0 ? (
                 <div className="flex justify-between text-sm text-success-600">
                   <span>Descuento{order.discountCode ? ` (${order.discountCode})` : ""}:</span>
-                  <span>-{formatUSD(order.discountAmount)}</span>
+                  <span>-{montoPrincipal(order.discountAmount, order.discountAmountVes)}</span>
                 </div>
               ) : null}
               <div className="flex justify-between text-lg font-bold border-t pt-2">
                 <span className="">{t("total")}:</span>
                 <div className="text-right">
-                  <p className="text-brand-600">{formatUSD(order.total)}</p>
-                  {order.totalVes && (
-                    <p className="text-sm font-normal text-sand-600">{formatVES(order.totalVes)}</p>
+                  <p className="text-brand-600">{montoPrincipal(order.total, order.totalVes)}</p>
+                  {order.totalVes != null && (
+                    <p className="text-sm font-normal text-sand-600">{formatUSD(order.total)}</p>
                   )}
                 </div>
               </div>

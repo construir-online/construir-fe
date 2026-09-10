@@ -92,7 +92,10 @@ export default function Navbar() {
               {t('about')}
             </Link>
 
-            <div className="w-44">
+            {/* El buscador se estrecha en la banda `md`: ahí conviven enlaces,
+                buscador, chip de tasa, carrito y el menú de usuario, y a 768px
+                justos la fila se salía 2px del viewport con la sesión abierta. */}
+            <div className="w-36 lg:w-44">
               <SearchBar inputClassName="" />
             </div>
 
