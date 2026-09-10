@@ -16,12 +16,16 @@ import CategoryChips from "@/components/CategoryChips";
 import SearchBar from "@/components/SearchBar";
 import ProductCard from "@/components/product/ProductCard";
 import ProductCardSkeleton from "@/components/product/ProductCardSkeleton";
+import ProductFilters from "@/components/product/ProductFilters";
 import CartSummaryBar from "@/components/cart/CartSummaryBar";
 import {
   SORT_OPTIONS,
   applyProductListChange,
+  buildClearFiltersHref,
   buildPageWindow,
   buildProductListHref,
+  buildProductListQuery,
+  contarFiltrosActivos,
   parseProductListParams,
   toApiParams,
   type ProductListState,
@@ -34,7 +38,15 @@ function ProductsPageContent() {
   // Todo el estado del listado se lee de la URL, no de `useState`. Así el botón
   // "atrás", recargar y compartir el enlace llevan siempre a la misma pantalla.
   const estado = parseProductListParams(searchParams);
-  const { search, categoria, sortKey, page } = estado;
+  const { page } = estado;
+
+  // El efecto que carga depende de ESTA cadena y no de cada campo suelto. Antes
+  // llevaba `[search, categoria, sortKey, page]` y volvía a armar el objeto a
+  // mano dentro: añadir una dimensión nueva (los filtros) obligaba a acordarse
+  // de tocar los dos sitios, y olvidarse de las dependencias no rompe nada
+  // visible — simplemente el listado deja de recargarse al filtrar.
+  const clave = buildProductListQuery(estado);
+  const hayFiltros = contarFiltrosActivos(estado) > 0;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
@@ -58,7 +70,7 @@ function ProductsPageContent() {
       setError("");
       try {
         const response = await productsService.getPublicPaginated(
-          toApiParams({ search, categoria, sortKey, page }),
+          toApiParams(parseProductListParams(new URLSearchParams(clave))),
         );
         // La respuesta de una búsqueda anterior no debe pisar a la actual
         // cuando el usuario cambia de página rápido.
@@ -80,7 +92,7 @@ function ProductsPageContent() {
     return () => {
       cancelado = true;
     };
-  }, [search, categoria, sortKey, page]);
+  }, [clave]);
 
   // Al cambiar de página la lista se reemplaza entera: si no se sube, el
   // usuario aterriza a mitad de la página nueva sin ver que cambió.
@@ -128,6 +140,15 @@ function ProductsPageContent() {
           </aside>
 
           <div className="flex-1">
+            {/*
+              Los filtros van dentro de la columna de resultados y no en la
+              cabecera fija: en el teléfono esa cabecera ya lleva el buscador y
+              los chips de categoría, y una tercera fila pegada arriba se comía
+              un tercio de la pantalla justo donde tienen que verse los
+              productos. Acá se desplazan con la lista, como en el diseño.
+            */}
+            <ProductFilters className="mb-3" />
+
             {/* Recuento y orden */}
             <div className="mb-3 flex items-baseline justify-between gap-3">
               <span className="text-[13px] font-bold text-sand-700">
@@ -138,7 +159,7 @@ function ProductsPageContent() {
               <label className="flex items-center gap-1 text-[12.5px] font-bold text-brand-600">
                 <span className="sr-only">Ordenar por</span>
                 <select
-                  value={sortKey}
+                  value={estado.sortKey}
                   onChange={(e) => irA({ sortKey: e.target.value })}
                   className="cursor-pointer appearance-none bg-transparent pr-1 text-right font-bold text-brand-600 focus:outline-none"
                 >
@@ -175,10 +196,25 @@ function ProductsPageContent() {
                 <p className="font-display text-lg font-bold text-ink">
                   No hay productos disponibles
                 </p>
-                {(categoria || search) && (
+                {(estado.categoria || estado.search || hayFiltros) && (
                   <p className="mt-2 text-sm text-sand-600">
                     Intenta ajustar tus filtros de búsqueda
                   </p>
+                )}
+                {/*
+                  Salida a un clic. Un filtro de precio puede vaciar una
+                  categoría entera, y sin este enlace la única forma de salir
+                  era volver a abrir el panel y acordarse de cuál se puso.
+                  Conserva la búsqueda y la categoría: quita los filtros, no
+                  todo lo que el usuario venía haciendo.
+                */}
+                {hayFiltros && (
+                  <Link
+                    href={buildClearFiltersHref(searchParams)}
+                    className="mt-4 inline-flex h-11 items-center rounded-xl border border-sand-300 bg-white px-4 text-sm font-bold text-brand-600 hover:bg-brand-50"
+                  >
+                    Quitar los filtros
+                  </Link>
                 )}
               </div>
             )}

@@ -61,6 +61,12 @@ export const productsService = {
     featured?: boolean;
     sortBy?: string;
     sortOrder?: 'ASC' | 'DESC';
+    /** Precio mínimo en USD con IVA. */
+    minPrice?: number;
+    /** Precio máximo en USD con IVA. */
+    maxPrice?: number;
+    /** Unidades mínimas en inventario. */
+    minInventory?: number;
   }): Promise<PaginatedResponse<Product>> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -70,6 +76,12 @@ export const productsService = {
     if (params?.featured !== undefined) queryParams.append('featured', params.featured.toString());
     if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    // `!== undefined` y no un truthy: un `minPrice: 0` es un filtro puesto en
+    // cero, no un filtro ausente, y con `if (params?.minPrice)` se caería en
+    // silencio dejando el parámetro en la URL sin llegar nunca al backend.
+    if (params?.minPrice !== undefined) queryParams.append('minPrice', params.minPrice.toString());
+    if (params?.maxPrice !== undefined) queryParams.append('maxPrice', params.maxPrice.toString());
+    if (params?.minInventory !== undefined) queryParams.append('minInventory', params.minInventory.toString());
     const url = `/products${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return apiClient.get<PaginatedResponse<Product>>(url);
   },

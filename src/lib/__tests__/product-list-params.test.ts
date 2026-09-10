@@ -41,6 +41,7 @@ describe('estado del listado de productos en la URL', () => {
           params('search=pint+azul&categoria=abc-123&orden=price-asc&pagina=3'),
         ),
       ).toEqual({
+        ...ESTADO_INICIAL,
         search: 'pint azul',
         categoria: 'abc-123',
         sortKey: 'price-asc',
@@ -77,6 +78,7 @@ describe('estado del listado de productos en la URL', () => {
 
     it('escribe todo lo que no es el valor por defecto', () => {
       const href = buildProductListHref({
+        ...ESTADO_INICIAL,
         search: 'pint azul',
         categoria: 'abc-123',
         sortKey: 'price-asc',
@@ -94,9 +96,9 @@ describe('estado del listado de productos en la URL', () => {
       // el enlace: la URL tiene que ser una representación fiel del estado.
       const estados: ProductListState[] = [
         ESTADO_INICIAL,
-        { search: 'pint azul', categoria: null, sortKey: 'name', page: 7 },
-        { search: '', categoria: 'uuid-cat', sortKey: DEFAULT_SORT_KEY, page: 2 },
-        { search: 'tubo 1/2"', categoria: 'uuid-cat', sortKey: 'price-desc', page: 1 },
+        { ...ESTADO_INICIAL, search: 'pint azul', categoria: null, sortKey: 'name', page: 7 },
+        { ...ESTADO_INICIAL, search: '', categoria: 'uuid-cat', sortKey: DEFAULT_SORT_KEY, page: 2 },
+        { ...ESTADO_INICIAL, search: 'tubo 1/2"', categoria: 'uuid-cat', sortKey: 'price-desc', page: 1 },
       ];
 
       for (const estado of estados) {
@@ -109,6 +111,7 @@ describe('estado del listado de productos en la URL', () => {
 
   describe('applyProductListChange', () => {
     const conFiltros: ProductListState = {
+      ...ESTADO_INICIAL,
       search: '',
       categoria: 'uuid-pinturas',
       sortKey: 'price-asc',
@@ -141,6 +144,7 @@ describe('estado del listado de productos en la URL', () => {
       );
 
       expect(despues).toEqual({
+        ...ESTADO_INICIAL,
         search: 'azul',
         categoria: 'uuid-pinturas',
         sortKey: 'price-asc',
@@ -184,6 +188,7 @@ describe('estado del listado de productos en la URL', () => {
     it('traduce el estado a lo que espera el backend', () => {
       expect(
         toApiParams({
+          ...ESTADO_INICIAL,
           search: 'pint azul',
           categoria: 'uuid-cat',
           sortKey: 'price-asc',

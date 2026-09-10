@@ -47,6 +47,48 @@ export const PARAM_BUSQUEDA = 'search';
 export const PARAM_CATEGORIA = 'categoria';
 export const PARAM_ORDEN = 'orden';
 export const PARAM_PAGINA = 'pagina';
+export const PARAM_PRECIO_MIN = 'precioMin';
+export const PARAM_PRECIO_MAX = 'precioMax';
+export const PARAM_STOCK = 'stock';
+
+/**
+ * Unidades a partir de las cuales un producto deja de ser "últimas unidades".
+ *
+ * Es el mismo 5 con el que la ficha y la tarjeta ya pintan el aviso naranja de
+ * stock bajo. Se comparte para que el filtro y el aviso no puedan decir cosas
+ * distintas del mismo producto.
+ */
+export const UMBRAL_STOCK_BAJO = 5;
+
+/** Valor del parámetro `stock` que pide sólo productos con varias unidades. */
+export const STOCK_VARIAS_UNIDADES = 'varias';
+
+/**
+ * Rangos del filtro de precio, en **USD con IVA**.
+ *
+ * Van en dólares aunque la pantalla enseñe los bolívares en grande: el precio
+ * en Bs. se deriva de la tasa BCV, que cambia todos los días, así que un
+ * enlace con "de Bs. 1.000 a Bs. 2.000" compartido por WhatsApp seleccionaría
+ * otros productos mañana sin que nadie hubiera tocado el catálogo. La etiqueta
+ * se pinta en las dos monedas con la tasa del momento; lo que viaja en la URL
+ * es el dólar, que no se mueve.
+ *
+ * Los cortes salen de la distribución real del catálogo (mediana ~$9, tres
+ * cuartas partes por debajo de $28), no de números redondos inventados: con
+ * cortes en $100 o $500 tres de los cuatro rangos habrían salido vacíos.
+ */
+export interface RangoDePrecio {
+  key: string;
+  min: number | null;
+  max: number | null;
+}
+
+export const RANGOS_DE_PRECIO: RangoDePrecio[] = [
+  { key: 'hasta-5', min: null, max: 5 },
+  { key: '5-20', min: 5, max: 20 },
+  { key: '20-50', min: 20, max: 50 },
+  { key: 'desde-50', min: 50, max: null },
+];
 
 export interface ProductListState {
   search: string;
@@ -54,6 +96,19 @@ export interface ProductListState {
   categoria: string | null;
   sortKey: string;
   page: number;
+  /** Precio mínimo en USD con IVA, o `null` si no hay tope inferior. */
+  precioMin: number | null;
+  /** Precio máximo en USD con IVA, o `null` si no hay tope superior. */
+  precioMax: number | null;
+  /**
+   * Sólo productos con más de `UMBRAL_STOCK_BAJO` unidades.
+   *
+   * No es un "sólo disponibles": el catálogo público ya esconde lo agotado, o
+   * sea que ese filtro no quitaría ni un producto. Lo que sí cambia la lista es
+   * cuánto hay — quien compra para una obra se lleva varias unidades y un
+   * renglón con tres no le sirve.
+   */
+  stockAmplio: boolean;
 }
 
 export const ESTADO_INICIAL: ProductListState = {
@@ -61,6 +116,9 @@ export const ESTADO_INICIAL: ProductListState = {
   categoria: null,
   sortKey: DEFAULT_SORT_KEY,
   page: 1,
+  precioMin: null,
+  precioMax: null,
+  stockAmplio: false,
 };
 
 /** Sólo lo que se puede leer de una URL; `URLSearchParams` y el de Next encajan. */
@@ -86,6 +144,8 @@ export function parseProductListParams(
   params: ReadableParams,
 ): ProductListState {
   const sortKey = params.get(PARAM_ORDEN);
+  const precioMin = parsePrecio(params.get(PARAM_PRECIO_MIN));
+  const precioMax = parsePrecio(params.get(PARAM_PRECIO_MAX));
 
   return {
     search: params.get(PARAM_BUSQUEDA)?.trim() ?? '',
@@ -94,7 +154,31 @@ export function parseProductListParams(
       ? (sortKey as string)
       : DEFAULT_SORT_KEY,
     page: parsePagina(params.get(PARAM_PAGINA)),
+    // Un rango al revés (`precioMin=50&precioMax=20`) no devuelve nada nunca y
+    // no hay forma de llegar a él desde la pantalla: si aparece es una URL
+    // editada a mano o un enlace roto, y se descarta entero en vez de dejar al
+    // usuario ante un "no hay productos" que no puede deshacer con ningún
+    // control visible.
+    precioMin: rangoAlReves(precioMin, precioMax) ? null : precioMin,
+    precioMax: rangoAlReves(precioMin, precioMax) ? null : precioMax,
+    stockAmplio: params.get(PARAM_STOCK) === STOCK_VARIAS_UNIDADES,
   };
+}
+
+/**
+ * Lee un precio de la URL. Todo lo que no sea un número finito y no negativo
+ * (`abc`, `-5`, vacío, ausente) se trata como "sin filtro": la URL la escribe
+ * cualquiera y nunca debe dejar la pantalla rota.
+ */
+function parsePrecio(valor: string | null): number | null {
+  if (valor === null || valor.trim() === '') return null;
+  const numero = Number(valor);
+  if (!Number.isFinite(numero) || numero < 0) return null;
+  return numero;
+}
+
+function rangoAlReves(min: number | null, max: number | null): boolean {
+  return min !== null && max !== null && min > max;
 }
 
 /**
@@ -109,6 +193,11 @@ export function buildProductListQuery(estado: ProductListState): string {
   if (estado.search.trim()) params.set(PARAM_BUSQUEDA, estado.search.trim());
   if (estado.categoria) params.set(PARAM_CATEGORIA, estado.categoria);
   if (estado.sortKey !== DEFAULT_SORT_KEY) params.set(PARAM_ORDEN, estado.sortKey);
+  if (estado.precioMin !== null) params.set(PARAM_PRECIO_MIN, String(estado.precioMin));
+  if (estado.precioMax !== null) params.set(PARAM_PRECIO_MAX, String(estado.precioMax));
+  if (estado.stockAmplio) params.set(PARAM_STOCK, STOCK_VARIAS_UNIDADES);
+  // La página va la última para que la parte "qué estoy viendo" de la URL no
+  // cambie de forma al pasar de página.
   if (estado.page > 1) params.set(PARAM_PAGINA, String(estado.page));
 
   return params.toString();
@@ -136,7 +225,14 @@ export function applyProductListChange(
   const cambiaElListado =
     (cambio.search !== undefined && cambio.search !== actual.search) ||
     (cambio.categoria !== undefined && cambio.categoria !== actual.categoria) ||
-    (cambio.sortKey !== undefined && cambio.sortKey !== actual.sortKey);
+    (cambio.sortKey !== undefined && cambio.sortKey !== actual.sortKey) ||
+    // Los filtros son una dimensión más del mismo estado: cambiar el precio o
+    // el stock cambia el contenido de la lista igual que cambiar de categoría,
+    // así que también devuelven a la página 1. Sin esto, filtrar estando en la
+    // página 7 de 90 dejaba al usuario ante un "esta página ya no existe".
+    (cambio.precioMin !== undefined && cambio.precioMin !== actual.precioMin) ||
+    (cambio.precioMax !== undefined && cambio.precioMax !== actual.precioMax) ||
+    (cambio.stockAmplio !== undefined && cambio.stockAmplio !== actual.stockAmplio);
 
   if (cambiaElListado && cambio.page === undefined) {
     siguiente.page = 1;
@@ -216,7 +312,88 @@ export function toApiParams(estado: ProductListState) {
     categoryUuid: estado.categoria || undefined,
     sortBy: sort.sortBy,
     sortOrder: sort.sortOrder,
+    minPrice: estado.precioMin ?? undefined,
+    maxPrice: estado.precioMax ?? undefined,
+    // El backend recibe un número de unidades, no un "sí/no": así el umbral
+    // vive en un solo sitio de este lado y la API sigue sirviendo para
+    // cualquier otro corte que haga falta más adelante.
+    minInventory: estado.stockAmplio ? UMBRAL_STOCK_BAJO + 1 : undefined,
   };
+}
+
+/**
+ * Href que aplica (o quita) un rango de precio CONSERVANDO todo lo demás.
+ *
+ * Es la misma regla que `buildSearchHref` y `buildCategoryHref`: los filtros
+ * son una dimensión más del estado del listado, no un sistema aparte. Quien
+ * está en "Pinturas", buscando "azul", ordenado por menor precio, y toca "de
+ * $5 a $20", tiene que seguir en Pinturas, buscando azul y con ese orden.
+ *
+ * `null` en los dos extremos es el enlace de "cualquier precio": quita el
+ * rango y sólo el rango.
+ */
+export function buildPriceHref(
+  min: number | null,
+  max: number | null,
+  paramsActuales?: ReadableParams,
+): string {
+  const base = paramsActuales
+    ? parseProductListParams(paramsActuales)
+    : ESTADO_INICIAL;
+
+  return buildProductListHref(
+    applyProductListChange(base, { precioMin: min, precioMax: max }),
+  );
+}
+
+/** Href que enciende o apaga el filtro de stock, conservando todo lo demás. */
+export function buildStockHref(
+  stockAmplio: boolean,
+  paramsActuales?: ReadableParams,
+): string {
+  const base = paramsActuales
+    ? parseProductListParams(paramsActuales)
+    : ESTADO_INICIAL;
+
+  return buildProductListHref(applyProductListChange(base, { stockAmplio }));
+}
+
+/**
+ * Href que quita TODOS los filtros pero deja la búsqueda y la categoría.
+ *
+ * "Limpiar filtros" no es "empezar de cero": quien buscó "cemento" dentro de
+ * "Obra gris" y luego pulsa limpiar está ampliando el precio y el stock, no
+ * cancelando su búsqueda. Borrarle también el término era el mismo error que
+ * ya se pagó con la barra de búsqueda.
+ */
+export function buildClearFiltersHref(paramsActuales?: ReadableParams): string {
+  const base = paramsActuales
+    ? parseProductListParams(paramsActuales)
+    : ESTADO_INICIAL;
+
+  return buildProductListHref(
+    applyProductListChange(base, {
+      precioMin: null,
+      precioMax: null,
+      stockAmplio: false,
+    }),
+  );
+}
+
+/** Cuántos filtros hay puestos, para el contador del botón "Filtros". */
+export function contarFiltrosActivos(estado: ProductListState): number {
+  const rangoPuesto = estado.precioMin !== null || estado.precioMax !== null;
+  return (rangoPuesto ? 1 : 0) + (estado.stockAmplio ? 1 : 0);
+}
+
+/** El rango de `RANGOS_DE_PRECIO` que corresponde al estado, si hay alguno. */
+export function rangoActivo(estado: ProductListState): RangoDePrecio | null {
+  return (
+    RANGOS_DE_PRECIO.find(
+      (rango) =>
+        rango.min === estado.precioMin && rango.max === estado.precioMax,
+    ) ?? null
+  );
 }
 
 /**
