@@ -96,6 +96,10 @@ export default function Navbar() {
               <SearchBar inputClassName="" />
             </div>
 
+            {/* La tasa BCV acompaña al buscador también en escritorio: el precio
+                es dual en toda la app y el diseño la deja fija en la cabecera. */}
+            <RateChip />
+
             <CartButton onClick={openCart} />
 
             {/* ── Logged in: user dropdown ── */}

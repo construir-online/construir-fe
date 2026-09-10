@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Package } from "lucide-react";
 import { formatVES, formatUSD } from "@/lib/currency";
+import { formatRate } from "@/hooks/useExchangeRate";
 import DiscountCodeInput from "./DiscountCodeInput";
 
 export interface OrderSummaryItem {
@@ -113,7 +114,7 @@ export default function OrderSummary({
               Tipo de cambio:
             </span>
             <span className="font-medium">
-              1 USD = {exchangeRate.toFixed(2)} Bs
+              1 USD = {formatRate(exchangeRate)} Bs
             </span>
           </div>
         )}
@@ -175,7 +176,7 @@ export default function OrderSummary({
               <span className="text-[11.5px] font-medium text-sand-600">
                 ≈ {formatUSD(total)}
                 {exchangeRate && typeof exchangeRate === "number"
-                  ? ` · BCV ${exchangeRate.toFixed(2)}`
+                  ? ` · BCV ${formatRate(exchangeRate)}`
                   : ""}
               </span>
             )}
