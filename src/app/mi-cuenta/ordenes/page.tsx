@@ -9,6 +9,7 @@ import { ordersService } from "@/services/orders";
 import { getOrderStatusColor, getOrderProgress } from "@/lib/order-helpers";
 import { formatUSD, formatVES } from "@/lib/currency";
 import { useAuth } from "@/context/AuthContext";
+import WhatsAppPedidoBoton from "@/components/orders/WhatsAppPedidoBoton";
 import type { OrderSummary } from "@/types";
 
 function OrderCardSkeleton() {
@@ -97,6 +98,7 @@ function OrderCard({ order }: { order: OrderSummary }) {
 
 export default function MisOrdenesPage() {
   const tAccount = useTranslations("myAccount");
+  const tTracking = useTranslations("tracking");
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -153,12 +155,17 @@ export default function MisOrdenesPage() {
           <p className="text-sand-600 text-sm mb-5">
             Verifica tu conexión e intenta de nuevo.
           </p>
-          <button
-            onClick={load}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-600 px-5 text-sm font-bold text-white transition-colors hover:bg-brand-700"
-          >
-            Reintentar
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            <button
+              onClick={load}
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-600 px-5 text-sm font-bold text-white transition-colors hover:bg-brand-700"
+            >
+              Reintentar
+            </button>
+            {/* Si la tienda no carga sus pedidos, escribir sigue siendo una
+                salida: el vendedor puede consultarlos por él. */}
+            <WhatsAppPedidoBoton>{tTracking("writeOnWhatsApp")}</WhatsAppPedidoBoton>
+          </div>
         </div>
       )}
 

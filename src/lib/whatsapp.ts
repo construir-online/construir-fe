@@ -95,7 +95,16 @@ export function toTelHref(phone: string | null | undefined): string | null {
  * chat va a un móvil distinto.
  */
 export function storeWhatsAppNumber(): string | null {
-  return toVenezuelanNumber(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER);
+  const configurado = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+
+  // Se exige móvil, igual que hace `toWhatsAppUrl` con los teléfonos de
+  // pantalla. Si alguien pega acá el fijo de la tienda —que es justo el número
+  // que se publica en el pie— todos los botones de WhatsApp de la app
+  // abrirían un chat que nadie lee. La regla ya existía; faltaba aplicarla
+  // también al número de la tienda.
+  if (!isVenezuelanMobile(configurado)) return null;
+
+  return toVenezuelanNumber(configurado);
 }
 
 /** Enlace al WhatsApp de la tienda, con mensaje inicial opcional. */

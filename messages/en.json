@@ -1209,7 +1209,8 @@
     "stageReadyForPickup": "Ready for pickup",
     "stageDelivered": "Delivered",
     "stagePickedUp": "Picked up",
-    "stageInProgress": "In progress"
+    "stageInProgress": "In progress",
+    "writeOnWhatsApp": "Message us on WhatsApp"
   },
   "auditLogs": {
     "title": "Audit Log",

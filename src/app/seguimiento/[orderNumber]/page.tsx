@@ -8,6 +8,7 @@ import { Loader2, PackageSearch } from "lucide-react";
 import { ordersService } from "@/services/orders";
 import { OrderDetail } from "@/components/orders/OrderDetail";
 import type { TrackedOrder } from "@/types";
+import WhatsAppPedidoBoton from "@/components/orders/WhatsAppPedidoBoton";
 
 export default function OrderTrackingPage() {
   const params = useParams();
@@ -55,6 +56,11 @@ export default function OrderTrackingPage() {
         >
           {t("backToHome")}
         </Link>
+        {/* Si el número no aparece, escribir a la tienda es la única salida
+            útil que le queda al cliente. */}
+        <WhatsAppPedidoBoton className="mt-3">
+          {t("writeOnWhatsApp")}
+        </WhatsAppPedidoBoton>
       </div>
     );
   }
@@ -68,6 +74,14 @@ export default function OrderTrackingPage() {
         {/* Sin datos de pago: esta pantalla se abre con sólo el número de
             pedido, y el backend ya no los envía. */}
         <OrderDetail order={order} showPaymentDetails={false} />
+
+        {/* La entrega se coordina por WhatsApp con un vendedor: es la acción
+            que de verdad sigue después de mirar el avance. */}
+        <div className="mt-6">
+          <WhatsAppPedidoBoton orderNumber={order.orderNumber} variante="primario" className="w-full sm:w-auto">
+            {t("writeOnWhatsApp")}
+          </WhatsAppPedidoBoton>
+        </div>
       </div>
     </div>
   );

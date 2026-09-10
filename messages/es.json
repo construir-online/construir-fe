@@ -1209,7 +1209,8 @@
     "stageReadyForPickup": "Listo para retirar",
     "stageDelivered": "Entregado",
     "stagePickedUp": "Retirado",
-    "stageInProgress": "En curso"
+    "stageInProgress": "En curso",
+    "writeOnWhatsApp": "Escribir por WhatsApp"
   },
   "auditLogs": {
     "title": "Auditoría de Cambios",
