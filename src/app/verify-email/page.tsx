@@ -61,7 +61,7 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-sand-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-sand-50 flex items-start justify-center px-4 pt-10 pb-12 sm:items-center sm:py-12">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-sand-300 bg-white p-8 text-center space-y-6">
           {status === "loading" && (
@@ -73,7 +73,7 @@ export default function VerifyEmailPage() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-ink">Verificando tu cuenta...</h2>
+                <h2 className="font-display text-[20px] font-bold tracking-tight text-ink">Verificando tu cuenta...</h2>
                 <p className="text-sm text-sand-600 mt-1">Por favor espera un momento.</p>
               </div>
             </>
@@ -87,7 +87,7 @@ export default function VerifyEmailPage() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-ink">¡Cuenta activada!</h2>
+                <h2 className="font-display text-[23px] font-bold tracking-tight text-ink">¡Cuenta activada!</h2>
                 <p className="text-sm text-sand-600 mt-2">
                   Tu correo fue verificado exitosamente. Ya puedes iniciar sesión.
                 </p>
@@ -109,7 +109,7 @@ export default function VerifyEmailPage() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-ink">
+                <h2 className="font-display text-[23px] font-bold tracking-tight text-ink">
                   {status === "expired" ? "Enlace expirado" : "Enlace inválido"}
                 </h2>
                 <p className="text-sm text-sand-600 mt-2">

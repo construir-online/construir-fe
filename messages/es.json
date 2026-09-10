@@ -115,14 +115,13 @@
     "emailRequired": "El correo electrónico es requerido",
     "passwordRequired": "La contraseña es requerida",
     "passwordsMismatch": "Las contraseñas no coinciden",
-    "tagline": "Materiales de construcción con despacho en 24 h.",
     "tabLogin": "Ingresar",
     "tabRegister": "Crear cuenta",
     "emailPlaceholder": "juan@ejemplo.com",
     "passwordPlaceholder": "Tu contraseña",
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña",
-    "loggingIn": "Iniciando sesión...",
+    "loggingIn": "Entrando...",
     "or": "o",
     "continueAsGuest": "Continuar como invitado",
     "guestHint": "Puedes comprar sin cuenta: la creamos automáticamente al confirmar tu primer pedido.",
@@ -180,7 +179,26 @@
       "passwordsMismatch": "Las contraseñas no coinciden.",
       "phone": "Escribe un móvil venezolano: 0412, 0414, 0416, 0424 o 0426 + 7 dígitos.",
       "identification": "La cédula debe tener 7 u 8 dígitos."
-    }
+    },
+    "loginTagline": "Materiales de construcción con despacho en 24 h.",
+    "registerTagline": "Crea tu cuenta y repite pedidos en dos toques.",
+    "loginHeadline": "Materiales de construcción con despacho en 24 h.",
+    "loginHeadlineSub": "Entra para ver tus pedidos, repetir compras y guardar tus direcciones de entrega.",
+    "registerHeadline": "Crea tu cuenta y compra más rápido.",
+    "registerHeadlineSub": "Con tus datos guardados, el checkout se autocompleta desde tu cédula o RIF.",
+    "loginHeading": "Inicia sesión",
+    "registerHeading": "Crear cuenta",
+    "aside": {
+      "pickupTitle": "Retiro en tienda",
+      "pickupBody": "Listo el mismo día en nuestro galpón.",
+      "deliveryTitle": "Delivery coordinado",
+      "deliveryBody": "Acordamos día y hora por WhatsApp con el vendedor.",
+      "step1": "Completas nombre, identificación y contacto",
+      "step2": "Verificas tu correo con el enlace que te enviamos",
+      "step3": "Ya puedes pedir con retiro en tienda o delivery"
+    },
+    "loginSubmit": "Entrar",
+    "passwordHelp": "Mínimo 6 caracteres."
   },
   "errors": {
     "generic": "Ocurrió un error. Intenta nuevamente.",

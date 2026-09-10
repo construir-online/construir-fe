@@ -20,6 +20,15 @@ const ID_TYPES = [
 
 const INPUT_CLASS =
   "block min-h-11 w-full rounded-xl border border-sand-300 bg-sand-100 px-3.5 py-3 text-[13.5px] font-medium text-ink placeholder-sand-600 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/25";
+/**
+ * El `select` del tipo de identificación.
+ *
+ * Lleva `w-20` DESPUÉS de `INPUT_CLASS` a propósito: aquélla trae `w-full`, y
+ * como Tailwind no ordena por especificidad sino por el orden de la hoja, un
+ * `w-20` puesto antes perdía y el desplegable se comía la fila entera dejando
+ * el número de cédula reducido a un cuadrito. `!` fija el desempate.
+ */
+const SELECT_CLASS = `${INPUT_CLASS} !w-20 shrink-0 pr-2`;
 const INPUT_ERROR_CLASS =
   "border-danger-500 bg-danger-50 focus:border-danger-500 focus:ring-danger-500/25";
 const LABEL_CLASS = "mb-1.5 block text-[11.5px] font-bold text-sand-700";
@@ -166,7 +175,7 @@ export default function RegisterPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-ink">{t("checkEmailTitle")}</h2>
+              <h2 className="font-display text-[23px] font-bold tracking-tight text-ink">{t("checkEmailTitle")}</h2>
               <p className="mt-2 text-sand-600 text-sm leading-relaxed">
                 {t("checkEmailBody", { email: formData.email })}
               </p>
@@ -199,8 +208,9 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {/* Nombre y Apellido */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Nombre y Apellido: caben en una fila incluso a 390 px, y así el
+                formulario arranca sin gastar dos pantallazos en dos campos. */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label htmlFor="firstName" className={LABEL_CLASS}>
                   {t("firstName")} <span className="text-danger-500">*</span>
@@ -252,7 +262,7 @@ export default function RegisterPage() {
                   aria-label={t("identification")}
                   value={formData.identificationType}
                   onChange={handleChange}
-                  className={`w-24 shrink-0 ${INPUT_CLASS}`}
+                  className={SELECT_CLASS}
                 >
                   {ID_TYPES.map((tipo) => (
                     <option key={tipo.value} value={tipo.value}>
@@ -376,8 +386,13 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                {errorDe("password") && (
+                {/* La regla se queda a la vista: como ayuda vive en el
+                    placeholder, desaparecía justo al empezar a escribir, que es
+                    cuando hace falta. */}
+                {errorDe("password") ? (
                   <p className="mt-1 text-xs text-danger-600">{errorDe("password")}</p>
+                ) : (
+                  <p className="mt-1 text-xs text-sand-500">{t("passwordHelp")}</p>
                 )}
               </div>
               <div>

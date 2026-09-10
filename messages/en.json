@@ -94,7 +94,7 @@
     "allProducts": "All"
   },
   "auth": {
-    "login": "Log In",
+    "login": "Sign In",
     "register": "Sign Up",
     "logout": "Log Out",
     "email": "Email",
@@ -115,14 +115,13 @@
     "emailRequired": "Email is required",
     "passwordRequired": "Password is required",
     "passwordsMismatch": "Passwords do not match",
-    "tagline": "Building materials delivered in 24 h.",
     "tabLogin": "Log in",
     "tabRegister": "Sign up",
     "emailPlaceholder": "john@example.com",
     "passwordPlaceholder": "Your password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "loggingIn": "Logging in...",
+    "loggingIn": "Signing in...",
     "or": "or",
     "continueAsGuest": "Continue as a guest",
     "guestHint": "You can shop without an account: we create one for you when you place your first order.",
@@ -180,7 +179,26 @@
       "passwordsMismatch": "Passwords do not match.",
       "phone": "Enter a Venezuelan mobile: 0412, 0414, 0416, 0424 or 0426 + 7 digits.",
       "identification": "The ID number must have 7 or 8 digits."
-    }
+    },
+    "loginTagline": "Construction materials delivered within 24 h.",
+    "registerTagline": "Create your account and reorder in two taps.",
+    "loginHeadline": "Construction materials delivered within 24 h.",
+    "loginHeadlineSub": "Sign in to track your orders, reorder and save your delivery addresses.",
+    "registerHeadline": "Create your account and shop faster.",
+    "registerHeadlineSub": "With your details saved, checkout fills itself in from your ID or tax number.",
+    "loginHeading": "Sign in",
+    "registerHeading": "Create account",
+    "aside": {
+      "pickupTitle": "Store pickup",
+      "pickupBody": "Ready the same day at our warehouse.",
+      "deliveryTitle": "Coordinated delivery",
+      "deliveryBody": "We agree on a day and time over WhatsApp with your rep.",
+      "step1": "Fill in your name, ID and contact details",
+      "step2": "Verify your email with the link we send you",
+      "step3": "Start ordering with store pickup or delivery"
+    },
+    "loginSubmit": "Sign in",
+    "passwordHelp": "At least 6 characters."
   },
   "errors": {
     "generic": "An error occurred. Please try again.",

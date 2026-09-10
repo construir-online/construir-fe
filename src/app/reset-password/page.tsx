@@ -63,7 +63,7 @@ function ResetPasswordForm() {
           </svg>
         </div>
         <div>
-          <p className="text-base font-medium text-ink">Enlace no válido o expirado</p>
+          <p className="font-display text-base font-bold text-ink">Enlace no válido o expirado</p>
           <p className="mt-1 text-sm text-sand-600">
             Este enlace ya no es válido. Solicita uno nuevo.
           </p>
@@ -170,10 +170,10 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-sand-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-sand-50 flex items-start justify-center px-4 pt-10 pb-12 sm:items-center sm:py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-ink tracking-tight">Nueva contraseña</h1>
+          <h1 className="font-display text-[26px] font-bold tracking-tight text-ink">Nueva contraseña</h1>
           <p className="mt-2 text-sm text-sand-600">
             Elige una contraseña segura para tu cuenta.
           </p>

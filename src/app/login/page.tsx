@@ -193,7 +193,7 @@ export default function LoginPage() {
                   {t("loggingIn")}
                 </>
               ) : (
-                t("login")
+                t("loginSubmit")
               )}
             </button>
           </form>
