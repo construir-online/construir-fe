@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import type { OrderSummary } from '@/types';
 
 /**
- * El listado de pedidos mostraba sólo dólares (`$37.12`), sin rastro del Bs.
+ * El listado de pedidos mostraba sólo dólares (`$37,12`), sin rastro del Bs.
  * Es la pantalla a la que vuelve el cliente después de pagar, y el importe que
  * pagó —el que puede cotejar con su banco— es el de bolívares.
  */
@@ -60,14 +60,14 @@ describe('Mis pedidos · monto dual', () => {
     await cargar();
 
     await waitFor(() => expect(screen.getByText('Bs. 17.862,89')).toBeTruthy());
-    expect(screen.getByText('$37.12')).toBeTruthy();
+    expect(screen.getByText('$37,12')).toBeTruthy();
   });
 
   it('cae al dólar solo cuando el pedido no trae el equivalente en Bs.', async () => {
     getMyOrders.mockResolvedValue([pedido({ totalVes: null })]);
     await cargar();
 
-    await waitFor(() => expect(screen.getByText('$37.12')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('$37,12')).toBeTruthy());
     expect(screen.queryByText(/^Bs\./)).toBeNull();
   });
 });

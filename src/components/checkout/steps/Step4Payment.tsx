@@ -6,6 +6,7 @@ import { storeWhatsAppNumber, storeWhatsAppUrl, toTelHref } from '@/lib/whatsapp
 import PhoneLink from '@/components/common/PhoneLink';
 import { useStoreInfo } from '@/hooks/useStoreInfo';
 import { useTranslations } from 'next-intl';
+import { formatUSD } from '@/lib/currency';
 import ZelleForm from '@/components/payment/ZelleForm';
 import PagoMovilForm from '@/components/payment/PagoMovilForm';
 import TransferenciaForm from '@/components/payment/TransferenciaForm';
@@ -77,7 +78,7 @@ export default function Step4Payment({
 
   if (error || paymentMethods.length === 0) {
     const productLines = cartItems.map(
-      (item) => `• ${item.quantity}x ${item.productName} - $${item.price.toFixed(2)}`
+      (item) => `• ${item.quantity}x ${item.productName} - ${formatUSD(item.price)}`
     );
     const messageLines = [
       'Hola! Quiero hacer el siguiente pedido:',
@@ -85,7 +86,7 @@ export default function Step4Payment({
       '*PRODUCTOS:*',
       ...productLines,
       '',
-      `*Total:* $${totalUSD.toFixed(2)}`,
+      `*Total:* ${formatUSD(totalUSD)}`,
       '',
       '*DATOS:*',
       customerName ? `Nombre: ${customerName}` : null,

@@ -145,14 +145,14 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
 
     const ingresos = tarjeta('Ingresos verificados');
     expect(ingresos.getByText('Bs. 72.000,00')).toBeInTheDocument();
-    expect(ingresos.getByText('$150.00')).toBeInTheDocument();
+    expect(ingresos.getByText('$150,00')).toBeInTheDocument();
 
     const pedidos = tarjeta('Pedidos pagados');
     expect(pedidos.getByText('2')).toBeInTheDocument();
 
     const promedio = tarjeta('Promedio por Pedido');
     expect(promedio.getByText('Bs. 36.000,00')).toBeInTheDocument();
-    expect(promedio.getByText('$75.00')).toBeInTheDocument();
+    expect(promedio.getByText('$75,00')).toBeInTheDocument();
   });
 
   it('dice de qué mes habla, en la zona horaria de la tienda', async () => {
@@ -357,7 +357,7 @@ describe('Panel de administración — Ventas e Ingresos del Mes', () => {
       screen.queryByText('No hay datos disponibles'),
     ).not.toBeInTheDocument();
     expect(tarjeta('Pedidos pagados').getByText('0')).toBeInTheDocument();
-    expect(tarjeta('Ingresos verificados').getByText('$0.00')).toBeInTheDocument();
+    expect(tarjeta('Ingresos verificados').getByText('$0,00')).toBeInTheDocument();
     expect(tarjeta('Ingresos verificados').getByText('Bs. 0,00')).toBeInTheDocument();
   });
 

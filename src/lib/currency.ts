@@ -11,23 +11,21 @@ export function formatCurrency(amount: number | string, currency: Currency): str
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
 
   if (isNaN(numAmount)) {
-    return currency === 'USD' ? '$0.00' : 'Bs. 0,00';
+    return currency === 'USD' ? '$0,00' : 'Bs. 0,00';
   }
 
-  if (currency === 'USD') {
-    // PENDIENTE DE DECIDIR: el diseño pide el dólar también en formato
-    // venezolano (`$41,80`), y hoy se lee «Bs. 14.513,52 · $30.16», con dos
-    // convenciones para el mismo número en la misma línea. No se cambia aquí
-    // porque este helper lo comparte el panel de administración, que tiene
-    // pruebas fijando `$150.00`.
-    return `$${numAmount.toFixed(2)}`;
-  } else {
-    // VES con formato venezolano (coma para decimales, punto para miles)
-    return `Bs. ${numAmount.toLocaleString('es-VE', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-  }
+  // Las dos monedas van en convención venezolana: coma decimal y punto de
+  // millares. El criterio NO se toma del diseño —el lienzo es incoherente
+  // consigo mismo, escribe la tasa como `118.32` junto a `Bs. 4.946,00`— sino
+  // de quien lee el número: el cliente venezolano. Por eso se aplica sin
+  // excepciones, panel de administración incluido; tener dos criterios
+  // conviviendo es justo como nacen estas divergencias.
+  const formateado = numAmount.toLocaleString('es-VE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return currency === 'USD' ? `$${formateado}` : `Bs. ${formateado}`;
 }
 
 /**
