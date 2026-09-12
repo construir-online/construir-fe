@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageCircle } from "lucide-react";
+import { useStoreInfo } from "@/hooks/useStoreInfo";
 import { storeWhatsAppUrl } from "@/lib/whatsapp";
 
 interface Props {
@@ -19,10 +20,10 @@ interface Props {
  * Botón de WhatsApp para las pantallas de pedido.
  *
  * El enlace lo arma `storeWhatsAppUrl`, que es la única versión de la regla de
- * normalización; aquí no se vuelve a tocar el número. Si
- * `NEXT_PUBLIC_WHATSAPP_NUMBER` no está configurado el botón no se pinta —
- * igual que se resolvió en el pie y en contacto: mejor nada que un enlace que
- * abre un chat inexistente.
+ * normalización; aquí no se vuelve a tocar el número, que llega de
+ * `/api/v1/store-info`. Mientras carga, o si el backend no tiene WhatsApp
+ * configurado, el botón no se pinta — igual que se resolvió en el pie y en
+ * contacto: mejor nada que un enlace que abre un chat inexistente.
  */
 export default function WhatsAppPedidoBoton({
   orderNumber,
@@ -30,11 +31,12 @@ export default function WhatsAppPedidoBoton({
   variante = "secundario",
   className = "",
 }: Props) {
+  const { storeInfo } = useStoreInfo();
   const mensaje = orderNumber
     ? `Hola, quiero preguntar por mi pedido ${orderNumber}.`
     : "Hola, necesito ayuda con un pedido de la tienda.";
 
-  const url = storeWhatsAppUrl(mensaje);
+  const url = storeWhatsAppUrl(storeInfo?.whatsapp, mensaje);
   if (!url) return null;
 
   const estilo =

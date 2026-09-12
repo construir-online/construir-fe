@@ -29,8 +29,8 @@ export default function Footer() {
   const t = useTranslations('footer');
   const tNav = useTranslations('nav');
   const { storeInfo } = useStoreInfo();
-  const whatsAppUrl = storeWhatsAppUrl();
-  const whatsAppNumber = storeWhatsAppNumber();
+  const whatsAppUrl = storeWhatsAppUrl(storeInfo?.whatsapp);
+  const whatsAppNumber = storeWhatsAppNumber(storeInfo?.whatsapp);
   const redes = perfilesSociales();
 
   const currentYear = new Date().getFullYear();

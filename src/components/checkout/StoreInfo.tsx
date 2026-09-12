@@ -9,8 +9,8 @@ import { formatVenezuelanNumber, storeWhatsAppNumber, storeWhatsAppUrl } from '@
 export default function StoreInfo() {
   const t = useTranslations('checkout');
   const { storeInfo, loading, error, reload } = useStoreInfo();
-  const whatsAppUrl = storeWhatsAppUrl();
-  const whatsAppNumber = storeWhatsAppNumber();
+  const whatsAppUrl = storeWhatsAppUrl(storeInfo?.whatsapp);
+  const whatsAppNumber = storeWhatsAppNumber(storeInfo?.whatsapp);
 
   if (loading) {
     return (

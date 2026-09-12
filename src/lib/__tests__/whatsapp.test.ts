@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   formatVenezuelanNumber,
   isVenezuelanMobile,
@@ -107,28 +107,27 @@ describe('toTelHref', () => {
 });
 
 describe('storeWhatsAppUrl', () => {
-  const original = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  afterEach(() => {
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = original;
+  it('usa el número que sirve el backend', () => {
+    expect(storeWhatsAppNumber('584141925544')).toBe('584141925544');
+    expect(storeWhatsAppUrl('584141925544')).toBe('https://wa.me/584141925544');
   });
 
-  it('usa el número configurado del entorno', () => {
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = '0412-0000000';
-    expect(storeWhatsAppNumber()).toBe('584120000000');
-    expect(storeWhatsAppUrl()).toBe('https://wa.me/584120000000');
+  it('agrega el mensaje precargado', () => {
+    expect(storeWhatsAppUrl('584141925544', 'Hola')).toBe(
+      'https://wa.me/584141925544?text=Hola'
+    );
   });
 
-  it('sin configurar no pinta un botón que no lleva a nadie', () => {
-    delete process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-    expect(storeWhatsAppUrl()).toBeNull();
+  it('sin configurar, o sin cargar todavía, no pinta un botón que no lleva a nadie', () => {
+    expect(storeWhatsAppUrl('')).toBeNull();
+    expect(storeWhatsAppUrl(undefined)).toBeNull();
   });
 
   it('rechaza un fijo configurado por error, como hace toWhatsAppUrl', () => {
     // El fijo de la tienda es el número que se publica en el pie; si acaba acá
     // por copiar y pegar, todos los botones de WhatsApp abrirían un chat muerto.
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = '0285-6320178';
-    expect(storeWhatsAppNumber()).toBeNull();
-    expect(storeWhatsAppUrl()).toBeNull();
+    expect(storeWhatsAppNumber('0285-6320178')).toBeNull();
+    expect(storeWhatsAppUrl('0285-6320178')).toBeNull();
   });
 });
 

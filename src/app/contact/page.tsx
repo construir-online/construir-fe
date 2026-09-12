@@ -25,8 +25,8 @@ export default function ContactPage() {
   const t = useTranslations('contact');
   const { storeInfo, loading, error, reload } = useStoreInfo();
 
-  const whatsApp = storeWhatsAppUrl(t('whatsappGreeting'));
-  const whatsAppNumber = storeWhatsAppNumber();
+  const whatsApp = storeWhatsAppUrl(storeInfo?.whatsapp, t('whatsappGreeting'));
+  const whatsAppNumber = storeWhatsAppNumber(storeInfo?.whatsapp);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:py-14">
