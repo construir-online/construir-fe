@@ -1252,6 +1252,11 @@ export interface StoreInfo {
   phone: string;
   /** Cadena vacía si no se configuró STORE_EMAIL */
   email: string;
+  /**
+   * WhatsApp de la tienda (58 + 10 dígitos), sacado de STORE_WHATSAPP_URL.
+   * Cadena vacía si no se configuró.
+   */
+  whatsapp: string;
   hours: string;
   /** Cadena vacía si no se configuró STORE_MAP_URL */
   mapUrl: string;

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import WhatsAppPedidoBoton from '@/components/orders/WhatsAppPedidoBoton';
 
@@ -8,17 +8,25 @@ import WhatsAppPedidoBoton from '@/components/orders/WhatsAppPedidoBoton';
  * WhatsApp configurado el botón no se pinte —como en el pie y en contacto—,
  * porque un enlace a un chat inexistente es peor que no ofrecerlo.
  */
-const original = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+const tienda = vi.hoisted(() => ({ whatsapp: '' as string | undefined, cargada: true }));
+
+vi.mock('@/hooks/useStoreInfo', () => ({
+  useStoreInfo: () => ({
+    storeInfo: tienda.cargada ? { whatsapp: tienda.whatsapp } : null,
+    loading: !tienda.cargada,
+    error: false,
+  }),
+}));
 
 const href = () =>
   (screen.getByRole('link') as HTMLAnchorElement).getAttribute('href') ?? '';
 
 describe('WhatsAppPedidoBoton', () => {
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = '0414-1925544';
+    tienda.whatsapp = '584141925544';
+    tienda.cargada = true;
   });
   afterEach(() => {
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = original;
     cleanup();
   });
 
@@ -28,7 +36,7 @@ describe('WhatsAppPedidoBoton', () => {
     expect(decodeURIComponent(href())).toContain('ORD-PRUEBA-0001');
   });
 
-  it('usa el número normalizado por el helper compartido', () => {
+  it('usa el número que sirve el backend', () => {
     render(<WhatsAppPedidoBoton orderNumber="ORD-1">Escribir</WhatsAppPedidoBoton>);
 
     expect(href()).toContain('wa.me/584141925544');
@@ -43,7 +51,14 @@ describe('WhatsAppPedidoBoton', () => {
   });
 
   it('no se pinta si no hay WhatsApp configurado', () => {
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = '';
+    tienda.whatsapp = '';
+    render(<WhatsAppPedidoBoton orderNumber="ORD-1">Escribir</WhatsAppPedidoBoton>);
+
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  it('no se pinta mientras no han cargado los datos de la tienda', () => {
+    tienda.cargada = false;
     render(<WhatsAppPedidoBoton orderNumber="ORD-1">Escribir</WhatsAppPedidoBoton>);
 
     expect(screen.queryByRole('link')).toBeNull();
@@ -51,7 +66,7 @@ describe('WhatsAppPedidoBoton', () => {
 
   it('tampoco se pinta si el número configurado no es un móvil venezolano', () => {
     // Un fijo no recibe WhatsApp por más que se enlace.
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = '0285-6320178';
+    tienda.whatsapp = '0285-6320178';
     render(<WhatsAppPedidoBoton orderNumber="ORD-1">Escribir</WhatsAppPedidoBoton>);
 
     expect(screen.queryByRole('link')).toBeNull();

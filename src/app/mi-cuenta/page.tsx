@@ -33,8 +33,8 @@ import {
 function ContactSection() {
   const t = useTranslations("myAccount");
   const { storeInfo } = useStoreInfo();
-  const whatsAppUrl = storeWhatsAppUrl();
-  const whatsAppNumber = storeWhatsAppNumber();
+  const whatsAppUrl = storeWhatsAppUrl(storeInfo?.whatsapp);
+  const whatsAppNumber = storeWhatsAppNumber(storeInfo?.whatsapp);
 
   if (!storeInfo) return null;
 

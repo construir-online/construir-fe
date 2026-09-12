@@ -88,15 +88,15 @@ export function toTelHref(phone: string | null | undefined): string | null {
 }
 
 /**
- * El WhatsApp de la tienda, configurado en `NEXT_PUBLIC_WHATSAPP_NUMBER`.
+ * El WhatsApp de la tienda, a partir del `whatsapp` de `/api/v1/store-info`.
  *
- * Es una variable aparte del `phone` que sirve `/api/v1/store-info` porque el
- * teléfono publicado de la tienda es un fijo de Ciudad Bolívar: la atención por
- * chat va a un móvil distinto.
+ * Es un campo aparte del `phone` porque el teléfono publicado de la tienda es
+ * un fijo de Ciudad Bolívar y la atención por chat va a un móvil distinto.
+ * Antes salía de `NEXT_PUBLIC_WHATSAPP_NUMBER`, que se fija al compilar: la web
+ * llegó a producción con un número distinto del que usan los correos del
+ * backend. Ahora hay una sola fuente, STORE_WHATSAPP_URL en el backend.
  */
-export function storeWhatsAppNumber(): string | null {
-  const configurado = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-
+export function storeWhatsAppNumber(configurado: string | null | undefined): string | null {
   // Se exige móvil, igual que hace `toWhatsAppUrl` con los teléfonos de
   // pantalla. Si alguien pega acá el fijo de la tienda —que es justo el número
   // que se publica en el pie— todos los botones de WhatsApp de la app
@@ -108,8 +108,11 @@ export function storeWhatsAppNumber(): string | null {
 }
 
 /** Enlace al WhatsApp de la tienda, con mensaje inicial opcional. */
-export function storeWhatsAppUrl(text?: string): string | null {
-  const numero = storeWhatsAppNumber();
+export function storeWhatsAppUrl(
+  configurado: string | null | undefined,
+  text?: string
+): string | null {
+  const numero = storeWhatsAppNumber(configurado);
   if (!numero) return null;
 
   return text

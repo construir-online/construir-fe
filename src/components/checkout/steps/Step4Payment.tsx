@@ -56,7 +56,7 @@ export default function Step4Payment({
 }: Step4PaymentProps) {
   const t = useTranslations('checkout');
   const { methods: paymentMethods, loading, error } = usePaymentMethods();
-  // Respaldo de contacto por si además falta el WhatsApp configurado
+  // De aquí sale el WhatsApp, y el fijo y el correo de respaldo si no hay
   const { storeInfo } = useStoreInfo();
 
   // Auto-seleccionar el primer método disponible si el actual no está en la lista
@@ -94,8 +94,8 @@ export default function Step4Payment({
       `Entrega: ${deliveryMethod === 'delivery' ? 'Delivery a domicilio' : 'Retiro en tienda'}`,
     ].filter((l): l is string => l !== null);
     // El enlace lo arma el helper compartido: aquí se repetía la normalización
-    const waUrl = storeWhatsAppUrl(messageLines.join('\n'));
-    const waTel = toTelHref(storeWhatsAppNumber());
+    const waUrl = storeWhatsAppUrl(storeInfo?.whatsapp, messageLines.join('\n'));
+    const waTel = toTelHref(storeWhatsAppNumber(storeInfo?.whatsapp));
 
     return (
       <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
